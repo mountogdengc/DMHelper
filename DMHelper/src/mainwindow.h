@@ -72,6 +72,7 @@ public slots:
     void saveCampaignAs();
     void openFileDialog();
     bool closeCampaign();
+
     void openDiceDialog();
 
     void openEncounter(QUuid id);
@@ -206,6 +207,7 @@ protected slots:
     void exportSpellbook();
     void importSpellbook();
 
+    void openMapManager();
     void openAboutDialog();
     void openHelpDialog();
     void openBackupDirectory();
