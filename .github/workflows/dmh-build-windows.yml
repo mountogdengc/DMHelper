@@ -87,17 +87,21 @@ jobs:
         ls
 
     - name: Build DMHelper for Windows
+      id: build
       run: |
         cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe ..\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler" 
+        qmake.exe ..\src\DMHelper.pro -spec win32-msvc
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
         
-    - name: Verify object files
+    - name: Inspect object files on build failure
+      if: steps.build.outcome == 'failure'
       run: |
         dir DMHelper\build-64_bit-release\release
+        cd DMHelper\build-64_bit-release
+        Get-ChildItem -Recurse -Filter main.obj
 
     - name: Copy binary resources
       run: |
