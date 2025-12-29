@@ -27,7 +27,7 @@
 <p>
 <h3>Other Improvements:</h3>
 <ul>
-<li>
+<li> Videos loop by default, and this can now be toggled in the layer settings
 </ul>
 -->
 
