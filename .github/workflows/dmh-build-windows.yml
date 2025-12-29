@@ -88,6 +88,7 @@ jobs:
 
     - name: Build DMHelper for Windows
       id: build
+      continue-on-error: true
       run: |
         cd DMHelper
         mkdir build-64_bit-release
@@ -103,6 +104,10 @@ jobs:
         cd DMHelper\build-64_bit-release
         Get-ChildItem -Recurse -Filter main.obj
 
+    - name: Fail job after diagnostics
+      if: steps.build.outcome == 'failure'
+      run: exit 1
+  
     - name: Copy binary resources
       run: |
         cd DMHelper
