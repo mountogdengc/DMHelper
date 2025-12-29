@@ -94,6 +94,10 @@ jobs:
         qmake.exe ..\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler" 
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
+        
+    - name: Verify object files
+      run: |
+        dir DMHelper\build-64_bit-release\release
 
     - name: Copy binary resources
       run: |
