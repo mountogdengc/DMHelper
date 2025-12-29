@@ -100,7 +100,7 @@ jobs:
     - name: Inspect object files on build failure
       if: steps.build.outcome == 'failure'
       run: |
-        dir /S DMHelper\build-64_bit-release\release
+        Get-ChildItem -Recurse
         Get-Location
         cd DMHelper\build-64_bit-release
         Get-Location
