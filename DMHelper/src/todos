@@ -1,6 +1,5 @@
+Export dialog shows empty entries in the tree
 Clear Icon doesn't work.
-Import should be a menu item everywhere
-Video layer playback option to repeat/not repeat (default is repeat)
 Individual entries can hide overlays (e.g. for video spots)
 daggerheart - need HP to count down for now
 new campaign doesn't open the newly selected bestiary
@@ -8,6 +7,7 @@ new entry (PC, maybe anything) should highlight the entry name first
 daggerheart - make initiative entries custom
 ---> add config to convert a resource number into checkboxes (HP and Stress)
 Daggerheart: show a range-finder with circles of close, near far range
+DONE Video layer playback option to repeat/not repeat (default is repeat)
 
 Camapign notes - add a text saying how to take quick notes
 Add a Did You Know text to the welcome page with as much text as possible
