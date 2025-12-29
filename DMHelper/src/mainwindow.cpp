@@ -2422,6 +2422,10 @@ void MainWindow::handleCustomContextMenu(const QPoint& point)
         contextMenu->addAction(previewWindowItem);
     }
 
+    QAction* importItem = new QAction(QIcon(":/img/data/icon_importitem.png"), QString("Import Item..."));
+    connect(importItem, SIGNAL(triggered()), this, SLOT(importItem()));
+    contextMenu->addAction(importItem);
+
     QAction* exportItem = new QAction(QIcon(":/img/data/icon_exportitem.png"), QString("Export Item..."));
     connect(exportItem, SIGNAL(triggered()), this, SLOT(exportCurrentItem()));
     contextMenu->addAction(exportItem);
