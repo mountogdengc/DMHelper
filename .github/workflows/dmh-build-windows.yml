@@ -93,11 +93,12 @@ jobs:
         cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe ..\src\DMHelper.pro -spec win32-msvc CONFIG+=release
+        qmake.exe -d ..\src\DMHelper.pro -spec win32-msvc CONFIG+=release
         # nmake /f Makefile qmake_all
         # nmake /f Makefile.Release
-        ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
-        ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
+        ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all > build_verbose.log 2>&1
+        ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release >> build_verbose.log 2>&1
+        cat build_verbose.log
         
     - name: Inspect object files on build failure
       if: steps.build.outcome == 'failure'
@@ -109,6 +110,7 @@ jobs:
         Get-Location
         cd DMHelper\build-64_bit-release
         Get-Location
+        cat build_verbose.log
         Get-ChildItem -Path "$Env:GITHUB_WORKSPACE\DMHelper" -Recurse -Filter main.obj | Select-Object FullName
 
     - name: Fail job after diagnostics
