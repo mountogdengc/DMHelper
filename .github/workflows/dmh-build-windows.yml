@@ -87,7 +87,6 @@ jobs:
       run: |
         echo "Current environmental path: ${{env.PATH}}"
         Get-Command cl
-        exit 1
         # cd DMHelper
         mkdir bin64
         mkdir bin64\config
@@ -112,7 +111,7 @@ jobs:
         # cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
+        qmake.exe ..\DMHelper\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler"
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
         # Uncomment to capture more output in a text file
