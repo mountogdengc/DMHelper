@@ -41,7 +41,7 @@ jobs:
         archives: 'qttranslations qttools qtsvg qtbase opengl32sw d3dcompiler_47'
         
     - name: Check out the DMHelper source tree
-      uses: actions/checkout@v3
+      uses: actions/checkout@6
     
     - name: Print current working dir
       run: |
@@ -78,7 +78,7 @@ jobs:
     - name: Set up environment for build
       run: |
         echo "Current environmental path: ${{env.PATH}}"
-        cd DMHelper
+        # cd DMHelper
         mkdir bin64
         mkdir bin64\config
         mkdir bin64\packages
@@ -91,7 +91,7 @@ jobs:
         mkdir bin64\packages\com.dmhelper.app\data\plugins
         mkdir bin64\packages\com.dmhelper.app\data\resources
         mkdir bin64\packages\com.dmhelper.app\data\resources\tables
-        xcopy /s src\installer\* bin64\*
+        xcopy /s DMHelper\src\installer\* bin64\*
         Rename-Item -Path "bin64\packages\com.dmhelper.app\meta\installscript64.qs" -NewName "installscript.qs"
         ls
 
@@ -99,10 +99,10 @@ jobs:
       id: build
       continue-on-error: true
       run: |
-        cd DMHelper
+        # cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe -d ..\src\DMHelper.pro -spec win32-msvc CONFIG+=release
+        qmake.exe -d ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
         # nmake /f Makefile qmake_all
         # nmake /f Makefile.Release
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all > build_verbose.log 2>&1
@@ -113,13 +113,12 @@ jobs:
       if: steps.build.outcome == 'failure'
       run: |
         icacls DMHelper
-        icacls DMHelper\build-64_bit-release
-        icacls DMHelper\build-64_bit-release\release
+        icacls build-64_bit-release
+        icacls build-64_bit-release\release
         Get-ChildItem -Recurse
         Get-Location
-        cd DMHelper\build-64_bit-release
+        cd build-64_bit-release
         Get-Location
-        cat build_verbose.log
         Get-ChildItem -Path "$Env:GITHUB_WORKSPACE\DMHelper" -Recurse -Filter main.obj | Select-Object FullName
 
     - name: Fail job after diagnostics
@@ -128,27 +127,27 @@ jobs:
   
     - name: Copy binary resources
       run: |
-        cd DMHelper
+        #cd DMHelper
         cd build-64_bit-release
         ls
         xcopy .\release\DMHelper.exe ..\bin64\packages\com.dmhelper.app\data\
         xcopy D:\a\DMHelper\Qt\6.8.3\msvc2022_64\bin\Qt6Xml.dll ..\bin64\packages\com.dmhelper.app\data\
         xcopy ..\src\bin-win64\* ..\bin64\packages\com.dmhelper.app\data\*
-        xcopy /s ..\src\bestiary\* ..\bin64\packages\com.dmhelper.app\data\resources\*
-        xcopy /s ..\src\doc\* ..\bin64\packages\com.dmhelper.app\data\doc\*
-        xcopy /s ..\src\bin-win64\pkgconfig\* ..\bin64\packages\com.dmhelper.app\data\pkgconfig\*
-        xcopy /s ..\src\bin-win64\plugins\* ..\bin64\packages\com.dmhelper.app\data\plugins\*
-        xcopy /s ..\src\resources\* ..\bin64\packages\com.dmhelper.app\data\resources\*
+        xcopy /s ..\DMHelper\src\bestiary\* ..\bin64\packages\com.dmhelper.app\data\resources\*
+        xcopy /s ..\DMHelper\src\doc\* ..\bin64\packages\com.dmhelper.app\data\doc\*
+        xcopy /s ..\DMHelper\src\bin-win64\pkgconfig\* ..\bin64\packages\com.dmhelper.app\data\pkgconfig\*
+        xcopy /s ..\DMHelper\src\bin-win64\plugins\* ..\bin64\packages\com.dmhelper.app\data\plugins\*
+        xcopy /s ..\DMHelper\src\resources\* ..\bin64\packages\com.dmhelper.app\data\resources\*
 
     - name: Call Deploy for Qt
       run: |
-        cd DMHelper
+        # cd DMHelper
         cd build-64_bit-release
         windeployqt --compiler-runtime --no-opengl-sw --no-svg ..\bin64\packages\com.dmhelper.app\data
         
     - name: Create the installer
       run: |
-        cd DMHelper
+        # cd DMHelper
         cd bin64
         ${{ runner.workspace }}\Qt\Tools\QtInstallerFramework\${{ env.QT_INSTALLER_VERSION }}\bin\binarycreator -c config\config_win64.xml -p packages --resources config\resources.qrc DMHelper-64-bit-release-Installer
         cd ..
@@ -156,7 +155,7 @@ jobs:
         
     - name: Zip the build
       run:  |
-        cd DMHelper
+        # cd DMHelper
         7z a -tzip DMHelper-64-bit-release.zip .\bin64\packages\com.dmhelper.app\data\*
     
     - name: Output the workspace directory tree contents
@@ -167,10 +166,12 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: ${{ env.ZIPARTIFACT }}
-        path: ${{ github.workspace }}\DMHelper\${{ env.ZIPARTIFACT }}
+        # path: ${{ github.workspace }}\DMHelper\${{ env.ZIPARTIFACT }}
+        path: ${{ github.workspace }}\${{ env.ZIPARTIFACT }}
 
     - name: Save the install file
       uses: actions/upload-artifact@master
       with:
         name: ${{ env.INSTALLERARTIFACT }}
-        path: ${{ github.workspace }}\DMHelper\${{ env.INSTALLERARTIFACT }}
+        # path: ${{ github.workspace }}\DMHelper\${{ env.INSTALLERARTIFACT }}
+        path: ${{ github.workspace }}\${{ env.INSTALLERARTIFACT }}
