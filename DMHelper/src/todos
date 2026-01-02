@@ -1,5 +1,6 @@
 Export dialog shows empty entries in the tree
 Clear Icon doesn't work.
+Don't auto-save if the filename hasn't been chosen yet...
 Individual entries can hide overlays (e.g. for video spots)
 daggerheart - need HP to count down for now
 new campaign doesn't open the newly selected bestiary

@@ -35,6 +35,7 @@ protected slots:
 
     void selectItem(const QItemSelection &current, const QItemSelection &previous);
     void openPreviewDialog(const QModelIndex &current);
+    void previewCurrentItem();
 
     void browsePath();
     void findMaps();

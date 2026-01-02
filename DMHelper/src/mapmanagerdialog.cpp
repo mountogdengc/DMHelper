@@ -53,6 +53,15 @@ MapManagerDialog::MapManagerDialog(OptionsContainer& options, QWidget *parent) :
     connect(ui->btnAutoTag, &QPushButton::clicked, this, &MapManagerDialog::addTags);
     connect(ui->btnBrowseTags, &QPushButton::clicked, this, &MapManagerDialog::browseTags);
     connect(ui->edtSearch, &QLineEdit::editingFinished, this, &MapManagerDialog::handleSearchTagsEdited);
+    connect(ui->btnClearFilter, &QPushButton::clicked, this, [this]() { ui->edtSearch->clear(); _proxy->clearRequiredTags(); });
+
+    QPushButton* btnPreview = new QPushButton(QIcon(":/img/data/icon_zoomin.png"), QString(), ui->lblPreview);
+    btnPreview->setMinimumSize(40, 40);
+    btnPreview->setMaximumSize(40, 40);
+    btnPreview->setIconSize(QSize(35, 35));
+    btnPreview->setToolTip(tr("Preview Map"));
+    btnPreview->move(5, 5);
+    connect(btnPreview, &QPushButton::clicked, this, &MapManagerDialog::previewCurrentItem);
 
     ui->edtTags->installEventFilter(this);
 }
@@ -86,6 +95,9 @@ void MapManagerDialog::selectItem(const QItemSelection &current, const QItemSele
 
 void MapManagerDialog::openPreviewDialog(const QModelIndex &current)
 {
+    if(!current.isValid())
+        return;
+
     MapFileMetadata metaData = getMetadataFromIndex(current);
     if(metaData._filePath.isEmpty())
         return;
@@ -108,6 +120,14 @@ void MapManagerDialog::openPreviewDialog(const QModelIndex &current)
     imageDialog->layout()->addWidget(scrollArea);
     imageDialog->setAttribute(Qt::WA_DeleteOnClose);
     imageDialog->show();
+}
+
+void MapManagerDialog::previewCurrentItem()
+{
+    if(!ui->treeView->selectionModel())
+        return;
+
+    openPreviewDialog(ui->treeView->selectionModel()->currentIndex());
 }
 
 void MapManagerDialog::browsePath()
@@ -209,12 +229,13 @@ void MapManagerDialog::addTags()
 }
 
 void MapManagerDialog::addTagsToItem(QStandardItem& item)
-{
+{    
     MapFileMetadata metaData = getMetadataFromItem(&item);
+
     if((metaData._type != DMHelper::FileType_Directory) && (!metaData._filePath.isEmpty()))
     {
         QFileInfo fileInfo(metaData._filePath);
-        QStringList newTags = proposeTags(fileInfo.fileName());
+        QStringList newTags = proposeTags(fileInfo.absoluteFilePath());
         if(metaData._tags.isEmpty())
         {
             metaData._tags = newTags;
@@ -236,7 +257,7 @@ void MapManagerDialog::addTagsToItem(QStandardItem& item)
             item.setData(QVariant::fromValue(metaData), MAPMANAGERDIALOG_METADATA);
     }
 
-    for(int i = 0; i < _model->rowCount(); ++i)
+    for(int i = 0; i < item.rowCount(); ++i)
     {
         if(item.child(i))
             addTagsToItem(*item.child(i));
@@ -329,6 +350,8 @@ void MapManagerDialog::readModel()
         qDebug() << "[MapManagerDialog] Loading Failed: Unable to open map manager cache file: " << _currentPath << ", file: " << modelFile;
         return;
     }
+
+    qDebug() << "[MapManagerDialog] Reading map manager cache file: " << _currentPath << ", file: " << modelFile;
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
