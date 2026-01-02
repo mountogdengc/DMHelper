@@ -39,14 +39,21 @@ jobs:
         tools: 'tools_vcredist,qt.tools.vcredist_64 tools_vcredist,qt.tools.vcredist_msvc2022_x64 tools_ifw'
         add-tools-to-path: 'true'
         archives: 'qttranslations qttools qtsvg qtbase opengl32sw d3dcompiler_47'
-        
+
+    - name: Check Qt Install
+      run: |
+        echo Checking status of Qt installation
+        cd ${{ runner.workspace }}\Qt
+        pwd
+        Get-ChildItem -Recurse -Directory
+        exit 1
+
     - name: Check out the DMHelper source tree
       uses: actions/checkout@v6
     
     - name: Print current working dir
       run: |
         echo Workspace is: ${{ github.workspace }}
-        Get-ChildItem -Recurse -Directory
         ls DMHelper
         cd DMHelper
         pwd
