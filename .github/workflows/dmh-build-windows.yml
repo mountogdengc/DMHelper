@@ -23,10 +23,8 @@ jobs:
         echo Workspace is: ${{ github.workspace }}
         echo 'runner.workspace === ${{ runner.workspace }}'
         echo 'github.workspace === ${{ github.workspace }}'
-        Get-ChildItem -Recurse -Directory
-        ls DMHelper
-        cd DMHelper
         pwd
+        Get-ChildItem -Recurse -Directory
         
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
