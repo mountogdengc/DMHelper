@@ -45,7 +45,7 @@ jobs:
         echo Checking status of Qt installation
         cd ${{ runner.workspace }}\Qt
         pwd
-        Get-ChildItem -Recurse -Directory
+        Get-ChildItem -Recurse
         exit 1
 
     - name: Check out the DMHelper source tree
