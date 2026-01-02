@@ -102,12 +102,11 @@ jobs:
         # cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe -d ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
-        # nmake /f Makefile qmake_all
-        # nmake /f Makefile.Release
+        qmake.exe ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
         ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
         # Uncomment to capture more output in a text file
+        # qmake.exe -d ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
         # ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all > build_verbose.log 2>&1
         # ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release >> build_verbose.log 2>&1
         # cat build_verbose.log
