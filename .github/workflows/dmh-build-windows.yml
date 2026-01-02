@@ -5,29 +5,29 @@ on:
 
 env:
   SOURCE_DIR:   ${{ github.workspace }}
-  QT_VERSION: 6.6.0
-  QT_INSTALLER_VERSION: 4.7
-  MSVC_VERSION: 2019
+  QT_VERSION: 6.8.3
+  QT_INSTALLER_VERSION: 4.10
+  MSVC_VERSION: 2022
   INSTALLERARTIFACT: DMHelper-64-bit-release-Installer.exe
   ZIPARTIFACT: DMHelper-64-bit-release.zip
 
 jobs:
   build-DMH-win64:
 
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
     - name: Install Qt
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        aqtversion: '==3.1.*'
-        version: '6.6.0'
+        aqtversion: '==3.3.*'
+        version: '6.8.3'
         host: 'windows'
         target: 'desktop'
-        arch: 'win64_msvc2019_64'
+        arch: 'win64_msvc2022_64'
         cache: 'true'
         modules: 'qtmultimedia qtnetworkauth qtimageformats'
-        tools: 'tools_vcredist,qt.tools.vcredist_64 tools_vcredist,qt.tools.vcredist_msvc2019_x64 tools_ifw'
+        tools: 'tools_vcredist,qt.tools.vcredist_64 tools_vcredist,qt.tools.vcredist_msvc2022_x64 tools_ifw'
         add-tools-to-path: 'true'
         archives: 'qttranslations qttools qtsvg qtbase opengl32sw d3dcompiler_47'
         
@@ -87,21 +87,43 @@ jobs:
         ls
 
     - name: Build DMHelper for Windows
+      id: build
+      continue-on-error: true
       run: |
         cd DMHelper
         mkdir build-64_bit-release
         cd build-64_bit-release
-        qmake.exe ..\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler" 
-        ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
-        ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
+        qmake.exe -d ..\src\DMHelper.pro -spec win32-msvc CONFIG+=release
+        # nmake /f Makefile qmake_all
+        # nmake /f Makefile.Release
+        ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all > build_verbose.log 2>&1
+        ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release >> build_verbose.log 2>&1
+        cat build_verbose.log
+        
+    - name: Inspect object files on build failure
+      if: steps.build.outcome == 'failure'
+      run: |
+        icacls DMHelper
+        icacls DMHelper\build-64_bit-release
+        icacls DMHelper\build-64_bit-release\release
+        Get-ChildItem -Recurse
+        Get-Location
+        cd DMHelper\build-64_bit-release
+        Get-Location
+        cat build_verbose.log
+        Get-ChildItem -Path "$Env:GITHUB_WORKSPACE\DMHelper" -Recurse -Filter main.obj | Select-Object FullName
 
+    - name: Fail job after diagnostics
+      if: steps.build.outcome == 'failure'
+      run: exit 1
+  
     - name: Copy binary resources
       run: |
         cd DMHelper
         cd build-64_bit-release
         ls
         xcopy .\release\DMHelper.exe ..\bin64\packages\com.dmhelper.app\data\
-        xcopy D:\a\DMHelper\Qt\6.6.0\msvc2019_64\bin\Qt6Xml.dll ..\bin64\packages\com.dmhelper.app\data\
+        xcopy D:\a\DMHelper\Qt\6.8.3\msvc2022_64\bin\Qt6Xml.dll ..\bin64\packages\com.dmhelper.app\data\
         xcopy ..\src\bin-win64\* ..\bin64\packages\com.dmhelper.app\data\*
         xcopy /s ..\src\bestiary\* ..\bin64\packages\com.dmhelper.app\data\resources\*
         xcopy /s ..\src\doc\* ..\bin64\packages\com.dmhelper.app\data\doc\*
