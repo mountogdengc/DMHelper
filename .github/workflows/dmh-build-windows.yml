@@ -46,6 +46,7 @@ jobs:
     - name: Print current working dir
       run: |
         echo Workspace is: ${{ github.workspace }}
+        Get-ChildItem -Recurse -Directory
         ls DMHelper
         cd DMHelper
         pwd
@@ -57,7 +58,7 @@ jobs:
         # cd ${{ runner.workspace }}\Qt\Tools\QtInstallerFramework\${{ env.QT_INSTALLER_VERSION }}\bin
         # Get-ChildItem -Recurse -Directory
         # echo STOP!
-        # Dosomethingthatbreaks
+        # exit 1
         
     - name: Download JOM
       uses: suisei-cn/actions-download-file@v1
