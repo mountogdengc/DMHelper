@@ -41,7 +41,7 @@ jobs:
         archives: 'qttranslations qttools qtsvg qtbase opengl32sw d3dcompiler_47'
         
     - name: Check out the DMHelper source tree
-      uses: actions/checkout@5
+      uses: actions/checkout@4
     
     - name: Print current working dir
       run: |
