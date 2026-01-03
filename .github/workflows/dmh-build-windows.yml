@@ -113,7 +113,7 @@ jobs:
         cd build-64_bit-release
         qmake.exe ..\DMHelper\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler"
         # ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all
-        ${{ runner.temp }}\jom\jom.exe /d /f Makefile.Release
+        ${{ runner.temp }}\jom\jom.exe /a /d /f Makefile.Release
         # Uncomment to capture more output in a text file
         # qmake.exe -d ..\DMHelper\src\DMHelper.pro -spec win32-msvc CONFIG+=release
         # ${{ runner.temp }}\jom\jom.exe /d /f Makefile qmake_all > build_verbose.log 2>&1
