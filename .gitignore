@@ -8,9 +8,11 @@ DMHelper/build-32_bit-release
 DMHelper/build-64_bit-debug
 DMHelper/build-64_bit-profile
 DMHelper/build-64_bit-release
+DMHelper/Desktop_Qt*
 DMHelper/rawdata
 DMHelper/testdata
 DMHelper/release
+DMHelper/src/.vs
 DMHelper/src/DMHelper.pro.user
 DMHelper/src/DMHelper.pro.user*
 DMHelper/working

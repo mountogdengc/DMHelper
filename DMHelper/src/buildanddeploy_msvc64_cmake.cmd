@@ -42,9 +42,9 @@ mkdir build-64_bit-release
 cd build-64_bit-release
 call vcvarsall.bat x64
 @echo on
-qmake.exe ..\src\DMHelper.pro -spec win32-msvc "CONFIG+=qtquickcompiler"
-jom.exe /d /f Makefile qmake_all
-jom.exe /d /f Makefile.Release
+cmake -S ..\src\ -B .\ -G "Visual Studio 17 2022"
+cmake --build .\ --config Release
+goto end
 goto build_done
 
 :skip_build
