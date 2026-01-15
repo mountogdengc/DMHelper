@@ -146,7 +146,6 @@ MainWindow::MainWindow(QWidget *parent) :
     _options(nullptr),
     _bestiaryDlg(),
     _spellDlg(),
-    _battleDlgMgr(nullptr),
     //_audioPlayer(nullptr),
 #ifdef INCLUDE_NETWORK_SUPPORT
     _networkController(nullptr),
@@ -2872,9 +2871,23 @@ void MainWindow::openMapManager()
 
     qDebug() << "[MainWindow] Opening Map Manager";
 
-    MapManagerDialog dlg(*_options);
-    dlg.resize(qMax(dlg.width(), width() * 3 / 4), qMax(dlg.height(), height() * 3 / 4));
-    dlg.exec();
+    MapManagerDialog* dlg = new MapManagerDialog(*_options);
+    connect(dlg, &MapManagerDialog::createEntryImage, this, &MainWindow::handleCreateMap);
+    dlg->resize(qMax(dlg->width(), width() * 3 / 4), qMax(dlg->height(), height() * 3 / 4));
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->open();
+}
+
+void MainWindow::handleCreateMap(const QString& mapFile)
+{
+    if((!_campaign) || (mapFile.isEmpty()))
+        return;
+
+    CampaignObjectBase* currentObject = ui->treeView->currentCampaignObject();
+    if(!currentObject)
+        return;
+
+    newEncounter(DMHelper::CampaignType_Map, mapFile, currentObject);
 }
 
 void MainWindow::openAboutDialog()

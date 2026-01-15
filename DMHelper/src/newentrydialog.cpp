@@ -643,6 +643,7 @@ void NewEntryDialog::newPageSelected()
     }
 
     validateNewEntry();
+    ui->edtEntryName->setFocus();
 }
 
 void NewEntryDialog::readTextFile(const QString& filename)

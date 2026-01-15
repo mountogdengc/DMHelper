@@ -9,6 +9,7 @@ DMHelper/build-64_bit-debug
 DMHelper/build-64_bit-profile
 DMHelper/build-64_bit-release
 DMHelper/Desktop_Qt*
+DMHelper/out
 DMHelper/rawdata
 DMHelper/testdata
 DMHelper/release
