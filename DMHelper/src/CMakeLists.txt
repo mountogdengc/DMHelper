@@ -9,9 +9,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -------------------------
-# Qt setup (Qt5 or Qt6)
+# Qt6 setup
 # -------------------------
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS
     Core Gui Widgets Xml Multimedia MultimediaWidgets OpenGL Network OpenGLWidgets UiTools
 )
 
@@ -22,9 +22,9 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS
 # -------------------------
 # Enable Qt automoc/uic/rcc
 # -------------------------
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOMOC OFF)
+set(CMAKE_AUTOUIC OFF)
+set(CMAKE_AUTORCC OFF)
 
 # -------------------------
 # Source files
@@ -58,6 +58,10 @@ add_executable(DMHelper
     ${DMHELPER_UI}
     ${DMHELPER_RESOURCES}
 )
+
+set_property(TARGET DMHelper PROPERTY AUTOMOC ON)
+set_property(TARGET DMHelper PROPERTY AUTOUIC ON)
+set_property(TARGET DMHelper PROPERTY AUTORCC ON)
 
 # -------------------------
 # Include paths

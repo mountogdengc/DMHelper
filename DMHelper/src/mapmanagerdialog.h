@@ -30,6 +30,9 @@ public:
         QStringList _tags;
     };
 
+signals:
+    void createEntryImage(const QString& imageFile);
+
 protected slots:
     virtual void showEvent(QShowEvent *event) override;
 
@@ -50,6 +53,8 @@ protected slots:
 
     void readModel();
     void writeModel();
+
+    void handleCreateEntry();
 
 protected:
     virtual bool eventFilter(QObject* object, QEvent* event) override;
@@ -210,6 +215,7 @@ private:
 
     protected:
         virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+        bool pathMatchesRow(const QModelIndex& rowIndex) const;
         bool listContainsAllTags(const QStringList& list) const;
 
     private:

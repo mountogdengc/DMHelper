@@ -14,6 +14,7 @@
 #include <QDomElement>
 #include <QListWidget>
 #include <QKeyEvent>
+#include <QShortcut>
 
 const int MAPMANAGERDIALOG_CACHE_IMAGE_SIZE = 256;
 const int MAPMANAGERDIALOG_METADATA = Qt::UserRole + 1;
@@ -54,6 +55,7 @@ MapManagerDialog::MapManagerDialog(OptionsContainer& options, QWidget *parent) :
     connect(ui->btnBrowseTags, &QPushButton::clicked, this, &MapManagerDialog::browseTags);
     connect(ui->edtSearch, &QLineEdit::editingFinished, this, &MapManagerDialog::handleSearchTagsEdited);
     connect(ui->btnClearFilter, &QPushButton::clicked, this, [this]() { ui->edtSearch->clear(); _proxy->clearRequiredTags(); });
+    connect(ui->btnCreateEntry, &QPushButton::clicked, this, &MapManagerDialog::handleCreateEntry);
 
     QPushButton* btnPreview = new QPushButton(QIcon(":/img/data/icon_zoomin.png"), QString(), ui->lblPreview);
     btnPreview->setMinimumSize(40, 40);
@@ -108,18 +110,20 @@ void MapManagerDialog::openPreviewDialog(const QModelIndex &current)
 
     QLabel* imageLabel = new QLabel;
     QScrollArea* scrollArea = new QScrollArea;
-    QDialog* imageDialog = new QDialog(this);
+    QMainWindow* imageWindow = new QMainWindow(this);
 
     imageLabel->setScaledContents(false);
     imageLabel->setPixmap(itemPixmap);
     scrollArea->setWidgetResizable(false);
     scrollArea->setWidget(imageLabel);
-    imageDialog->setWindowTitle(tr("Map Preview - %1").arg(metaData._filePath));
-    imageDialog->resize(qMin(itemPixmap.width() + 20, width()), qMin(itemPixmap.height() + 20, height()));
-    imageDialog->setLayout(new QVBoxLayout);
-    imageDialog->layout()->addWidget(scrollArea);
-    imageDialog->setAttribute(Qt::WA_DeleteOnClose);
-    imageDialog->show();
+    imageWindow->setWindowTitle(tr("DMHelper Map Preview - %1").arg(metaData._filePath));
+    imageWindow->resize(qMin(itemPixmap.width() + 20, width()), qMin(itemPixmap.height() + 20, height()));
+    imageWindow->setLayout(new QVBoxLayout);
+    imageWindow->layout()->addWidget(scrollArea);
+    imageWindow->setAttribute(Qt::WA_DeleteOnClose);
+    QShortcut* escapeShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), imageWindow, SLOT(close()));
+    QShortcut* returnShortcut = new QShortcut(QKeySequence(Qt::Key_Return), imageWindow, SLOT(close()));
+    imageWindow->show();
 }
 
 void MapManagerDialog::previewCurrentItem()
@@ -416,6 +420,25 @@ void MapManagerDialog::writeModel()
     file.close();
 
     qDebug() << "[MapManagerDialog] Map manager cache file written: " << modelFile;
+}
+
+void MapManagerDialog::handleCreateEntry()
+{
+    if(!ui->treeView->selectionModel())
+        return;
+
+    // Inform the application to add a new entry
+    if(ui->treeView->selectionModel()->selection().indexes().count() != 1)
+        return;
+
+    MapFileMetadata metaData = getMetadataFromIndex(ui->treeView->selectionModel()->selection().indexes().first());
+    if(metaData._type == DMHelper::FileType_Directory)
+        return;
+
+    if(metaData._filePath.isEmpty())
+        return;
+
+    emit createEntryImage(metaData._filePath);
 }
 
 bool MapManagerDialog::eventFilter(QObject* object, QEvent* event)
@@ -765,6 +788,9 @@ bool MapManagerDialog::TagFilterProxyModel::filterAcceptsRow(int source_row, con
         return true;
 
     QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+    if(pathMatchesRow(index))
+        return true;
+
     QVariant variantData = index.data(MAPMANAGERDIALOG_METADATA);
     if(!variantData.isValid())
         return true;
@@ -783,6 +809,25 @@ bool MapManagerDialog::TagFilterProxyModel::filterAcceptsRow(int source_row, con
 
     // Reject
     return false;
+}
+
+bool MapManagerDialog::TagFilterProxyModel::pathMatchesRow(const QModelIndex& rowIndex) const
+{
+    if(!rowIndex.isValid())
+        return false;
+
+    QString rowName = rowIndex.data().toString();
+    if(rowIndex.data().toString().isEmpty())
+        return false;
+    
+    QStringList nameList = rowIndex.data().toString().split(QChar::Space);
+    foreach(const QString & namePart, nameList)
+    {
+        if(!_requiredTags.contains(namePart, Qt::CaseInsensitive))
+            return pathMatchesRow(rowIndex.parent());
+    }
+
+    return true;
 }
 
 bool MapManagerDialog::TagFilterProxyModel::listContainsAllTags(const QStringList& list) const
