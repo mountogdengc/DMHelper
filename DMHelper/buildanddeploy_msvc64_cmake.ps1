@@ -31,7 +31,7 @@ $QtInstallerVersion = "4.10"
 $MsvcYear   = "2022"
 
 $SevenZip   = "C:\Program Files\7-Zip\7z.exe"
-if (-not (Test-Path $path)) {
+if (-not (Test-Path $SevenZip)) {
     $SevenZip   = "7z.exe"
 }
 
