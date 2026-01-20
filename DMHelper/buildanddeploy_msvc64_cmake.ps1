@@ -18,17 +18,19 @@ Set-Location $ScriptRoot
 # Qt configuration
 # ------------------------
 
-$QtVersion  = "6.10.1"
-$QtInstallerVersion = "4.10"
-$MsvcYear   = "2022"
-
 if ($env:QT_ROOT_DIR) {
     $QtDir = $env:QT_ROOT_DIR
     $QtRoot = Split-Path (Split-Path $QtDir -Parent) -Parent
+    $QtVersion  = "6.10.1"
+    $QtInstallerVersion = "4.10"
+    $MsvcYear   = "2022"
     Write-Host "Using Qt from environment: $QtDir"
 } else {
     $QtRoot = "C:\Qt"
     $QtDir = Join-Path $QtDir "$QtVersion\msvc${MsvcYear}_64"
+    $QtVersion  = "6.10.1"
+    $QtInstallerVersion = "4.7"
+    $MsvcYear   = "2022"
     Write-Host "Using default Qt path: $QtDir"
 }
 
