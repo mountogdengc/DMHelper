@@ -47,6 +47,10 @@ jobs:
       - name: Build DMHelper (MSVC Release)
         working-directory: ${{ github.workspace }}
         run: |
+          echo Runner Workspace is: ${{ runner.workspace }}
+          echo Github Workspace is: ${{ github.workspace }}
+          Get-ChildItem -Recurse -File -Filter "buildanddeploy_msvc64_cmake.ps1"
+          Get-ChildItem -Recurse -File
           "y" | pwsh -NoProfile -ExecutionPolicy Bypass -File buildanddeploy_msvc64_cmake.ps1
 
       # -------------------------
