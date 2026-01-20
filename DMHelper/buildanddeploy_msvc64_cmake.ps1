@@ -24,7 +24,7 @@ $MsvcYear   = "2022"
 
 if ($env:QT_ROOT_DIR) {
     $QtDir = $env:QT_ROOT_DIR
-    $QtRoot = Split-Path $QtDir -Parent -Parent
+    $QtRoot = Split-Path (Split-Path $QtDir -Parent) -Parent
     Write-Host "Using Qt from environment: $QtDir"
 } else {
     $QtRoot = "C:\Qt"
