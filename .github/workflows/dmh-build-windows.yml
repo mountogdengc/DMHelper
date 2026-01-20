@@ -26,10 +26,11 @@ jobs:
         with:
           version: 6.10.1
           arch: win64_msvc2022_64
-          tools: tools_ifw
-          tools_ifw_version: 4.10
+          tools: 'tools_vcredist,qt.tools.vcredist_64 tools_vcredist,qt.tools.vcredist_msvc2022_x64 tools_ifw'
           cache: true
-          #dir: C:\
+          modules: 'qtmultimedia qtnetworkauth qtimageformats'
+          add-tools-to-path: 'true'
+          archives: 'qttranslations qttools qtsvg qtbase opengl32sw d3dcompiler_47'
 
       # -------------------------
       # Ensure 7-Zip exists
