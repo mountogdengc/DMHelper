@@ -26,10 +26,10 @@ jobs:
         with:
           version: 6.10.1
           arch: win64_msvc2022_64
-          dir: C:\Qt
           tools: tools_ifw
           tools_ifw_version: 4.10
           cache: true
+          #dir: C:\
 
       # -------------------------
       # Ensure 7-Zip exists
