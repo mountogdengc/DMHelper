@@ -42,6 +42,22 @@ jobs:
           }
 
       # -------------------------
+      # Check the Qt Installation
+      # -------------------------
+      - name: Debug Qt installation
+        working-directory: ${{ runner.workspace }}
+        run: |
+        Get-ChildItem C:\Qt -Recurse -Depth 3 | Select-Object FullName
+    
+      # -------------------------
+      # Check the full file tree
+      # -------------------------
+      - name: Debug Workspace output
+        working-directory: ${{ runner.workspace }}
+        run: |
+        Get-ChildItem -Recurse -File
+    
+      # -------------------------
       # Run build & deploy script
       # -------------------------
       - name: Build DMHelper (MSVC Release)
