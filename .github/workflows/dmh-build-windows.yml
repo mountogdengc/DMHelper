@@ -48,7 +48,7 @@ jobs:
         working-directory: ${{ runner.workspace }}
         run: |
           Get-ChildItem C:\Qt -Recurse -Depth 3 | Select-Object FullName
-        
+
       # -------------------------
       # Check the full file tree
       # -------------------------
