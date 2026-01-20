@@ -45,12 +45,9 @@ jobs:
       # Run build & deploy script
       # -------------------------
       - name: Build DMHelper (MSVC Release)
-        env:
-          # Auto-confirm prompt inside the script
-          POWERSHELL_YES: y
+        working-directory: ${{ github.workspace }}
         run: |
-          # Automatically answer "y" to the confirmation prompt
-          "y" | .\buildanddeploy_msvc64_cmake.ps1
+          "y" | pwsh -NoProfile -ExecutionPolicy Bypass -File buildanddeploy_msvc64_cmake.ps1
 
       # -------------------------
       # Upload artifacts
