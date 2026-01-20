@@ -79,7 +79,7 @@ jobs:
         with:
           name: DMHelper-Windows-Installer
           path: |
-            DMHelper/DMHelper-64-bit-release-Installer.exe
+            DMHelper/DMHelper/DMHelper-64-bit-release-Installer.exe
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
       - name: Upload ZIP Distribution
@@ -87,5 +87,5 @@ jobs:
         with:
           name: DMHelper-Windows-Zip
           path: |
-            DMHelper/DMHelper-64-bit-release.zip
+            DMHelper/DMHelper/DMHelper-64-bit-release.zip
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
