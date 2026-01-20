@@ -79,11 +79,13 @@ jobs:
         with:
           name: DMHelper-Windows-Installer
           path: |
-            DMHelper-64-bit-release-Installer.exe
+            DMHelper/DMHelper-64-bit-release-Installer.exe
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
       - name: Upload ZIP Distribution
         uses: actions/upload-artifact@v4
         with:
           name: DMHelper-Windows-Zip
           path: |
-            DMHelper-64-bit-release.zip
+            DMHelper/DMHelper-64-bit-release.zip
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
