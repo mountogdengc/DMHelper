@@ -14,7 +14,18 @@ Set-Location $ScriptRoot
 # Configuration
 # =========================
 
-$QtDir      = "C:\Qt"
+# ------------------------
+# Qt configuration
+# ------------------------
+
+if ($env:QTDIR) {
+    $QtDir = $env:QTDIR
+    Write-Host "Using Qt from environment: $QtDir"
+} else {
+    $QtDir = "C:\Qt"
+    Write-Host "Using default Qt path: $QtDir"
+}
+
 $QtVersion  = "6.10.1"
 $QtInstallerVersion = "4.10"
 $MsvcYear   = "2022"
