@@ -226,12 +226,12 @@ Push-Location $BinDir
 & $BinaryCreator `
     -c config\config_win64.xml `
     -p packages `
-    "DMHelper 64-bit release Installer"
+    "DMHelper-64-bit-release-Installer"
 Pop-Location
 
 Move-Item `
-    "$BinDir\DMHelper 64-bit release Installer.exe" `
-    "$ScriptRoot\DMHelper 64-bit release Installer.exe" `
+    "$BinDir\DMHelper-64-bit-release-Installer.exe" `
+    "$ScriptRoot\DMHelper-64-bit-release-Installer.exe" `
     -Force
 
 # =========================
@@ -244,7 +244,7 @@ Write-Section "Creating ZIP distribution"
     a -tzip archive.zip `
     "$BinDir\packages\com.dmhelper.app\data\*"
 
-Move-Item archive.zip "DMHelper 64-bit release.zip" -Force
+Move-Item archive.zip "DMHelper-64-bit-release.zip" -Force
 
 Write-Host ""
 Write-Host "Build completed successfully."
