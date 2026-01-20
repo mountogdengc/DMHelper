@@ -18,8 +18,8 @@ Set-Location $ScriptRoot
 # Qt configuration
 # ------------------------
 
-if ($env:QTDIR) {
-    $QtDir = $env:QTDIR
+if ($env:QT_ROOT_DIR) {
+    $QtDir = $env:QT_ROOT_DIR
     Write-Host "Using Qt from environment: $QtDir"
 } else {
     $QtDir = "C:\Qt"
@@ -29,7 +29,11 @@ if ($env:QTDIR) {
 $QtVersion  = "6.10.1"
 $QtInstallerVersion = "4.10"
 $MsvcYear   = "2022"
+
 $SevenZip   = "C:\Program Files\7-Zip\7z.exe"
+if (-not (Test-Path $path)) {
+    $SevenZip   = "7z.exe"
+}
 
 $SrcDir     = Join-Path $ScriptRoot "src"
 $BuildDir   = Join-Path $ScriptRoot "build-64_bit-release"
@@ -127,6 +131,7 @@ Assert-Exists $QtPrefixPath "Qt MSVC directory"
 Assert-Exists $Qt6Dir "Qt6 CMake config"
 Assert-Exists $WinDeployQt "windeployqt"
 Assert-Exists $BinaryCreator "binarycreator"
+Assert-Exists $SevenZip "7-zip"
 
 $env:CMAKE_PREFIX_PATH = $QtPrefixPath
 $env:Qt6_DIR           = $Qt6Dir
