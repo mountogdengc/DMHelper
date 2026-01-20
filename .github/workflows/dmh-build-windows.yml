@@ -45,7 +45,7 @@ jobs:
       # Run build & deploy script
       # -------------------------
       - name: Build DMHelper (MSVC Release)
-        working-directory: ${{ github.workspace }}
+        working-directory: ${{ github.workspace }}/DMHelper
         run: |
           echo Runner Workspace is: ${{ runner.workspace }}
           echo Github Workspace is: ${{ github.workspace }}
