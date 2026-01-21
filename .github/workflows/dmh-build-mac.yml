@@ -69,7 +69,7 @@ jobs:
         env:
           QT_ROOT_DIR: ${{ env.QT_ROOT_DIR }}
         run: |
-          echo "y" | ./build-macos.sh
+          echo "y" | ./buildanddeploy_macos_cmake.sh
 
       # -------------------------
       # Debug workspace (post-build)
