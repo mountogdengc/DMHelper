@@ -58,8 +58,8 @@ jobs:
       - name: Make build script executable
         working-directory: ${{ github.workspace }}/DMHelper
         run: |
-          chmod +x build-macos.sh
-          ls -l build-macos.sh
+          chmod +x buildanddeploy_macos_cmake.sh
+          ls -l buildanddeploy_macos_cmake.sh
 
       # -------------------------
       # Run build & deploy script
