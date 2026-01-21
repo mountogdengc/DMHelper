@@ -41,7 +41,6 @@ jobs:
           echo "QT_ROOT_DIR=$QT_ROOT_DIR"
           which macdeployqt
           which binarycreator
-          macdeployqt -version
 
       # -------------------------
       # Debug workspace (pre-build)
