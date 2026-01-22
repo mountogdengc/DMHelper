@@ -107,10 +107,8 @@ mkdir -p \
 
 cp -R "$SRC_DIR/installer/"* "$BIN_DIR"
 
-ls -a -R "$BIN_DIR"
-
 mv \
-    "$BIN_DIR/packages/com.dmhelper.app/meta/installscript_64.qs" \
+    "$BIN_DIR/packages/com.dmhelper.app/meta/installscript64.qs" \
     "$BIN_DIR/packages/com.dmhelper.app/meta/installscript.qs"
 
 # =========================
