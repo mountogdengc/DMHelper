@@ -108,7 +108,7 @@ mkdir -p \
 cp -R "$SRC_DIR/installer/"* "$BIN_DIR"
 
 mv \
-    "$BIN_DIR/packages/com.dmhelper.app/meta/installscript_macos.qs" \
+    "$BIN_DIR/packages/com.dmhelper.app/meta/installscript_64.qs" \
     "$BIN_DIR/packages/com.dmhelper.app/meta/installscript.qs"
 
 # =========================
