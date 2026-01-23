@@ -103,7 +103,12 @@ mkdir -p \
     "$BIN_DIR/packages/com.dmhelper.app/data/doc" \
     "$BIN_DIR/packages/com.dmhelper.app/data/pkgconfig" \
     "$BIN_DIR/packages/com.dmhelper.app/data/plugins" \
-    "$BIN_DIR/packages/com.dmhelper.app/data/resources/tables"
+    "$BIN_DIR/packages/com.dmhelper.app/data/resources/tables" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/pkgconfig" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/plugins
 
 cp -R "$SRC_DIR/installer/"* "$BIN_DIR"
 
@@ -144,12 +149,21 @@ assert_exists "$APP_PATH" "DMHelper.app"
 cp -R "$APP_PATH" \
     "$BIN_DIR/packages/com.dmhelper.app/data/"
 
+cp -R "$SRC_DIR//bin-macos/Info.plist" \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/"
+
 cp -R "$SRC_DIR/bin-macos/"* \
     "$BIN_DIR/packages/com.dmhelper.app/data/"
 
 cp -R "$SRC_DIR/bestiary/"*  "$BIN_DIR/packages/com.dmhelper.app/data/resources/"
 cp -R "$SRC_DIR/doc/"*       "$BIN_DIR/packages/com.dmhelper.app/data/doc/"
 cp -R "$SRC_DIR/resources/"* "$BIN_DIR/packages/com.dmhelper.app/data/resources/"
+
+cp -R "$SRC_DIR/bin-macos/pkgconfig/"* \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/pkgconfig"
+
+cp -R "$SRC_DIR/bin-macos/vlc/plugins/"* \
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/plugins"
 
 # =========================
 # Qt deployment
@@ -171,7 +185,7 @@ section "Creating installer (Qt IFW)"
 pushd "$BIN_DIR" > /dev/null
 
 "$BINARY_CREATOR" \
-    -c config/config_macos.xml \
+    -c config/config_mac.xml \
     -p packages \
     DMHelper-macOS-Installer
 
