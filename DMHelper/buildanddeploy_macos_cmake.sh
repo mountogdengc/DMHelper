@@ -180,7 +180,7 @@ section "Running macdeployqt"
 # Create installer (.app or .dmg)
 # =========================
 
-section "Creating installer (Qt IFW)"
+section "Creating installer - Qt IFW"
 
 pushd "$BIN_DIR" > /dev/null
 
@@ -209,4 +209,4 @@ zip -r "$SCRIPT_ROOT/DMHelper-macOS-release.zip" .
 # =========================
 
 echo ""
-echo "Build completed successfully (macOS)."
+echo "Build completed successfully - macOS"
