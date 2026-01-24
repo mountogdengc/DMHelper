@@ -108,7 +108,7 @@ mkdir -p \
     "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents" \
     "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks" \
     "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/pkgconfig" \
-    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/plugins
+    "$BIN_DIR/packages/com.dmhelper.app/data/DMHelper.app/Contents/Frameworks/plugins"
 
 cp -R "$SRC_DIR/installer/"* "$BIN_DIR"
 
@@ -121,7 +121,7 @@ mv \
 # =========================
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
-    section "Configuring and building DMHelper - macOS"
+    section "Configuring and building DMHelper (macOS)"
 
     rm -rf "$BUILD_DIR"
     mkdir "$BUILD_DIR"
@@ -134,7 +134,7 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
 
     cmake --build "$BUILD_DIR" --config Release
 else
-    section "Skipping build - using existing binaries"
+    section "Skipping build (using existing binaries)"
 fi
 
 # =========================
@@ -180,7 +180,7 @@ section "Running macdeployqt"
 # Create installer (.app or .dmg)
 # =========================
 
-section "Creating installer - Qt IFW"
+section "Creating installer (Qt IFW)"
 
 pushd "$BIN_DIR" > /dev/null
 
@@ -209,4 +209,4 @@ zip -r "$SCRIPT_ROOT/DMHelper-macOS-release.zip" .
 # =========================
 
 echo ""
-echo "Build completed successfully - macOS"
+echo "Build completed successfully (macOS)"
