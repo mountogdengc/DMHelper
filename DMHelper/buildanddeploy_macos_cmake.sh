@@ -121,7 +121,7 @@ mv \
 # =========================
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
-    section "Configuring and building DMHelper (macOS)"
+    section "Configuring and building DMHelper - macOS"
 
     rm -rf "$BUILD_DIR"
     mkdir "$BUILD_DIR"
@@ -134,7 +134,7 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
 
     cmake --build "$BUILD_DIR" --config Release
 else
-    section "Skipping build (using existing binaries)"
+    section "Skipping build - using existing binaries"
 fi
 
 # =========================
