@@ -1,6 +1,7 @@
 #DMHelper ignores
 DMHelper/bin32
 DMHelper/bin64
+DMHelper/build
 DMHelper/build-32_bit-debug
 DMHelper/build-32_bit-profile
 DMHelper/build-32_bit-release
