@@ -346,7 +346,7 @@ CampaignObjectBase* NewEntryDialog::createCharacterEntry()
 
         return character;
     }
-    else if (ui->buttonGroupType->checkedButton() == ui->btnCharacterMonster)
+    else if (ui->buttonGroupCharacter->checkedButton() == ui->btnCharacterMonster)
     {
         QString selectedMonster = ui->cmbCharacterMonster->currentText();
         if(selectedMonster.isEmpty())
@@ -368,7 +368,7 @@ CampaignObjectBase* NewEntryDialog::createCharacterEntry()
 
         return character;
     }
-    else if (ui->buttonGroupType->checkedButton() == ui->btnCharacterDnDBeyond)
+    else if (ui->buttonGroupCharacter->checkedButton() == ui->btnCharacterDnDBeyond)
     {
         return nullptr; // Handled in MainWindow with isImportNeeded()
     }
