@@ -20,7 +20,8 @@
 
 <h3>Fixes:</h3>
 <ul>
-<li>
+<li>Add character based on a monster works again
+Edit FOW doesn't make the FOW darker on the DM View
 </ul>
 
 <!-- Commenting this section out for now
