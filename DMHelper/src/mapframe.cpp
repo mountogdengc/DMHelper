@@ -638,6 +638,11 @@ void MapFrame::setPointerFile(const QString& filename)
     }
 }
 
+void MapFrame::setDrawOn(bool enabled)
+{
+
+}
+
 void MapFrame::setTargetLabelSize(const QSize& targetSize)
 {
     _targetLabelSize = targetSize;

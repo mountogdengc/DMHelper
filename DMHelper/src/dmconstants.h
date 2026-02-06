@@ -147,7 +147,8 @@ namespace DMHelper
         BattleFrameState_Pointer,
         BattleFrameState_FoWSelect,
         BattleFrameState_FoWEdit,
-        BattleFrameState_MapMove
+        BattleFrameState_MapMove,
+        BattleFrameState_Draw
     };
 
     enum AudioType
@@ -194,6 +195,8 @@ namespace DMHelper
         LayerType_VideoEffect,
         LayerType_Blank,
         LayerType_Effect,
+        LayerType_Draw,
+        LayerType_Particle,
     };
 
     enum OverlayType

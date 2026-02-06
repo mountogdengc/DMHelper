@@ -39,6 +39,7 @@
 #include "layerfow.h"
 #include "layerimage.h"
 #include "layervideo.h"
+#include "layerdraw.h"
 #include "layerreference.h"
 #include "selectitemdialog.h"
 #include "selectcombatantdialog.h"
@@ -46,6 +47,7 @@
 #include "ruleinitiative.h"
 #include "spellbook.h"
 #include "gridsizer.h"
+#include "layerdrawengine.h"
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QKeyEvent>
@@ -99,6 +101,7 @@ BattleFrame::BattleFrame(QWidget *parent) :
     _model(nullptr),
     _combatantLayout(nullptr),
     _logger(nullptr),
+    _drawEngine(nullptr),
     _combatantWidgets(),
     _stateMachine(),
     _selectedCombatant(nullptr),
@@ -610,7 +613,7 @@ void BattleFrame::publishWindowMouseDown(const QPointF& position)
         return;
 
     QList<QGraphicsItem *> itemList = _scene->items(newPosition);
-    for(QGraphicsItem* graphicsItem : itemList)
+    for(QGraphicsItem* graphicsItem : std::as_const(itemList))
     {
         if((graphicsItem->flags() & QGraphicsItem::ItemIsSelectable) == QGraphicsItem::ItemIsSelectable)
         {
@@ -1159,7 +1162,7 @@ void BattleFrame::addCharacter()
 
     QList<Characterv2*> characterList;
     QList<Characterv2*> allCharacters = campaign->findChildren<Characterv2*>();
-    for(Characterv2* character : allCharacters)
+    for(Characterv2* character : std::as_const(allCharacters))
     {
         if((!_model->isCombatantInList(character)) &&
            (character->isInParty()))
@@ -1192,7 +1195,7 @@ void BattleFrame::addNPC()
 
     QList<Characterv2*> characterList;
     QList<Characterv2*> allCharacters = campaign->findChildren<Characterv2*>();
-    for(Characterv2* character : allCharacters)
+    for(Characterv2* character : std::as_const(allCharacters))
     {
         if((!_model->isCombatantInList(character)) &&
            (!character->isInParty()))
@@ -1639,6 +1642,12 @@ void BattleFrame::setPointerOn(bool enabled)
 {
     Q_UNUSED(enabled);
     _stateMachine.toggleState(DMHelper::BattleFrameState_Pointer);
+}
+
+void BattleFrame::setDrawOn(bool enabled)
+{
+    Q_UNUSED(enabled);
+    _stateMachine.toggleState(DMHelper::BattleFrameState_Draw);
 }
 
 void BattleFrame::keyPressEvent(QKeyEvent * event)
@@ -2724,6 +2733,46 @@ void BattleFrame::handleLayerSelected(Layer* layer)
     }
 }
 
+void BattleFrame::handleDrawToggled(bool enabled)
+{
+    if(enabled)
+    {
+        if(!_drawEngine)
+            _drawEngine = new LayerDrawEngine(this);
+
+        disconnect(_scene, &BattleDialogGraphicsScene::itemMouseDown, this, &BattleFrame::handleItemMouseDown);
+        disconnect(_scene, &BattleDialogGraphicsScene::itemMouseUp, this, &BattleFrame::handleItemMouseUp);
+        disconnect(_scene, &BattleDialogGraphicsScene::itemMouseDoubleClick, this, &BattleFrame::handleItemMouseDoubleClick);
+        disconnect(_scene, &BattleDialogGraphicsScene::itemMoved, this, &BattleFrame::handleItemMoved);
+
+        connect(_scene, &BattleDialogGraphicsScene::battleMousePress, _drawEngine, &LayerDrawEngine::handleMouseDown);
+        connect(_scene, &BattleDialogGraphicsScene::battleMouseMove, _drawEngine, &LayerDrawEngine::handleMouseMoved);
+        connect(_scene, &BattleDialogGraphicsScene::battleMouseRelease, _drawEngine, &LayerDrawEngine::handleMouseUp);
+
+        if((_drawEngine) && (_model))
+        {
+            LayerDraw* drawLayer = dynamic_cast<LayerDraw*>(_model->getLayerScene().getNearest(_model->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Draw));
+            if(drawLayer)
+            {
+                _drawEngine->setDrawLayer(drawLayer);
+            }
+        }
+
+    }
+    else
+    {
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMousePress, _drawEngine, &LayerDrawEngine::handleMouseDown);
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMouseMove, _drawEngine, &LayerDrawEngine::handleMouseMoved);
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMouseRelease, _drawEngine, &LayerDrawEngine::handleMouseUp);
+
+        connect(_scene, &BattleDialogGraphicsScene::itemMouseDown, this, &BattleFrame::handleItemMouseDown);
+        connect(_scene, &BattleDialogGraphicsScene::itemMouseUp, this, &BattleFrame::handleItemMouseUp);
+        connect(_scene, &BattleDialogGraphicsScene::itemMouseDoubleClick, this, &BattleFrame::handleItemMouseDoubleClick);
+        connect(_scene, &BattleDialogGraphicsScene::itemMoved, this, &BattleFrame::handleItemMoved);
+
+    }
+}
+
 void BattleFrame::itemLink()
 {
     handleItemLink(_contextMenuCombatant);
@@ -3362,9 +3411,9 @@ void BattleFrame::setEditMode()
         disconnect(_scene, SIGNAL(itemMouseDoubleClick(QGraphicsPixmapItem*)), this, SLOT(handleItemMouseDoubleClick(QGraphicsPixmapItem*)));
         disconnect(_scene, SIGNAL(itemMoved(QGraphicsPixmapItem*, bool*)), this, SLOT(handleItemMoved(QGraphicsPixmapItem*, bool*)));
 
-        connect(_scene, SIGNAL(battleMousePress(const QPointF&)), _mapDrawer, SLOT(handleMouseDown(const QPointF&)));
-        connect(_scene, SIGNAL(battleMouseMove(const QPointF&)), _mapDrawer, SLOT(handleMouseMoved(const QPointF&)));
-        connect(_scene, SIGNAL(battleMouseRelease(const QPointF&)), _mapDrawer, SLOT(handleMouseUp(const QPointF&)));
+        connect(_scene, &BattleDialogGraphicsScene::battleMousePress, _mapDrawer, &BattleFrameMapDrawer::handleMouseDown);
+        connect(_scene, &BattleDialogGraphicsScene::battleMouseMove, _mapDrawer, &BattleFrameMapDrawer::handleMouseMoved);
+        connect(_scene, &BattleDialogGraphicsScene::battleMouseRelease, _mapDrawer, &BattleFrameMapDrawer::handleMouseUp);
 
         if((_mapDrawer) && (_model))
         {
@@ -3391,9 +3440,9 @@ void BattleFrame::setEditMode()
     }
     else
     {
-        disconnect(_scene, SIGNAL(battleMousePress(const QPointF&)), _mapDrawer, SLOT(handleMouseDown(const QPointF&)));
-        disconnect(_scene, SIGNAL(battleMouseMove(const QPointF&)), _mapDrawer, SLOT(handleMouseMoved(const QPointF&)));
-        disconnect(_scene, SIGNAL(battleMouseRelease(const QPointF&)), _mapDrawer, SLOT(handleMouseUp(const QPointF&)));
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMousePress, _mapDrawer, &BattleFrameMapDrawer::handleMouseDown);
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMouseMove, _mapDrawer, &BattleFrameMapDrawer::handleMouseMoved);
+        disconnect(_scene, &BattleDialogGraphicsScene::battleMouseRelease, _mapDrawer, &BattleFrameMapDrawer::handleMouseUp);
 
         connect(_scene, SIGNAL(itemMouseDown(QGraphicsPixmapItem*, bool)), this, SLOT(handleItemMouseDown(QGraphicsPixmapItem*, bool)));
         connect(_scene, SIGNAL(itemMouseUp(QGraphicsPixmapItem*)), this, SLOT(handleItemMouseUp(QGraphicsPixmapItem*)));
@@ -3565,7 +3614,8 @@ CombatantWidget* BattleFrame::createCombatantWidget(BattleDialogModelCombatant* 
             if(character)
             {
                 newWidget = new CombatantWidgetCharacter(((campaign) && (campaign->getRuleset().getCombatantDoneCheckbox())), ui->scrollAreaWidgetContents);
-                CombatantWidgetInternalsCharacter* widgetInternals = new CombatantWidgetInternalsCharacter(character, dynamic_cast<CombatantWidgetCharacter*>(newWidget));
+                CombatantWidgetCharacter* combatantWidget = dynamic_cast<CombatantWidgetCharacter*>(newWidget);
+                CombatantWidgetInternalsCharacter* widgetInternals = new CombatantWidgetInternalsCharacter(character, combatantWidget);
                 connect(widgetInternals, SIGNAL(clicked(QUuid)), this, SIGNAL(characterSelected(QUuid)));
                 connect(widgetInternals, SIGNAL(contextMenu(BattleDialogModelCombatant*, QPoint)), this, SLOT(handleContextMenu(BattleDialogModelCombatant*, QPoint)));
                 connect(widgetInternals, SIGNAL(hitPointsChanged(BattleDialogModelCombatant*, int)), this, SLOT(updateCombatantVisibility()));
@@ -3582,7 +3632,8 @@ CombatantWidget* BattleFrame::createCombatantWidget(BattleDialogModelCombatant* 
             if(monster)
             {
                 newWidget = new CombatantWidgetMonster(((campaign) && (campaign->getRuleset().getCombatantDoneCheckbox())), ui->scrollAreaWidgetContents);
-                CombatantWidgetInternalsMonster* widgetInternals = new CombatantWidgetInternalsMonster(monster, dynamic_cast<CombatantWidgetMonster*>(newWidget));
+                CombatantWidgetMonster* combatantWidget = dynamic_cast<CombatantWidgetMonster*>(newWidget);
+                CombatantWidgetInternalsMonster* widgetInternals = new CombatantWidgetInternalsMonster(monster, combatantWidget);
                 connect(widgetInternals, SIGNAL(clicked(const QString&)), this, SIGNAL(monsterSelected(const QString&)));
                 connect(widgetInternals, SIGNAL(contextMenu(BattleDialogModelCombatant*, QPoint)), this, SLOT(handleContextMenu(BattleDialogModelCombatant*, QPoint)));
                 connect(widgetInternals, SIGNAL(hitPointsChanged(BattleDialogModelCombatant*, int)), this, SLOT(updateCombatantVisibility()));
@@ -4609,6 +4660,11 @@ instead move the player view
     BattleFrameState* freeDistanceState = new BattleFrameState(DMHelper::BattleFrameState_FreeDistance, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_distancecursor.png"), 32, 32);
     connect(freeDistanceState, &BattleFrameState::stateChanged, this, &BattleFrame::freeDistanceToggled);
     _stateMachine.addState(freeDistanceState);
+
+    BattleFrameState* drawState = new BattleFrameState(DMHelper::BattleFrameState_Draw, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_edit.png"), 32, 32);
+    connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::handleDrawToggled);
+    connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::drawToggled);
+    _stateMachine.addState(drawState);
 
     BattleFrameState* pointerState = new BattleFrameState(DMHelper::BattleFrameState_Pointer, BattleFrameState::BattleFrameStateType_Persistent, getPointerPixmap(), 0, 0);
     connect(pointerState, &BattleFrameState::stateChanged, this, &BattleFrame::pointerToggled);

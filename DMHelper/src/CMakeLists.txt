@@ -182,6 +182,9 @@ set(DMHELPER_SOURCES
     itemselectdialog.cpp
     layer.cpp
     layerblank.cpp
+    layerdraw.cpp
+    layerdrawengine.cpp
+    layerdrawtooldialog.cpp
     layereffect.cpp
     layereffectsettings.cpp
     layerfow.cpp
@@ -189,6 +192,7 @@ set(DMHELPER_SOURCES
     layerframe.cpp
     layergrid.cpp
     layerimage.cpp
+    layerparticle.cpp
     layerreference.cpp
     layerscene.cpp
     layerseditdialog.cpp
@@ -498,6 +502,10 @@ set(DMHELPER_HEADERS
     itemselectdialog.h
     layer.h
     layerblank.h
+    layerdraw.h
+    layerdrawengine.h
+    layerdrawtooldialog.h
+    layerseditdialog.h
     layereffect.h
     layereffectsettings.h
     layerfow.h
@@ -505,9 +513,9 @@ set(DMHELPER_HEADERS
     layerframe.h
     layergrid.h
     layerimage.h
+    layerparticle.h
     layerreference.h
     layerscene.h
-    layerseditdialog.h
     layertokens.h
     layervideo.h
     layervideoeffect.h
@@ -707,6 +715,7 @@ set(DMHELPER_FORMS
     initiativelistcombatantwidget.ui
     initiativelistdialog.ui
     itemselectdialog.ui
+    layerdrawtooldialog.ui
     layereffectsettings.ui
     layerfowsettings.ui
     layerframe.ui
