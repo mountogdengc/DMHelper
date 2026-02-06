@@ -379,22 +379,32 @@ BattleDialogGraphicsSceneMouseHandlerRaw::~BattleDialogGraphicsSceneMouseHandler
 
 bool BattleDialogGraphicsSceneMouseHandlerRaw::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    emit rawMouseMove(mouseEvent->scenePos());
-    mouseEvent->accept();
+    if(mouseEvent)
+    {
+        emit rawMouseMove(mouseEvent->scenePos(), mouseEvent->buttons(), mouseEvent->modifiers());
+        mouseEvent->accept();
+    }
+
     return false;
 }
 
 bool BattleDialogGraphicsSceneMouseHandlerRaw::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    emit rawMousePress(mouseEvent->scenePos());
-    mouseEvent->accept();
+    if(mouseEvent)
+    {
+        emit rawMousePress(mouseEvent->scenePos(), mouseEvent->buttons(), mouseEvent->modifiers());
+        mouseEvent->accept();
+    }
     return false;
 }
 
 bool BattleDialogGraphicsSceneMouseHandlerRaw::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    emit rawMouseRelease(mouseEvent->scenePos());
-    mouseEvent->accept();
+    if(mouseEvent)
+    {
+        emit rawMouseRelease(mouseEvent->scenePos(), mouseEvent->buttons(), mouseEvent->modifiers());
+        mouseEvent->accept();
+    }
     return false;
 }
 
