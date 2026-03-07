@@ -253,9 +253,6 @@ void BestiaryDialog::setMonster(MonsterClass* monster, bool edit)
         }
     }
 
-    //ui->btnLeft->setEnabled(_monster != Bestiary::Instance()->getFirstMonsterClass());
-    //ui->btnRight->setEnabled(_monster != Bestiary::Instance()->getLastMonsterClass());
-
     ui->edtName->setReadOnly(!_edit);
     ui->edtMonsterSize->setReadOnly(!_edit);
     ui->edtMonsterType->setReadOnly(!_edit);

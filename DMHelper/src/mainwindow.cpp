@@ -905,6 +905,8 @@ bool MainWindow::closeCampaign()
             qDebug() << "[MainWindow] User decided not to save Campaign: " << _campaignFileName;
     }
 
+    _campaign->setLastMonster(_bestiaryDlg.getMonster() ? _bestiaryDlg.getMonster()->getStringValue("name") : QString());
+
     writeBestiary();
     deleteCampaign();
 
@@ -1477,7 +1479,6 @@ void MainWindow::closeEvent(QCloseEvent * event)
     if((Spellbook::Instance()) && (Spellbook::Instance()->isDirty()))
         writeSpellbook();
 
-    _options->setLastMonster(_bestiaryDlg.getMonster() ? _bestiaryDlg.getMonster()->getStringValue("name") : "");
     _options->setLastSpell(_spellDlg.getSpell() ? _spellDlg.getSpell()->getName() : "");
     _options->writeSettings();
 
@@ -2146,6 +2147,9 @@ void MainWindow::openCampaign(const QString& filename)
     _campaign->inputXML(campaignElement, false);
     _campaign->postProcessXML(campaignElement, false);
     Bestiary::Instance()->finishBatchProcessing();
+
+    if((!_campaign->getLastMonster().isEmpty()) && (Bestiary::Instance()->exists(_campaign->getLastMonster())))
+        _bestiaryDlg.setMonster(_campaign->getLastMonster());
 
     if(!_campaign->isValid())
     {
@@ -2824,14 +2828,20 @@ void MainWindow::writeBestiary()
 
 void MainWindow::handleBestiaryRead(const QString& bestiaryFileName, bool converted)
 {
+    if(bestiaryFileName.isEmpty())
+    {
+        qDebug() << "[MainWindow] Bestiary closed, resetting bestiary dialog";
+        _bestiaryDlg.dataChanged();
+    }
+
     qDebug() << "[MainWindow] Bestiary reading completed";
 
     // Bestiary file seems ok, make a backup
     _options->backupFile(bestiaryFileName, converted ? QString("_converted_%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss")) : QString());
 
     // Try to reset the monster to the previously selected one
-    if(!_options->getLastMonster().isEmpty() && Bestiary::Instance()->exists(_options->getLastMonster()))
-        _bestiaryDlg.setMonster(_options->getLastMonster());
+    if((_campaign) && (!_campaign->getLastMonster().isEmpty()) && (Bestiary::Instance()->exists(_campaign->getLastMonster())))
+        _bestiaryDlg.setMonster(_campaign->getLastMonster());
     else
         _bestiaryDlg.setMonster(Bestiary::Instance()->getFirstMonsterClass());
 }
