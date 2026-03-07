@@ -380,16 +380,15 @@ void LayerDraw::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir&
 
 void LayerDraw::cleanupDM()
 {
-    /*
-    if(!_pathItem)
-        return;
+    QList<QGraphicsItem*> items = _graphicsItems.values();
+    for(QGraphicsItem* item : std::as_const(items))
+    {
+        if((item) && (item->scene()))
+            item->scene()->removeItem(item);
 
-    if(_pathItem->scene())
-        _pathItem->scene()->removeItem(_pathItem);
-
-    delete _pathItem;
-    _pathItem = nullptr;
-*/
+        delete item;
+    }
+    _graphicsItems.clear();
 }
 
 void LayerDraw::cleanupPlayer()
