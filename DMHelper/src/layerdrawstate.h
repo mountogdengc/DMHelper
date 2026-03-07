@@ -25,6 +25,8 @@ public:
     int insertObject(int index, LayerDrawObject* object);
     LayerDrawObject* takeObject(const QUuid& id);
 
+    QList<LayerDrawObject*> getObjects() const;
+
 signals:
     void objectAdded(LayerDrawObject* object, int index);
     void objectRemoved(LayerDrawObject* object, int index);

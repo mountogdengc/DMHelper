@@ -125,3 +125,8 @@ LayerDrawObject* LayerDrawState::takeObject(const QUuid& id)
 
     return object;
 }
+
+QList<LayerDrawObject*> LayerDrawState::getObjects() const
+{
+    return _drawObjects;
+}
