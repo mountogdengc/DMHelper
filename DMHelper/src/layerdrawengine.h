@@ -3,11 +3,12 @@
 
 #include <QObject>
 #include <QPointF>
-#include <QPainterPath>
 
 class LayerDraw;
 class LayerDrawToolDialog;
-class QGraphicsPathItem;
+class LayerDrawObject;
+class QGraphicsItem;
+class QGraphicsScene;
 
 class LayerDrawEngine : public QObject
 {
@@ -30,7 +31,8 @@ private:
     LayerDrawToolDialog* _toolDialog;
 
     QPointF _mouseDownPos;
-    QPainterPath _drawPath;
+    LayerDrawObject* _activeDrawObject;
+    QGraphicsItem* _activeItem;
 };
 
 #endif // LAYERDRAWENGINE_H

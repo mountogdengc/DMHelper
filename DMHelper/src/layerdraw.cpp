@@ -1,27 +1,45 @@
 #include "layerdraw.h"
+#include "layerscene.h"
+#include "undodrawaddobject.h"
 #include <QPainter>
+#include <QGraphicsScene>
+#include <QGraphicsItem>
+#include <QUndoStack>
 
 LayerDraw::LayerDraw(const QString& name, int order, QObject *parent) :
     Layer{name, order, parent},
-    _graphicsItem{nullptr},
+    //_graphicsItem{nullptr},
+    //_pathItem{nullptr},
     _drawGLObject{nullptr},
     _scene{nullptr},
-    _imageLayer{},
-    _imagePainter{nullptr}
-{}
+    _layerDrawState{},
+//    _drawPath{},
+    _undoStack{new QUndoStack(this)}
+{
+    connect(&_layerDrawState, &LayerDrawState::objectAdded, this, &LayerDraw::handleObjectAdded);
+    connect(&_layerDrawState, &LayerDrawState::objectRemoved, this, &LayerDraw::handleObjectRemoved);
+}
 
 LayerDraw::~LayerDraw()
 {
-    if(_imagePainter)
-        endPainting();
+    //if(_imagePainter)
+    //    endPainting();
 
     cleanupDM();
     cleanupPlayer();
 }
 
+void LayerDraw::inputXML(const QDomElement &element, bool isImport)
+{
+    _layerDrawState.inputXML(element, isImport);
+
+    Layer::inputXML(element, isImport);
+}
+
 QRectF LayerDraw::boundingRect() const
 {
-    return _imageLayer.isNull() ? QRectF() : QRectF(_position, _imageLayer.size());
+//    return _pathItem ? _pathItem->boundingRect() : QRectF();
+    return QRectF();
 }
 
 QImage LayerDraw::getLayerIcon() const
@@ -43,12 +61,14 @@ Layer* LayerDraw::clone() const
 
 void LayerDraw::applyOrder(int order)
 {
-    Q_UNUSED(order);
+//    if(_pathItem)
+//        _pathItem->setZValue(order);
 }
 
 void LayerDraw::applyLayerVisibleDM(bool layerVisible)
 {
-    Q_UNUSED(layerVisible);
+//    if(_pathItem)
+//        _pathItem->setVisible(layerVisible);
 }
 
 void LayerDraw::applyLayerVisiblePlayer(bool layerVisible)
@@ -58,22 +78,41 @@ void LayerDraw::applyLayerVisiblePlayer(bool layerVisible)
 
 void LayerDraw::applyOpacity(qreal opacity)
 {
-    Q_UNUSED(opacity);
+    _opacityReference = opacity;
+
+//    if(_pathItem)
+//        _pathItem->setOpacity(opacity);
 }
 
 void LayerDraw::applyPosition(const QPoint& position)
 {
-    Q_UNUSED(position);
+//    if(_pathItem)
+//        _pathItem->setPos(position);
 }
 
 void LayerDraw::applySize(const QSize& size)
 {
-    Q_UNUSED(size);
+    /*
+    if(size == _imageLayer.size())
+        return;
+
+    if(!_imageLayer.isNull())
+        uninitialize();
+
+    _size = size;
+    initialize(size);
+
+    QImage newImage = getImage();
+
+    if(_graphicsItem)
+        _graphicsItem->setPixmap(QPixmap::fromImage(newImage));
+*/
 }
 
 QImage LayerDraw::getImage() const
 {
-    return _imageLayer;
+    return QImage();
+    //return _imageLayer;
     /*
     if(_imageFowTexture.isNull())
         return _imageFow;
@@ -87,33 +126,83 @@ QImage LayerDraw::getImage() const
 */
 }
 
+LayerDrawState& LayerDraw::getDrawState()
+{
+    return _layerDrawState;
+}
+
+QGraphicsItem* LayerDraw::createGraphicsItem(LayerDrawObject* drawObject)
+{
+    if((!drawObject) || (!_layerScene))
+        return nullptr;
+
+    if(_graphicsItems.contains(drawObject))
+        return _graphicsItems.value(drawObject);
+
+    QGraphicsScene* scene = _layerScene->getDMScene();
+    if(!scene)
+        return nullptr;
+
+    QGraphicsItem* graphicsItem = nullptr;
+    switch(drawObject->getType())
+    {
+        case DMHelper::ActionType_Path:
+        {
+            LayerDrawObjectPath* pathObject = dynamic_cast<LayerDrawObjectPath*>(drawObject);
+            if(!pathObject)
+                return nullptr;
+
+            QPainterPath painterPath;
+            const QList<QPointF>& points = pathObject->getPoints();
+            if(points.count() < 2)
+                return nullptr;
+
+            painterPath.moveTo(points.first());
+            for(int i = 1; i < points.size(); ++i)
+                painterPath.lineTo(points[i]);
+
+            QPen pathPen(QBrush(pathObject->getPenColor()), pathObject->getPenWidth(), pathObject->getPenStyle());
+            QGraphicsPathItem* pathItem = scene->addPath(painterPath, pathPen);
+
+            pathItem->setPos(getPosition());
+            pathItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+            pathItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+            pathItem->setZValue(getOrder());
+
+            graphicsItem = pathItem;
+            break;
+        }
+        default:
+            return nullptr;
+    }
+
+    if(graphicsItem)
+        _graphicsItems.insert(drawObject, graphicsItem);
+
+    return graphicsItem;
+}
+
 void LayerDraw::dmInitialize(QGraphicsScene* scene)
 {
     if(!scene)
         return;
 
     /*
-    if(_graphicsItem)
+    if(_pathItem)
     {
-        qDebug() << "[LayerEffect] ERROR: dmInitialize called although the graphics item already exists!";
+        qDebug() << "[LayerDraw] ERROR: dmInitialize called although the path item already exists!";
         return;
     }
 
-    QImage effectImage = LayerEffectSettings::createNoiseImage(QSize(LAYEREFFECT_PREVIEWSIZE, LAYEREFFECT_PREVIEWSIZE),
-                                                               static_cast<qreal>(_effectWidth) / 10.f,
-                                                               static_cast<qreal>(_effectHeight) / 10.f,
-                                                               _effectColor,
-                                                               static_cast<qreal>(_effectThickness) / 100.f);
-    _graphicsItem = scene->addPixmap(QPixmap::fromImage(effectImage.scaled(_size)));
-
-    if(_graphicsItem)
+    _pathItem = scene->addPath(_drawPath, QPen(Qt::red, 5));
+    if(_pathItem)
     {
-        _graphicsItem->setPos(_position);
-        _graphicsItem->setFlag(QGraphicsItem::ItemIsMovable, false);
-        _graphicsItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        _graphicsItem->setZValue(getOrder());
+        _pathItem->setPos(_position);
+        _pathItem->setFlag(QGraphicsItem::ItemIsMovable, false);
+        _pathItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
+        _pathItem->setZValue(getOrder());
     }
-    */
+*/
 
     Layer::dmInitialize(scene);
 }
@@ -214,58 +303,84 @@ bool LayerDraw::playerIsInitialized()
 
 void LayerDraw::initialize(const QSize& sceneSize)
 {
-    if(!_imageLayer.isNull())
-        return;
+    //if(!_imageLayer.isNull())
+    //    return;
 
     if(getSize().isEmpty())
         setSize(sceneSize);
 
-    _imageLayer = QImage(getSize(), QImage::Format_ARGB32_Premultiplied);
-    _imageLayer.fill(Qt::transparent);
+    //_imageLayer = QImage(getSize(), QImage::Format_ARGB32_Premultiplied);
+    //_imageLayer.fill(Qt::transparent);
 
     //initializeUndoStack();
 }
 
 void LayerDraw::uninitialize()
 {
-    _imageLayer = QImage();
+    //_imageLayer = QImage();
 }
-
-QPainter* LayerDraw::beginPainting()
+/*
+QPainterPath* LayerDraw::beginPainting()
 {
-    if(_imagePainter)
-        return nullptr;
-
-    _imagePainter = new QPainter(&_imageLayer);
-    return _imagePainter;
+    return &_drawPath;
 }
 
 void LayerDraw::endPainting()
 {
-    if(!_imagePainter)
+}
+*/
+
+void LayerDraw::addObject(LayerDrawObject* drawObject)
+{
+    if(!drawObject)
         return;
 
-    _imagePainter->end();
-    delete _imagePainter;
-    _imagePainter = nullptr;
+    _undoStack->push(new UndoDrawAddObject(&_layerDrawState, drawObject));
+}
+
+void LayerDraw::removeObject(LayerDrawObject* drawObject)
+{
+    if(!drawObject)
+        return;
+
+    _graphicsItems.remove(drawObject);
+}
+
+void LayerDraw::handleObjectAdded(LayerDrawObject* object, int index)
+{
+    Q_UNUSED(index);
+
+    if(!object)
+        return;
+
+    if(!_graphicsItems.contains(object))
+        createGraphicsItem(object);
+}
+
+void LayerDraw::handleObjectRemoved(LayerDrawObject* object, int index)
+{
+    Q_UNUSED(object);
+    Q_UNUSED(index);
 }
 
 void LayerDraw::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
 {
+    _layerDrawState.outputXML(doc, element, targetDirectory, isExport);
+
     Layer::internalOutputXML(doc, element, targetDirectory, isExport);
 }
 
 void LayerDraw::cleanupDM()
 {
     /*
-    if(!_graphicsItem)
+    if(!_pathItem)
         return;
 
-    if(_graphicsItem->scene())
-        _graphicsItem->scene()->removeItem(_graphicsItem);
+    if(_pathItem->scene())
+        _pathItem->scene()->removeItem(_pathItem);
 
-    delete _graphicsItem;
-    _graphicsItem = nullptr;
+    delete _pathItem;
+    _pathItem = nullptr;
 */
 }
 

@@ -29,7 +29,6 @@ public:
     QString getTablesDirectory() const;
     QString getDefaultRulesetFileName();
     QString getUserRulesetFileName() const;
-    QString getLastMonster() const;
     QString getLastSpell() const;
     QString getLastRuleset() const;
     bool getShowAnimations() const;
@@ -188,7 +187,6 @@ public slots:
     void backupFile(const QString& filename, const QString& overrideFilename = QString());
     void resetFileSettings();
 
-    void setLastMonster(const QString& lastMonster);
     void setLastSpell(const QString& lastSpell);
     void setLastRuleset(const QString& lastRuleset);
     void setShowAnimations(bool showAnimations);
@@ -267,7 +265,6 @@ private:
     // General settings
     QString _bestiaryFileName;
     QString _spellbookFileName;
-    QString _lastMonster;
     QString _lastSpell;
     QString _lastRuleset;
     QString _quickReferenceFileName;

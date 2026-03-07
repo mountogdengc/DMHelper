@@ -2,18 +2,25 @@
 #define LAYERDRAW_H
 
 #include "layer.h"
+#include "layerdrawstate.h"
 #include <QImage>
+#include <QPainterPath>
+#include <QHash>
 
 class PublishGLBattleBackground;
-class QGraphicsPixmapItem;
+class QGraphicsItem;
+class QGraphicsPathItem;
 class QPainter;
+class QUndoStack;
 
 class LayerDraw : public Layer
 {
     Q_OBJECT
 public:
-    explicit LayerDraw(const QString& name, int order = 0, QObject *parent = nullptr);
+    explicit LayerDraw(const QString& name = QString(), int order = 0, QObject *parent = nullptr);
     virtual ~LayerDraw() override;
+
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
 
     virtual QRectF boundingRect() const override;
     virtual QImage getLayerIcon() const override;
@@ -30,6 +37,9 @@ public:
     virtual void applySize(const QSize& size) override;
 
     QImage getImage() const;
+    LayerDrawState& getDrawState();
+
+    QGraphicsItem* createGraphicsItem(LayerDrawObject* drawObject);
 
 public slots:
     // DM Window Generic Interface
@@ -49,8 +59,15 @@ public slots:
     virtual void initialize(const QSize& sceneSize) override;
     virtual void uninitialize() override;
 
-    QPainter* beginPainting();
-    void endPainting();
+//    QPainterPath* beginPainting();
+//    void endPainting();
+
+    void addObject(LayerDrawObject* drawObject);
+    void removeObject(LayerDrawObject* drawObject);
+
+protected slots:
+    void handleObjectAdded(LayerDrawObject* object, int index);
+    void handleObjectRemoved(LayerDrawObject* object, int index);
 
 protected:
     // QObject overrides
@@ -72,16 +89,21 @@ protected:
     // Generic Methods
 
     // DM Window Members
-    QGraphicsPixmapItem* _graphicsItem;
+    QHash<LayerDrawObject*, QGraphicsItem*> _graphicsItems;
+    //QGraphicsPixmapItem* _graphicsItem;
+    //QGraphicsPathItem* _pathItem;
 
     // Player Window Members
     PublishGLBattleBackground* _drawGLObject;
     PublishGLScene* _scene;
 
     // Core contents
-    QImage _imageLayer;
-    QPainter* _imagePainter;
-    //QUndoStack* _undoStack;
+    LayerDrawState _layerDrawState;
+    //QPainterPath _drawPath;
+    //QImage _imageLayer;
+    //QPainter* _imagePainter;
+
+    QUndoStack* _undoStack;
     //QList<UndoFowBase*> _undoItems;
 
 };

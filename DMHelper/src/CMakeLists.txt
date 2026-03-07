@@ -184,6 +184,8 @@ set(DMHELPER_SOURCES
     layerblank.cpp
     layerdraw.cpp
     layerdrawengine.cpp
+    layerdrawobject.cpp
+    layerdrawstate.cpp
     layerdrawtooldialog.cpp
     layereffect.cpp
     layereffectsettings.cpp
@@ -327,6 +329,7 @@ set(DMHELPER_SOURCES
     timeanddateframe.cpp
     tokeneditdialog.cpp
     tokeneditor.cpp
+    undodrawaddobject.cpp
     undofowbase.cpp
     undofowfill.cpp
     undofowpath.cpp
@@ -504,6 +507,8 @@ set(DMHELPER_HEADERS
     layerblank.h
     layerdraw.h
     layerdrawengine.h
+    layerdrawobject.h
+    layerdrawstate.h
     layerdrawtooldialog.h
     layerseditdialog.h
     layereffect.h
@@ -647,6 +652,7 @@ set(DMHELPER_HEADERS
     timeanddateframe.h
     tokeneditdialog.h
     tokeneditor.h
+    undodrawaddobject.h
     undofowbase.h
     undofowfill.h
     undofowpath.h

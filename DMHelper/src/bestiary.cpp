@@ -644,6 +644,8 @@ void Bestiary::closeBestiary()
     _licenseText.clear();
 
     setDirty(false);
+
+    emit bestiaryLoaded(QString(), false);
 }
 
 void Bestiary::startBatchProcessing()

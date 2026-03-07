@@ -19,7 +19,6 @@ OptionsContainer::OptionsContainer(QMainWindow *parent) :
     _loading(false),
     _bestiaryFileName(),
     _spellbookFileName(),
-    _lastMonster(),
     _lastSpell(),
     _lastRuleset(),
     _quickReferenceFileName(),
@@ -131,11 +130,6 @@ QString OptionsContainer::getDefaultRulesetFileName()
 QString OptionsContainer::getUserRulesetFileName() const
 {
     return _rulesetFileName;
-}
-
-QString OptionsContainer::getLastMonster() const
-{
-    return _lastMonster;
 }
 
 QString OptionsContainer::getLastSpell() const
@@ -449,7 +443,6 @@ void OptionsContainer::readSettings()
     setBestiaryFileName(getSettingsFile(settings, QString("bestiary"), QString("DMHelperBestiary.xml"), &bestiaryExists));
     if((!settings.contains(QString("bestiary"))) || (!bestiaryExists))
         getDataDirectory(QString("Images"), true);
-    setLastMonster(settings.value("lastMonster", "Hydra").toString());
 
     bool spellbookExists = true;
     setSpellbookFileName(getSettingsFile(settings, QString("spellbook"), QString("spellbook.xml"), &spellbookExists));
@@ -563,7 +556,6 @@ void OptionsContainer::writeSettings()
 
     // Note: password will not be stored in settings
     settings.setValue("bestiary", getBestiaryFileName());
-    settings.setValue("lastMonster", getLastMonster());
     settings.setValue("spellbook", getSpellbookFileName());
     settings.setValue("lastSpell", getLastSpell());
     settings.setValue("lastRuleset", getLastRuleset());
@@ -1028,14 +1020,6 @@ void OptionsContainer::resetFileSettings()
     copyCoreData(QString("character"), true);
 }
 
-void OptionsContainer::setLastMonster(const QString& lastMonster)
-{
-    if(_lastMonster != lastMonster)
-    {
-        _lastMonster = lastMonster;
-    }
-}
-
 void OptionsContainer::setLastSpell(const QString& lastSpell)
 {
     if(_lastSpell!= lastSpell)
@@ -1484,7 +1468,6 @@ void OptionsContainer::copy(OptionsContainer* other)
         setShopsFileName(other->_shopsFileName);
         setTablesDirectory(other->_tablesDirectory);
         setRulesetFileName(other->_rulesetFileName);
-        setLastMonster(other->_lastMonster);
         setLastSpell(other->_lastSpell);
         setLastRuleset(other->_lastRuleset);
         setShowAnimations(other->_showAnimations);

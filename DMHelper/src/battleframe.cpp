@@ -2753,11 +2753,10 @@ void BattleFrame::handleDrawToggled(bool enabled)
         {
             LayerDraw* drawLayer = dynamic_cast<LayerDraw*>(_model->getLayerScene().getNearest(_model->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Draw));
             if(drawLayer)
-            {
                 _drawEngine->setDrawLayer(drawLayer);
-            }
-        }
 
+            _drawEngine->setActive(true);
+        }
     }
     else
     {
@@ -2770,6 +2769,8 @@ void BattleFrame::handleDrawToggled(bool enabled)
         connect(_scene, &BattleDialogGraphicsScene::itemMouseDoubleClick, this, &BattleFrame::handleItemMouseDoubleClick);
         connect(_scene, &BattleDialogGraphicsScene::itemMoved, this, &BattleFrame::handleItemMoved);
 
+        if(_drawEngine)
+            _drawEngine->setActive(false);
     }
 }
 
@@ -4661,7 +4662,7 @@ instead move the player view
     connect(freeDistanceState, &BattleFrameState::stateChanged, this, &BattleFrame::freeDistanceToggled);
     _stateMachine.addState(freeDistanceState);
 
-    BattleFrameState* drawState = new BattleFrameState(DMHelper::BattleFrameState_Draw, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_edit.png"), 32, 32);
+    BattleFrameState* drawState = new BattleFrameState(DMHelper::BattleFrameState_Draw, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_edit.png"), 58,350);//DMHelper::CURSOR_SIZE / 10, DMHelper::CURSOR_SIZE);
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::handleDrawToggled);
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::drawToggled);
     _stateMachine.addState(drawState);
