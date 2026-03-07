@@ -187,6 +187,14 @@ void LayerDraw::dmInitialize(QGraphicsScene* scene)
     if(!scene)
         return;
 
+    // Add existing objects to the scene
+    QList<LayerDrawObject*> drawObjects = _layerDrawState.getObjects();
+    for(LayerDrawObject* object : std::as_const(drawObjects))
+    {
+        if((object) && (!_graphicsItems.contains(object)))
+            createGraphicsItem(object);
+    }
+
     /*
     if(_pathItem)
     {
