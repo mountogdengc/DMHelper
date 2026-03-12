@@ -68,6 +68,7 @@ public slots:
 protected slots:
     void handleObjectAdded(LayerDrawObject* object, int index);
     void handleObjectRemoved(LayerDrawObject* object, int index);
+    void handleObjectMoved(LayerDrawObject* object);
 
 protected:
     // QObject overrides

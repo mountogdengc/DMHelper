@@ -1,6 +1,7 @@
 #include "layerdraw.h"
 #include "layerscene.h"
 #include "undodrawaddobject.h"
+#include "layerdrawshape.h"
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
@@ -162,9 +163,11 @@ QGraphicsItem* LayerDraw::createGraphicsItem(LayerDrawObject* drawObject)
                 painterPath.lineTo(points[i]);
 
             QPen pathPen(QBrush(pathObject->getPenColor()), pathObject->getPenWidth(), pathObject->getPenStyle());
-            QGraphicsPathItem* pathItem = scene->addPath(painterPath, pathPen);
+            QGraphicsPathItem* pathItem = new LayerDrawShapePath(painterPath, pathObject);
+            pathItem->setPen(pathPen);
+            scene->addItem(pathItem);
 
-            pathItem->setPos(getPosition());
+            pathItem->setPos(pathObject->getPosition());
             pathItem->setFlag(QGraphicsItem::ItemIsMovable, true);
             pathItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
             pathItem->setZValue(getOrder());
@@ -363,12 +366,21 @@ void LayerDraw::handleObjectAdded(LayerDrawObject* object, int index)
 
     if(!_graphicsItems.contains(object))
         createGraphicsItem(object);
+
+    connect(object, &LayerDrawObject::objectMoved, this, &LayerDraw::handleObjectMoved);
 }
 
 void LayerDraw::handleObjectRemoved(LayerDrawObject* object, int index)
 {
     Q_UNUSED(object);
     Q_UNUSED(index);
+
+    disconnect(object, &LayerDrawObject::objectMoved, this, &LayerDraw::handleObjectMoved);
+}
+
+void LayerDraw::handleObjectMoved(LayerDrawObject* object)
+{
+    Q_UNUSED(object);
 }
 
 void LayerDraw::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)

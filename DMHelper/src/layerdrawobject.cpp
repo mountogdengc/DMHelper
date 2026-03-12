@@ -3,7 +3,9 @@
 #include <QDomElement>
 
 LayerDrawObject::LayerDrawObject() :
-    _id(QUuid::createUuid())
+    QObject(),
+    _id(QUuid::createUuid()),
+    _position()
 {
 }
 
@@ -21,6 +23,8 @@ void LayerDrawObject::inputXML(const QDomElement &element, bool isImport)
     Q_UNUSED(isImport);
 
     _id = QUuid(element.attribute(QString("id")));
+    _position = QPointF(element.attribute("positionX", QString::number(0)).toDouble(),
+                        element.attribute("positionY", QString::number(0)).toDouble());
 }
 
 void LayerDrawObject::outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
@@ -31,7 +35,27 @@ void LayerDrawObject::outputXML(QDomDocument &doc, QDomElement &element, QDir& t
 
     element.setAttribute("id", _id.toString());
     element.setAttribute("type", QString::number(getType()));
+    if(_position.x() != 0.0)
+        element.setAttribute("positionX", _position.x());
+    if(_position.y() != 0.0)
+        element.setAttribute("positionY", _position.y());
 }
+
+QPointF LayerDrawObject::getPosition() const
+{
+    return _position;
+}
+
+void LayerDrawObject::setPosition(const QPointF& position)
+{
+    if(_position == position)
+        return;
+
+    _position = position;
+    emit objectMoved(this);
+}
+
+
 
 LayerDrawObjectPath::LayerDrawObjectPath() :
     LayerDrawObject(),

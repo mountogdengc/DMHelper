@@ -185,6 +185,7 @@ set(DMHELPER_SOURCES
     layerdraw.cpp
     layerdrawengine.cpp
     layerdrawobject.cpp
+    layerdrawshape.cpp
     layerdrawstate.cpp
     layerdrawtooldialog.cpp
     layereffect.cpp
@@ -508,6 +509,7 @@ set(DMHELPER_HEADERS
     layerdraw.h
     layerdrawengine.h
     layerdrawobject.h
+    layerdrawshape.h
     layerdrawstate.h
     layerdrawtooldialog.h
     layerseditdialog.h

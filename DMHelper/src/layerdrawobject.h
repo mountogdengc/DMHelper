@@ -1,6 +1,7 @@
 #ifndef LAYERDRAWOBJECT_H
 #define LAYERDRAWOBJECT_H
 
+#include <QObject>
 #include <QString>
 #include <QList>
 #include <QPointF>
@@ -11,8 +12,9 @@ class QDomElement;
 class QDomDocument;
 class QDir;
 
-class LayerDrawObject
+class LayerDrawObject : public QObject
 {
+    Q_OBJECT
 public:
     explicit LayerDrawObject();
     virtual ~LayerDrawObject();
@@ -23,8 +25,15 @@ public:
     virtual void inputXML(const QDomElement &element, bool isImport);
     virtual void outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport);
 
+    virtual QPointF getPosition() const;
+    virtual void setPosition(const QPointF& position);
+
+signals:
+    void objectMoved(LayerDrawObject* object);
+
 private:
     QUuid _id;
+    QPointF _position;
 };
 
 
