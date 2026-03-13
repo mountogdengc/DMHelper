@@ -42,6 +42,12 @@ QMetaObject::invokeMethod(obj, ..., Qt::QueuedConnection);
 `Qt::AA_DontCheckOpenGLContextThreadAffinity` in `main.cpp` is intentional —
 `VideoPlayerGLVideo` calls `makeCurrent()` from the VLC thread. Do not remove it.
 
+## New files
+If a task requires creating new .cpp/.h files, Claude must:
+1. State what files it intends to create and why, before creating them
+2. Add them to the explicit source lists in CMakeLists.txt in the same commit
+3. Never create a .cpp file without a corresponding CMakeLists.txt update
+
 ## Legacy classes — always use v2
 
 | Wrong | Right |
