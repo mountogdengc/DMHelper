@@ -48,6 +48,23 @@ If a task requires creating new .cpp/.h files, Claude must:
 2. Add them to the explicit source lists in CMakeLists.txt in the same commit
 3. Never create a .cpp file without a corresponding CMakeLists.txt update
 
+## GL context rules — critical
+OpenGL calls require an active GL context. This is ONLY guaranteed in 
+functions with "GL" in their name (playerGLInitialize, playerGLPaint, etc.).
+
+Never make GL calls from:
+- Constructors or destructors
+- inputXML() or outputXML()  
+- Qt signal handlers
+- activateObject() / deactivateObject()
+- Any function without "GL" in its name
+
+Shader initialisation uses lazy-loading: shaders are created in 
+playerGLInitialize() where possible, with a fallback guard at the top 
+of playerGLPaint():
+  if(_shaderProgramRGBA == 0) createShaders();
+This guard is intentional — do not remove it.
+
 ## Legacy classes — always use v2
 
 | Wrong | Right |

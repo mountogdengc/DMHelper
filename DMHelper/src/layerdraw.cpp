@@ -2,17 +2,24 @@
 #include "layerscene.h"
 #include "undodrawaddobject.h"
 #include "layerdrawshape.h"
+#include "publishglbattlebackground.h"
+#include "publishglbattleobject.h"
+#include "publishglscene.h"
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QUndoStack>
+#include <QOpenGLContext>
+#include <cmath>
 
 LayerDraw::LayerDraw(const QString& name, int order, QObject *parent) :
     Layer{name, order, parent},
     //_graphicsItem{nullptr},
     //_pathItem{nullptr},
-    _drawGLObject{nullptr},
+    _glObjects{},
+    _dirtyObjects{},
     _scene{nullptr},
+    _playerInitialized{false},
     _layerDrawState{},
 //    _drawPath{},
     _undoStack{new QUndoStack(this)}
@@ -51,6 +58,11 @@ QImage LayerDraw::getLayerIcon() const
 DMHelper::LayerType LayerDraw::getType() const
 {
     return DMHelper::LayerType_Draw;
+}
+
+bool LayerDraw::defaultShader() const
+{
+    return false;
 }
 
 Layer* LayerDraw::clone() const
@@ -229,20 +241,25 @@ void LayerDraw::dmUpdate()
 
 void LayerDraw::playerGLInitialize(PublishGLRenderer* renderer, PublishGLScene* scene)
 {
-    _scene = scene;
-    Layer::playerGLInitialize(renderer, scene);
+    if(!scene)
+        return;
 
-/*
-    if((_timerId == 0) && (renderer))
+    _scene = scene;
+
+    QList<LayerDrawObject*> drawObjects = _layerDrawState.getObjects();
+    for(LayerDrawObject* object : std::as_const(drawObjects))
     {
-        connect(this, &LayerEffect::update, renderer, &PublishGLRenderer::updateWidget);
-        _timerId = startTimer(30);
+        if((object) && (!_glObjects.contains(object)))
+            createGLObject(object);
     }
-*/
+
+    _playerInitialized = true;
+    Layer::playerGLInitialize(renderer, scene);
 }
 
 void LayerDraw::playerGLUninitialize()
 {
+    _playerInitialized = false;
     cleanupPlayer();
 }
 
@@ -256,32 +273,46 @@ void LayerDraw::playerGLPaint(QOpenGLFunctions* functions, GLint defaultModelMat
     DMH_DEBUG_OPENGL_PAINTGL();
 
     if(_shaderProgramRGBA == 0)
-        createShaders();
-
-    //if(_VAO == 0)
-     //   createObjects();
-
-    /*
-    if((_shaderProgramRGBA == 0) || (_shaderModelMatrixRGBA == -1) || (_shaderAlphaRGBA == -1))
-    {
-        qDebug() << "[LayerImage] ERROR: invalid shaders set! _shaderProgramRGBA: " << _shaderProgramRGBA << ", _shaderProjectionMatrixRGBA: " << _shaderProjectionMatrixRGBA << ", _shaderModelMatrixRGBA: " << _shaderModelMatrixRGBA << ", _shaderAlphaRGBA: " << _shaderAlphaRGBA;
         return;
-    }
 
-    DMH_DEBUG_OPENGL_PAINTGL();
+    // Re-upload textures for any dirty objects
+    for(LayerDrawObject* dirtyObj : std::as_const(_dirtyObjects))
+    {
+        if(!dirtyObj)
+            continue;
+
+        // Remove old GL object and recreate
+        PublishGLBattleBackground* oldGLObj = _glObjects.take(dirtyObj);
+        delete oldGLObj;
+        createGLObject(dirtyObj);
+    }
+    _dirtyObjects.clear();
 
     DMH_DEBUG_OPENGL_glUseProgram(_shaderProgramRGBA);
     functions->glUseProgram(_shaderProgramRGBA);
     DMH_DEBUG_OPENGL_glUniformMatrix4fv4(_shaderProjectionMatrixRGBA, 1, GL_FALSE, projectionMatrix);
     functions->glUniformMatrix4fv(_shaderProjectionMatrixRGBA, 1, GL_FALSE, projectionMatrix);
-    functions->glActiveTexture(GL_TEXTURE0); // activate the texture unit first before binding texture
-    DMH_DEBUG_OPENGL_glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, _imageGLObject->getMatrixData(), _imageGLObject->getMatrix());
-    functions->glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, _imageGLObject->getMatrixData());
-    DMH_DEBUG_OPENGL_glUniform1f(_shaderAlphaRGBA, _opacityReference);
-    functions->glUniform1f(_shaderAlphaRGBA, _opacityReference);
+    functions->glActiveTexture(GL_TEXTURE0);
 
-    _imageGLObject->paintGL(functions, projectionMatrix);
-    */
+    QList<LayerDrawObject*> drawObjects = _layerDrawState.getObjects();
+    for(LayerDrawObject* object : std::as_const(drawObjects))
+    {
+        if(!object)
+            continue;
+
+        PublishGLBattleBackground* glObj = _glObjects.value(object);
+        if(!glObj)
+            continue;
+
+        QMatrix4x4 localMatrix = glObj->getMatrix();
+        localMatrix.translate(_position.x(), _position.y());
+        DMH_DEBUG_OPENGL_glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, localMatrix.constData(), localMatrix);
+        functions->glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, localMatrix.constData());
+        DMH_DEBUG_OPENGL_glUniform1f(_shaderAlphaRGBA, _opacityReference);
+        functions->glUniform1f(_shaderAlphaRGBA, _opacityReference);
+
+        glObj->paintGL(functions, projectionMatrix);
+    }
 
     DMH_DEBUG_OPENGL_glUseProgram(_shaderProgramRGB);
     functions->glUseProgram(_shaderProgramRGB);
@@ -291,25 +322,11 @@ void LayerDraw::playerGLResize(int w, int h)
 {
     Q_UNUSED(w);
     Q_UNUSED(h);
-
-    destroyObjects();
-    destroyShaders();
-}
-
-void LayerDraw::playerSetShaders(unsigned int programRGB, int modelMatrixRGB, int projectionMatrixRGB, unsigned int programRGBA, int modelMatrixRGBA, int projectionMatrixRGBA, int alphaRGBA)
-{
-    Q_UNUSED(programRGB);
-    Q_UNUSED(modelMatrixRGB);
-    Q_UNUSED(projectionMatrixRGB);
-    Q_UNUSED(programRGBA);
-    Q_UNUSED(modelMatrixRGBA);
-    Q_UNUSED(projectionMatrixRGBA);
-    Q_UNUSED(alphaRGBA);
 }
 
 bool LayerDraw::playerIsInitialized()
 {
-    return _scene != nullptr;
+    return _playerInitialized;
 }
 
 void LayerDraw::initialize(const QSize& sceneSize)
@@ -355,6 +372,8 @@ void LayerDraw::removeObject(LayerDrawObject* drawObject)
         return;
 
     _graphicsItems.remove(drawObject);
+    _dirtyObjects.remove(drawObject);
+    delete _glObjects.take(drawObject);
 }
 
 void LayerDraw::handleObjectAdded(LayerDrawObject* object, int index)
@@ -367,20 +386,37 @@ void LayerDraw::handleObjectAdded(LayerDrawObject* object, int index)
     if(!_graphicsItems.contains(object))
         createGraphicsItem(object);
 
+    if((_playerInitialized) && (!_glObjects.contains(object)))
+        createGLObject(object);
+
     connect(object, &LayerDrawObject::objectMoved, this, &LayerDraw::handleObjectMoved);
 }
 
 void LayerDraw::handleObjectRemoved(LayerDrawObject* object, int index)
 {
-    Q_UNUSED(object);
     Q_UNUSED(index);
 
     disconnect(object, &LayerDrawObject::objectMoved, this, &LayerDraw::handleObjectMoved);
+
+    _dirtyObjects.remove(object);
+    delete _glObjects.take(object);
 }
 
 void LayerDraw::handleObjectMoved(LayerDrawObject* object)
 {
-    Q_UNUSED(object);
+    if((!object) || (!_scene))
+        return;
+
+    PublishGLBattleBackground* glObj = _glObjects.value(object);
+    if(!glObj)
+        return;
+
+    // Recompute the world position for the moved object
+    QRectF sceneBounds;
+    renderObjectToImage(object, sceneBounds); // only need bounds, discard image
+    QPointF worldPos = PublishGLBattleObject::sceneToWorld(_scene->getSceneRect(),
+                                                          sceneBounds.topLeft() + object->getPosition());
+    glObj->setPosition(QPoint(static_cast<int>(worldPos.x()), static_cast<int>(worldPos.y())));
 }
 
 void LayerDraw::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
@@ -405,34 +441,75 @@ void LayerDraw::cleanupDM()
 
 void LayerDraw::cleanupPlayer()
 {
-    /*
-    disconnect(this, &LayerEffect::update, nullptr, nullptr);
-
-    if(_timerId > 0)
-    {
-        killTimer(_timerId);
-        _timerId = 0;
-    }
-*/
-
-    destroyObjects();
-    destroyShaders();
+    qDeleteAll(_glObjects);
+    _glObjects.clear();
+    _dirtyObjects.clear();
 
     _scene = nullptr;
 }
 
-void LayerDraw::createShaders()
+PublishGLBattleBackground* LayerDraw::createGLObject(LayerDrawObject* drawObject)
 {
+    if((!drawObject) || (!_scene))
+        return nullptr;
+
+    QRectF sceneBounds;
+    QImage image = renderObjectToImage(drawObject, sceneBounds);
+    if(image.isNull())
+        return nullptr;
+
+    PublishGLBattleBackground* glObj = new PublishGLBattleBackground(_scene, image, GL_LINEAR);
+
+    QPointF worldPos = PublishGLBattleObject::sceneToWorld(_scene->getSceneRect(),
+                                                          sceneBounds.topLeft() + drawObject->getPosition());
+    glObj->setPosition(QPoint(static_cast<int>(worldPos.x()), static_cast<int>(worldPos.y())));
+
+    _glObjects.insert(drawObject, glObj);
+    return glObj;
 }
 
-void LayerDraw::destroyShaders()
+QImage LayerDraw::renderObjectToImage(LayerDrawObject* drawObject, QRectF& sceneBounds)
 {
-}
+    if(!drawObject)
+        return QImage();
 
-void LayerDraw::createObjects()
-{
-}
+    switch(drawObject->getType())
+    {
+        case DMHelper::ActionType_Path:
+        {
+            LayerDrawObjectPath* pathObject = dynamic_cast<LayerDrawObjectPath*>(drawObject);
+            if(!pathObject)
+                return QImage();
 
-void LayerDraw::destroyObjects()
-{
+            const QList<QPointF>& points = pathObject->getPoints();
+            if(points.count() < 2)
+                return QImage();
+
+            QPainterPath painterPath;
+            painterPath.moveTo(points.first());
+            for(int i = 1; i < points.size(); ++i)
+                painterPath.lineTo(points[i]);
+
+            qreal penHalf = pathObject->getPenWidth() / 2.0 + 1.0;
+            QRectF pathRect = painterPath.boundingRect();
+            sceneBounds = pathRect.adjusted(-penHalf, -penHalf, penHalf, penHalf);
+
+            int imgW = qMax(1, static_cast<int>(std::ceil(sceneBounds.width())));
+            int imgH = qMax(1, static_cast<int>(std::ceil(sceneBounds.height())));
+            QImage image(imgW, imgH, QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.translate(-sceneBounds.topLeft());
+            QPen pathPen(QBrush(pathObject->getPenColor()), pathObject->getPenWidth(), pathObject->getPenStyle());
+            painter.setPen(pathPen);
+            painter.drawPath(painterPath);
+            painter.end();
+
+            return image;
+        }
+        default:
+            return QImage();
+    }
 }
