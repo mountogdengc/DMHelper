@@ -6,6 +6,7 @@
 #include <QImage>
 #include <QPainterPath>
 #include <QHash>
+#include <QSet>
 
 class PublishGLBattleBackground;
 class QGraphicsItem;
@@ -24,9 +25,9 @@ public:
 
     virtual QRectF boundingRect() const override;
     virtual QImage getLayerIcon() const override;
+    virtual bool defaultShader() const override;
     virtual DMHelper::LayerType getType() const override;
     virtual Layer* clone() const override;
-    //virtual void copyBaseValues(Layer *other) const;
 
     // Local Layer Interface (generally should call set*() versions below
     virtual void applyOrder(int order) override;
@@ -52,7 +53,6 @@ public slots:
     virtual void playerGLUninitialize() override;
     virtual void playerGLPaint(QOpenGLFunctions* functions, GLint defaultModelMatrix, const GLfloat* projectionMatrix) override;
     virtual void playerGLResize(int w, int h) override;
-    virtual void playerSetShaders(unsigned int programRGB, int modelMatrixRGB, int projectionMatrixRGB, unsigned int programRGBA, int modelMatrixRGBA, int projectionMatrixRGBA, int alphaRGBA) override;
     virtual bool playerIsInitialized() override;
 
     // Layer Specific Interface
@@ -81,11 +81,8 @@ protected:
 
     // Player Window Methods
     void cleanupPlayer();
-
-    void createShaders();
-    void destroyShaders();
-    void createObjects();
-    void destroyObjects();
+    PublishGLBattleBackground* createGLObject(LayerDrawObject* drawObject);
+    QImage renderObjectToImage(LayerDrawObject* drawObject, QRectF& sceneBounds);
 
     // Generic Methods
 
@@ -95,8 +92,10 @@ protected:
     //QGraphicsPathItem* _pathItem;
 
     // Player Window Members
-    PublishGLBattleBackground* _drawGLObject;
+    QHash<LayerDrawObject*, PublishGLBattleBackground*> _glObjects;
+    QSet<LayerDrawObject*> _dirtyObjects;
     PublishGLScene* _scene;
+    bool _playerInitialized;
 
     // Core contents
     LayerDrawState _layerDrawState;
