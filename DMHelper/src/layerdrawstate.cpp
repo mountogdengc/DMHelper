@@ -31,7 +31,18 @@ void LayerDrawState::inputXML(const QDomElement &element, bool isImport)
             case DMHelper::ActionType_Path:
                 object = new LayerDrawObjectPath();
                 break;
-            // Add cases for other types as needed
+            case DMHelper::ActionType_Line:
+                object = new LayerDrawObjectLine();
+                break;
+            case DMHelper::ActionType_Rect:
+                object = new LayerDrawObjectRect();
+                break;
+            case DMHelper::ActionType_Ellipse:
+                object = new LayerDrawObjectEllipse();
+                break;
+            case DMHelper::ActionType_Text:
+                object = new LayerDrawObjectText();
+                break;
             default:
                 qDebug() << "Unknown draw object type:" << type;
                 break;

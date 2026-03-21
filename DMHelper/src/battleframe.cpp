@@ -1661,6 +1661,12 @@ void BattleFrame::keyPressEvent(QKeyEvent * event)
         return;
     }
 
+    if((_drawEngine) && (_stateMachine.getCurrentStateId() == DMHelper::BattleFrameState_Draw))
+    {
+        if(_drawEngine->handleKeyPress(event))
+            return;
+    }
+
     gridSizerAccepted();
 
     if(event->key() == Qt::Key_A)
