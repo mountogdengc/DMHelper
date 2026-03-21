@@ -5,6 +5,7 @@
 #include <QDialog>
 
 class QCheckBox;
+class QLabel;
 class ColorPushButton;
 class QFontComboBox;
 class QSpinBox;
@@ -36,7 +37,7 @@ private slots:
     void handleToolChanged();
 
 private:
-    void updateControlVisibility();
+    void updateControlStates();
 
     Ui::LayerDrawToolDialog *ui;
     Qt::PenStyle _currentLineType;
@@ -46,6 +47,7 @@ private:
     QPushButton* _btnText;
     QCheckBox* _fillCheck;
     ColorPushButton* _btnFillColor;
+    QLabel* _fontLabel;
     QFontComboBox* _fontCombo;
     QSpinBox* _fontSizeSpin;
 };

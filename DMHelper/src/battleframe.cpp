@@ -4668,7 +4668,16 @@ instead move the player view
     connect(freeDistanceState, &BattleFrameState::stateChanged, this, &BattleFrame::freeDistanceToggled);
     _stateMachine.addState(freeDistanceState);
 
-    BattleFrameState* drawState = new BattleFrameState(DMHelper::BattleFrameState_Draw, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_edit.png"), 58,350);//DMHelper::CURSOR_SIZE / 10, DMHelper::CURSOR_SIZE);
+    BattleFrameState* drawState = new BattleFrameState(DMHelper::BattleFrameState_Draw, BattleFrameState::BattleFrameStateType_Persistent, QPixmap(":/img/data/icon_edit.png"), 58,350);
+    {
+        // Scale draw cursor to half the standard size
+        QPixmap drawPixmap(":/img/data/icon_edit.png");
+        int drawCursorSize = DMHelper::CURSOR_SIZE / 2;
+        QPixmap scaled = drawPixmap.scaled(drawCursorSize, drawCursorSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        drawState->setCursor(QCursor(scaled,
+                                     58 * drawCursorSize / drawPixmap.width(),
+                                     350 * drawCursorSize / drawPixmap.height()));
+    }
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::handleDrawToggled);
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::drawToggled);
     _stateMachine.addState(drawState);
