@@ -19,6 +19,7 @@ LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     _btnText{nullptr},
     _fillCheck{nullptr},
     _btnFillColor{nullptr},
+    _fontLabel{nullptr},
     _fontCombo{nullptr},
     _fontSizeSpin{nullptr}
 {
@@ -76,7 +77,7 @@ LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     _btnFillColor->setRotationVisible(false);
     _btnFillColor->setEnabled(false);
 
-    connect(_fillCheck, &QCheckBox::toggled, _btnFillColor, &ColorPushButton::setEnabled);
+    connect(_fillCheck, &QCheckBox::toggled, this, &LayerDrawToolDialog::updateControlStates);
 
     QHBoxLayout* fillLayout = new QHBoxLayout();
     fillLayout->addWidget(_fillCheck);
@@ -84,6 +85,7 @@ LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     ui->verticalLayout->addLayout(fillLayout);
 
     // Font controls
+    _fontLabel = new QLabel(QString("Font:"), this);
     _fontCombo = new QFontComboBox(this);
     _fontCombo->setCurrentFont(QFont("Arial"));
 
@@ -94,19 +96,15 @@ LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     _fontSizeSpin->setSuffix(QString("pt"));
 
     QHBoxLayout* fontLayout = new QHBoxLayout();
+    fontLayout->addWidget(_fontLabel);
     fontLayout->addWidget(_fontCombo);
     fontLayout->addWidget(_fontSizeSpin);
     ui->verticalLayout->addLayout(fontLayout);
 
-    // Connect button group to update control visibility
+    // Connect button group to update enabled state
     connect(ui->buttonGroup, &QButtonGroup::idClicked, this, &LayerDrawToolDialog::handleToolChanged);
 
-    // Remove fixed size constraints so dialog can grow
-    setMinimumSize(0, 0);
-    setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-
-    updateControlVisibility();
+    updateControlStates();
 }
 
 LayerDrawToolDialog::~LayerDrawToolDialog()
@@ -191,35 +189,34 @@ void LayerDrawToolDialog::handleLineTypeTriggered(QAction* action)
 
 void LayerDrawToolDialog::handleToolChanged()
 {
-    updateControlVisibility();
+    updateControlStates();
 }
 
-void LayerDrawToolDialog::updateControlVisibility()
+void LayerDrawToolDialog::updateControlStates()
 {
     DMHelper::DrawToolType tool = getToolType();
 
-    bool showPenControls = (tool != DMHelper::DrawToolType_Text) && (tool != DMHelper::DrawToolType_Eraser);
-    bool showFillControls = (tool == DMHelper::DrawToolType_Rect) || (tool == DMHelper::DrawToolType_Ellipse);
-    bool showFontControls = (tool == DMHelper::DrawToolType_Text);
+    bool isPen    = (tool != DMHelper::DrawToolType_Text) && (tool != DMHelper::DrawToolType_Eraser);
+    bool isFill   = (tool == DMHelper::DrawToolType_Rect) || (tool == DMHelper::DrawToolType_Ellipse);
+    bool isFont   = (tool == DMHelper::DrawToolType_Text);
+    bool isEraser = (tool == DMHelper::DrawToolType_Eraser);
 
-    ui->btnColor->setVisible(showPenControls || showFontControls);
-    ui->btnLineType->setVisible(showPenControls);
-    ui->lblSize->setVisible(showPenControls);
-    ui->spinSize->setVisible(showPenControls);
+    ui->btnColor->setEnabled(!isEraser);
+    ui->btnLineType->setEnabled(isPen);
+    ui->lblSize->setEnabled(isPen);
+    ui->spinSize->setEnabled(isPen);
 
     if(_fillCheck)
-        _fillCheck->setVisible(showFillControls);
+        _fillCheck->setEnabled(isFill);
     if(_btnFillColor)
-    {
-        _btnFillColor->setVisible(showFillControls);
-    }
+        _btnFillColor->setEnabled(isFill && _fillCheck && _fillCheck->isChecked());
 
+    if(_fontLabel)
+        _fontLabel->setEnabled(isFont);
     if(_fontCombo)
-        _fontCombo->setVisible(showFontControls);
+        _fontCombo->setEnabled(isFont);
     if(_fontSizeSpin)
-        _fontSizeSpin->setVisible(showFontControls);
-
-    adjustSize();
+        _fontSizeSpin->setEnabled(isFont);
 }
 
 
