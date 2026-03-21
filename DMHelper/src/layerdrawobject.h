@@ -5,6 +5,7 @@
 #include <QString>
 #include <QList>
 #include <QPointF>
+#include <QRectF>
 #include <QColor>
 #include <QUuid>
 
@@ -63,6 +64,123 @@ protected:
     int _penWidth;
     Qt::PenStyle _penStyle;
     QList<QPointF> _points;
+};
+
+
+
+class LayerDrawObjectLine : public LayerDrawObject
+{
+public:
+    explicit LayerDrawObjectLine();
+    explicit LayerDrawObjectLine(const QPointF& startPos, const QPointF& endPos, const QColor& penColor = Qt::black, int penWidth = 1, Qt::PenStyle penStyle = Qt::SolidLine);
+    virtual ~LayerDrawObjectLine();
+
+    virtual int getType() const override;
+
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
+    virtual void outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
+
+    QPointF getStartPoint() const;
+    QPointF getEndPoint() const;
+    void setEndPoint(const QPointF& endPoint);
+    QColor getPenColor() const;
+    int getPenWidth() const;
+    Qt::PenStyle getPenStyle() const;
+
+protected:
+    QPointF _startPoint;
+    QPointF _endPoint;
+    QColor _penColor;
+    int _penWidth;
+    Qt::PenStyle _penStyle;
+};
+
+
+
+class LayerDrawObjectRect : public LayerDrawObject
+{
+public:
+    explicit LayerDrawObjectRect();
+    explicit LayerDrawObjectRect(const QRectF& rect, const QColor& penColor = Qt::black, int penWidth = 1, Qt::PenStyle penStyle = Qt::SolidLine, const QColor& fillColor = Qt::transparent, bool filled = false);
+    virtual ~LayerDrawObjectRect();
+
+    virtual int getType() const override;
+
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
+    virtual void outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
+
+    QRectF getRect() const;
+    void setRect(const QRectF& rect);
+    QColor getPenColor() const;
+    int getPenWidth() const;
+    Qt::PenStyle getPenStyle() const;
+    QColor getFillColor() const;
+    bool isFilled() const;
+
+protected:
+    QRectF _rect;
+    QColor _penColor;
+    int _penWidth;
+    Qt::PenStyle _penStyle;
+    QColor _fillColor;
+    bool _filled;
+};
+
+
+
+class LayerDrawObjectEllipse : public LayerDrawObject
+{
+public:
+    explicit LayerDrawObjectEllipse();
+    explicit LayerDrawObjectEllipse(const QRectF& rect, const QColor& penColor = Qt::black, int penWidth = 1, Qt::PenStyle penStyle = Qt::SolidLine, const QColor& fillColor = Qt::transparent, bool filled = false);
+    virtual ~LayerDrawObjectEllipse();
+
+    virtual int getType() const override;
+
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
+    virtual void outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
+
+    QRectF getRect() const;
+    void setRect(const QRectF& rect);
+    QColor getPenColor() const;
+    int getPenWidth() const;
+    Qt::PenStyle getPenStyle() const;
+    QColor getFillColor() const;
+    bool isFilled() const;
+
+protected:
+    QRectF _rect;
+    QColor _penColor;
+    int _penWidth;
+    Qt::PenStyle _penStyle;
+    QColor _fillColor;
+    bool _filled;
+};
+
+
+
+class LayerDrawObjectText : public LayerDrawObject
+{
+public:
+    explicit LayerDrawObjectText();
+    explicit LayerDrawObjectText(const QPointF& position, const QString& text, const QColor& textColor = Qt::black, const QString& fontFamily = QString("Arial"), int fontSize = 12);
+    virtual ~LayerDrawObjectText();
+
+    virtual int getType() const override;
+
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
+    virtual void outputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
+
+    QString getText() const;
+    QColor getTextColor() const;
+    QString getFontFamily() const;
+    int getFontSize() const;
+
+protected:
+    QString _text;
+    QColor _textColor;
+    QString _fontFamily;
+    int _fontSize;
 };
 
 

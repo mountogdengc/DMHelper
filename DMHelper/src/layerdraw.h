@@ -4,14 +4,11 @@
 #include "layer.h"
 #include "layerdrawstate.h"
 #include <QImage>
-#include <QPainterPath>
 #include <QHash>
 #include <QSet>
 
 class PublishGLBattleBackground;
 class QGraphicsItem;
-class QGraphicsPathItem;
-class QPainter;
 class QUndoStack;
 
 class LayerDraw : public Layer
@@ -41,6 +38,8 @@ public:
     LayerDrawState& getDrawState();
 
     QGraphicsItem* createGraphicsItem(LayerDrawObject* drawObject);
+    LayerDrawObject* findObjectForItem(QGraphicsItem* item) const;
+    bool eraseObjectAtPosition(const QPointF& scenePos);
 
 public slots:
     // DM Window Generic Interface
@@ -59,11 +58,12 @@ public slots:
     virtual void initialize(const QSize& sceneSize) override;
     virtual void uninitialize() override;
 
-//    QPainterPath* beginPainting();
-//    void endPainting();
-
     void addObject(LayerDrawObject* drawObject);
     void removeObject(LayerDrawObject* drawObject);
+    void deleteSelectedObjects();
+
+signals:
+    void contentChanged();
 
 protected slots:
     void handleObjectAdded(LayerDrawObject* object, int index);
@@ -88,8 +88,6 @@ protected:
 
     // DM Window Members
     QHash<LayerDrawObject*, QGraphicsItem*> _graphicsItems;
-    //QGraphicsPixmapItem* _graphicsItem;
-    //QGraphicsPathItem* _pathItem;
 
     // Player Window Members
     QHash<LayerDrawObject*, PublishGLBattleBackground*> _glObjects;
@@ -99,12 +97,7 @@ protected:
 
     // Core contents
     LayerDrawState _layerDrawState;
-    //QPainterPath _drawPath;
-    //QImage _imageLayer;
-    //QPainter* _imagePainter;
-
     QUndoStack* _undoStack;
-    //QList<UndoFowBase*> _undoItems;
 
 };
 

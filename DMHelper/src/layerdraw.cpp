@@ -6,6 +6,8 @@
 #include "publishglbattleobject.h"
 #include "publishglscene.h"
 #include <QPainter>
+#include <QFont>
+#include <QFontMetricsF>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 #include <QUndoStack>
@@ -14,14 +16,11 @@
 
 LayerDraw::LayerDraw(const QString& name, int order, QObject *parent) :
     Layer{name, order, parent},
-    //_graphicsItem{nullptr},
-    //_pathItem{nullptr},
     _glObjects{},
     _dirtyObjects{},
     _scene{nullptr},
     _playerInitialized{false},
     _layerDrawState{},
-//    _drawPath{},
     _undoStack{new QUndoStack(this)}
 {
     connect(&_layerDrawState, &LayerDrawState::objectAdded, this, &LayerDraw::handleObjectAdded);
@@ -30,9 +29,6 @@ LayerDraw::LayerDraw(const QString& name, int order, QObject *parent) :
 
 LayerDraw::~LayerDraw()
 {
-    //if(_imagePainter)
-    //    endPainting();
-
     cleanupDM();
     cleanupPlayer();
 }
@@ -46,7 +42,6 @@ void LayerDraw::inputXML(const QDomElement &element, bool isImport)
 
 QRectF LayerDraw::boundingRect() const
 {
-//    return _pathItem ? _pathItem->boundingRect() : QRectF();
     return QRectF();
 }
 
@@ -74,14 +69,12 @@ Layer* LayerDraw::clone() const
 
 void LayerDraw::applyOrder(int order)
 {
-//    if(_pathItem)
-//        _pathItem->setZValue(order);
+    Q_UNUSED(order);
 }
 
 void LayerDraw::applyLayerVisibleDM(bool layerVisible)
 {
-//    if(_pathItem)
-//        _pathItem->setVisible(layerVisible);
+    Q_UNUSED(layerVisible);
 }
 
 void LayerDraw::applyLayerVisiblePlayer(bool layerVisible)
@@ -92,51 +85,21 @@ void LayerDraw::applyLayerVisiblePlayer(bool layerVisible)
 void LayerDraw::applyOpacity(qreal opacity)
 {
     _opacityReference = opacity;
-
-//    if(_pathItem)
-//        _pathItem->setOpacity(opacity);
 }
 
 void LayerDraw::applyPosition(const QPoint& position)
 {
-//    if(_pathItem)
-//        _pathItem->setPos(position);
+    Q_UNUSED(position);
 }
 
 void LayerDraw::applySize(const QSize& size)
 {
-    /*
-    if(size == _imageLayer.size())
-        return;
-
-    if(!_imageLayer.isNull())
-        uninitialize();
-
-    _size = size;
-    initialize(size);
-
-    QImage newImage = getImage();
-
-    if(_graphicsItem)
-        _graphicsItem->setPixmap(QPixmap::fromImage(newImage));
-*/
+    Q_UNUSED(size);
 }
 
 QImage LayerDraw::getImage() const
 {
     return QImage();
-    //return _imageLayer;
-    /*
-    if(_imageFowTexture.isNull())
-        return _imageFow;
-
-    QImage combinedImage = _imageFow;
-    QPainter p(&combinedImage);
-    p.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    p.drawImage(0, 0, _imageFowTexture);
-    p.end();
-    return combinedImage;
-*/
 }
 
 LayerDrawState& LayerDraw::getDrawState()
@@ -187,6 +150,88 @@ QGraphicsItem* LayerDraw::createGraphicsItem(LayerDrawObject* drawObject)
             graphicsItem = pathItem;
             break;
         }
+        case DMHelper::ActionType_Line:
+        {
+            LayerDrawObjectLine* lineObject = dynamic_cast<LayerDrawObjectLine*>(drawObject);
+            if(!lineObject)
+                return nullptr;
+
+            QLineF line(lineObject->getStartPoint(), lineObject->getEndPoint());
+            QPen linePen(QBrush(lineObject->getPenColor()), lineObject->getPenWidth(), lineObject->getPenStyle());
+            LayerDrawShapeLine* lineItem = new LayerDrawShapeLine(line, lineObject);
+            lineItem->setPen(linePen);
+            scene->addItem(lineItem);
+
+            lineItem->setPos(lineObject->getPosition());
+            lineItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+            lineItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+            lineItem->setZValue(getOrder());
+
+            graphicsItem = lineItem;
+            break;
+        }
+        case DMHelper::ActionType_Rect:
+        {
+            LayerDrawObjectRect* rectObject = dynamic_cast<LayerDrawObjectRect*>(drawObject);
+            if(!rectObject)
+                return nullptr;
+
+            QPen rectPen(QBrush(rectObject->getPenColor()), rectObject->getPenWidth(), rectObject->getPenStyle());
+            LayerDrawShapeRect* rectItem = new LayerDrawShapeRect(rectObject->getRect(), rectObject);
+            rectItem->setPen(rectPen);
+            if(rectObject->isFilled())
+                rectItem->setBrush(QBrush(rectObject->getFillColor()));
+            scene->addItem(rectItem);
+
+            rectItem->setPos(rectObject->getPosition());
+            rectItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+            rectItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+            rectItem->setZValue(getOrder());
+
+            graphicsItem = rectItem;
+            break;
+        }
+        case DMHelper::ActionType_Ellipse:
+        {
+            LayerDrawObjectEllipse* ellipseObject = dynamic_cast<LayerDrawObjectEllipse*>(drawObject);
+            if(!ellipseObject)
+                return nullptr;
+
+            QPen ellipsePen(QBrush(ellipseObject->getPenColor()), ellipseObject->getPenWidth(), ellipseObject->getPenStyle());
+            LayerDrawShapeEllipse* ellipseItem = new LayerDrawShapeEllipse(ellipseObject->getRect(), ellipseObject);
+            ellipseItem->setPen(ellipsePen);
+            if(ellipseObject->isFilled())
+                ellipseItem->setBrush(QBrush(ellipseObject->getFillColor()));
+            scene->addItem(ellipseItem);
+
+            ellipseItem->setPos(ellipseObject->getPosition());
+            ellipseItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+            ellipseItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+            ellipseItem->setZValue(getOrder());
+
+            graphicsItem = ellipseItem;
+            break;
+        }
+        case DMHelper::ActionType_Text:
+        {
+            LayerDrawObjectText* textObject = dynamic_cast<LayerDrawObjectText*>(drawObject);
+            if(!textObject)
+                return nullptr;
+
+            LayerDrawShapeText* textItem = new LayerDrawShapeText(textObject->getText(), textObject);
+            QFont font(textObject->getFontFamily(), textObject->getFontSize());
+            textItem->setFont(font);
+            textItem->setBrush(QBrush(textObject->getTextColor()));
+            scene->addItem(textItem);
+
+            textItem->setPos(textObject->getPosition());
+            textItem->setFlag(QGraphicsItem::ItemIsMovable, true);
+            textItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+            textItem->setZValue(getOrder());
+
+            graphicsItem = textItem;
+            break;
+        }
         default:
             return nullptr;
     }
@@ -209,23 +254,6 @@ void LayerDraw::dmInitialize(QGraphicsScene* scene)
         if((object) && (!_graphicsItems.contains(object)))
             createGraphicsItem(object);
     }
-
-    /*
-    if(_pathItem)
-    {
-        qDebug() << "[LayerDraw] ERROR: dmInitialize called although the path item already exists!";
-        return;
-    }
-
-    _pathItem = scene->addPath(_drawPath, QPen(Qt::red, 5));
-    if(_pathItem)
-    {
-        _pathItem->setPos(_position);
-        _pathItem->setFlag(QGraphicsItem::ItemIsMovable, false);
-        _pathItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
-        _pathItem->setZValue(getOrder());
-    }
-*/
 
     Layer::dmInitialize(scene);
 }
@@ -331,32 +359,13 @@ bool LayerDraw::playerIsInitialized()
 
 void LayerDraw::initialize(const QSize& sceneSize)
 {
-    //if(!_imageLayer.isNull())
-    //    return;
-
     if(getSize().isEmpty())
         setSize(sceneSize);
-
-    //_imageLayer = QImage(getSize(), QImage::Format_ARGB32_Premultiplied);
-    //_imageLayer.fill(Qt::transparent);
-
-    //initializeUndoStack();
 }
 
 void LayerDraw::uninitialize()
 {
-    //_imageLayer = QImage();
 }
-/*
-QPainterPath* LayerDraw::beginPainting()
-{
-    return &_drawPath;
-}
-
-void LayerDraw::endPainting()
-{
-}
-*/
 
 void LayerDraw::addObject(LayerDrawObject* drawObject)
 {
@@ -386,10 +395,13 @@ void LayerDraw::handleObjectAdded(LayerDrawObject* object, int index)
     if(!_graphicsItems.contains(object))
         createGraphicsItem(object);
 
-    if((_playerInitialized) && (!_glObjects.contains(object)))
-        createGLObject(object);
+    if(_playerInitialized)
+        _dirtyObjects.insert(object);
 
     connect(object, &LayerDrawObject::objectMoved, this, &LayerDraw::handleObjectMoved);
+
+    emit dirty();
+    emit contentChanged();
 }
 
 void LayerDraw::handleObjectRemoved(LayerDrawObject* object, int index)
@@ -400,6 +412,9 @@ void LayerDraw::handleObjectRemoved(LayerDrawObject* object, int index)
 
     _dirtyObjects.remove(object);
     delete _glObjects.take(object);
+
+    emit dirty();
+    emit contentChanged();
 }
 
 void LayerDraw::handleObjectMoved(LayerDrawObject* object)
@@ -409,7 +424,13 @@ void LayerDraw::handleObjectMoved(LayerDrawObject* object)
 
     PublishGLBattleBackground* glObj = _glObjects.value(object);
     if(!glObj)
+    {
+        // GL object hasn't been created yet; mark as dirty for next paint
+        if(_playerInitialized)
+            _dirtyObjects.insert(object);
+        emit contentChanged();
         return;
+    }
 
     // Recompute the world position for the moved object
     QRectF sceneBounds;
@@ -417,6 +438,8 @@ void LayerDraw::handleObjectMoved(LayerDrawObject* object)
     QPointF worldPos = PublishGLBattleObject::sceneToWorld(_scene->getSceneRect(),
                                                           sceneBounds.topLeft() + object->getPosition());
     glObj->setPosition(QPoint(static_cast<int>(worldPos.x()), static_cast<int>(worldPos.y())));
+
+    emit contentChanged();
 }
 
 void LayerDraw::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
@@ -509,7 +532,191 @@ QImage LayerDraw::renderObjectToImage(LayerDrawObject* drawObject, QRectF& scene
 
             return image;
         }
+        case DMHelper::ActionType_Line:
+        {
+            LayerDrawObjectLine* lineObject = dynamic_cast<LayerDrawObjectLine*>(drawObject);
+            if(!lineObject)
+                return QImage();
+
+            QLineF line(lineObject->getStartPoint(), lineObject->getEndPoint());
+            qreal penHalf = lineObject->getPenWidth() / 2.0 + 1.0;
+            QRectF lineRect = QRectF(line.p1(), line.p2()).normalized();
+            sceneBounds = lineRect.adjusted(-penHalf, -penHalf, penHalf, penHalf);
+
+            int imgW = qMax(1, static_cast<int>(std::ceil(sceneBounds.width())));
+            int imgH = qMax(1, static_cast<int>(std::ceil(sceneBounds.height())));
+            QImage image(imgW, imgH, QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.translate(-sceneBounds.topLeft());
+            QPen linePen(QBrush(lineObject->getPenColor()), lineObject->getPenWidth(), lineObject->getPenStyle());
+            painter.setPen(linePen);
+            painter.drawLine(line);
+            painter.end();
+
+            return image;
+        }
+        case DMHelper::ActionType_Rect:
+        {
+            LayerDrawObjectRect* rectObject = dynamic_cast<LayerDrawObjectRect*>(drawObject);
+            if(!rectObject)
+                return QImage();
+
+            QRectF rect = rectObject->getRect();
+            qreal penHalf = rectObject->getPenWidth() / 2.0 + 1.0;
+            sceneBounds = rect.adjusted(-penHalf, -penHalf, penHalf, penHalf);
+
+            int imgW = qMax(1, static_cast<int>(std::ceil(sceneBounds.width())));
+            int imgH = qMax(1, static_cast<int>(std::ceil(sceneBounds.height())));
+            QImage image(imgW, imgH, QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.translate(-sceneBounds.topLeft());
+            QPen rectPen(QBrush(rectObject->getPenColor()), rectObject->getPenWidth(), rectObject->getPenStyle());
+            painter.setPen(rectPen);
+            if(rectObject->isFilled())
+                painter.setBrush(QBrush(rectObject->getFillColor()));
+            painter.drawRect(rect);
+            painter.end();
+
+            return image;
+        }
+        case DMHelper::ActionType_Ellipse:
+        {
+            LayerDrawObjectEllipse* ellipseObject = dynamic_cast<LayerDrawObjectEllipse*>(drawObject);
+            if(!ellipseObject)
+                return QImage();
+
+            QRectF rect = ellipseObject->getRect();
+            qreal penHalf = ellipseObject->getPenWidth() / 2.0 + 1.0;
+            sceneBounds = rect.adjusted(-penHalf, -penHalf, penHalf, penHalf);
+
+            int imgW = qMax(1, static_cast<int>(std::ceil(sceneBounds.width())));
+            int imgH = qMax(1, static_cast<int>(std::ceil(sceneBounds.height())));
+            QImage image(imgW, imgH, QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.translate(-sceneBounds.topLeft());
+            QPen ellipsePen(QBrush(ellipseObject->getPenColor()), ellipseObject->getPenWidth(), ellipseObject->getPenStyle());
+            painter.setPen(ellipsePen);
+            if(ellipseObject->isFilled())
+                painter.setBrush(QBrush(ellipseObject->getFillColor()));
+            painter.drawEllipse(rect);
+            painter.end();
+
+            return image;
+        }
+        case DMHelper::ActionType_Text:
+        {
+            LayerDrawObjectText* textObject = dynamic_cast<LayerDrawObjectText*>(drawObject);
+            if(!textObject)
+                return QImage();
+
+            QFont font(textObject->getFontFamily(), textObject->getFontSize());
+            QFontMetricsF fm(font);
+            QRectF textRect = fm.boundingRect(textObject->getText());
+            // Shift to origin-based rect
+            textRect.moveTopLeft(QPointF(0.0, 0.0));
+            sceneBounds = textRect.adjusted(-1.0, -1.0, 1.0, 1.0);
+
+            int imgW = qMax(1, static_cast<int>(std::ceil(sceneBounds.width())));
+            int imgH = qMax(1, static_cast<int>(std::ceil(sceneBounds.height())));
+            QImage image(imgW, imgH, QImage::Format_ARGB32_Premultiplied);
+            image.fill(Qt::transparent);
+
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setFont(font);
+            painter.setPen(QPen(textObject->getTextColor()));
+            painter.drawText(sceneBounds, Qt::AlignLeft | Qt::AlignTop, textObject->getText());
+            painter.end();
+
+            return image;
+        }
         default:
             return QImage();
+    }
+}
+
+LayerDrawObject* LayerDraw::findObjectForItem(QGraphicsItem* item) const
+{
+    if(!item)
+        return nullptr;
+
+    for(auto it = _graphicsItems.constBegin(); it != _graphicsItems.constEnd(); ++it)
+    {
+        if(it.value() == item)
+            return it.key();
+    }
+
+    return nullptr;
+}
+
+bool LayerDraw::eraseObjectAtPosition(const QPointF& scenePos)
+{
+    if(!_layerScene)
+        return false;
+
+    QGraphicsScene* scene = _layerScene->getDMScene();
+    if(!scene)
+        return false;
+
+    QList<QGraphicsItem*> itemsAtPos = scene->items(scenePos, Qt::IntersectsItemShape, Qt::DescendingOrder);
+    for(QGraphicsItem* sceneItem : std::as_const(itemsAtPos))
+    {
+        LayerDrawObject* foundObj = findObjectForItem(sceneItem);
+        if(!foundObj)
+            continue;
+
+        // Remove the graphics item from the scene
+        QGraphicsItem* gItem = _graphicsItems.take(foundObj);
+        if(gItem)
+        {
+            if(gItem->scene())
+                gItem->scene()->removeItem(gItem);
+            delete gItem;
+        }
+
+        // Remove from state (this also cleans up GL objects via signal)
+        _layerDrawState.takeObject(foundObj->getId());
+        delete foundObj;
+        return true;
+    }
+
+    return false;
+}
+
+void LayerDraw::deleteSelectedObjects()
+{
+    if(!_layerScene)
+        return;
+
+    QGraphicsScene* scene = _layerScene->getDMScene();
+    if(!scene)
+        return;
+
+    QList<QGraphicsItem*> selectedItems = scene->selectedItems();
+    for(QGraphicsItem* sceneItem : std::as_const(selectedItems))
+    {
+        LayerDrawObject* foundObj = findObjectForItem(sceneItem);
+        if(!foundObj)
+            continue;
+
+        QGraphicsItem* gItem = _graphicsItems.take(foundObj);
+        if(gItem)
+        {
+            if(gItem->scene())
+                gItem->scene()->removeItem(gItem);
+            delete gItem;
+        }
+
+        _layerDrawState.takeObject(foundObj->getId());
+        delete foundObj;
     }
 }

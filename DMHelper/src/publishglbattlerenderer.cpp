@@ -7,6 +7,7 @@
 #include "battledialogmodelcombatant.h"
 #include "layer.h"
 #include "layertokens.h"
+#include "layerdraw.h"
 #include "characterv2.h"
 #include "campaign.h"
 #include "dmh_opengl.h"
@@ -166,6 +167,14 @@ void PublishGLBattleRenderer::initializeGL()
             connect(tokenLayer, &LayerTokens::postCombatantDrawGL, this, &PublishGLBattleRenderer::handleCombatantDrawnGL);
             tokenLayer->refreshEffects();
         }
+    }
+
+    QList<Layer*> drawLayers = _model->getLayerScene().getLayers(DMHelper::LayerType_Draw);
+    for(int i = 0; i < drawLayers.count(); ++i)
+    {
+        LayerDraw* drawLayer = dynamic_cast<LayerDraw*>(drawLayers.at(i));
+        if(drawLayer)
+            connect(drawLayer, &LayerDraw::contentChanged, this, &PublishGLRenderer::updateWidget);
     }
 
     QMatrix4x4 modelMatrix;
@@ -1279,6 +1288,12 @@ void PublishGLBattleRenderer::layerAdded(Layer* layer)
         if(tokenLayer)
             connect(tokenLayer, &LayerTokens::postCombatantDrawGL, this, &PublishGLBattleRenderer::handleCombatantDrawnGL);
     }
+    else if(layer->getFinalType() == DMHelper::LayerType_Draw)
+    {
+        LayerDraw* drawLayer = dynamic_cast<LayerDraw*>(layer);
+        if(drawLayer)
+            connect(drawLayer, &LayerDraw::contentChanged, this, &PublishGLRenderer::updateWidget);
+    }
 
     layer->playerSetShaders(_shaderProgramRGB, _shaderModelMatrixRGB, _shaderProjectionMatrixRGB, _shaderProgramRGBA, _shaderModelMatrixRGBA, _shaderProjectionMatrixRGBA, _shaderAlphaRGBA);
     emit updateWidget();
@@ -1294,6 +1309,12 @@ void PublishGLBattleRenderer::layerRemoved(Layer* layer)
         LayerTokens* tokenLayer = dynamic_cast<LayerTokens*>(layer);
         if(tokenLayer)
             disconnect(tokenLayer, &LayerTokens::postCombatantDrawGL, this, &PublishGLBattleRenderer::handleCombatantDrawnGL);
+    }
+    else if(layer->getFinalType() == DMHelper::LayerType_Draw)
+    {
+        LayerDraw* drawLayer = dynamic_cast<LayerDraw*>(layer);
+        if(drawLayer)
+            disconnect(drawLayer, &LayerDraw::contentChanged, this, &PublishGLRenderer::updateWidget);
     }
 }
 
