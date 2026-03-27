@@ -253,16 +253,16 @@ void LayerParticle::playerGLPaint(QOpenGLFunctions* functions, GLint defaultMode
     QMatrix4x4 projection;
     projection.perspective(60.0f, aspect, 0.1f, 100.0f);
 
-    // Camera in spherical coordinates around the particle cube
+    // Camera position from drop angle (elevation)
+    // angle=0: side view (drops fall top-to-bottom)
+    // angle=90: top-down (drops fall into screen)
     float elevRad = qDegreesToRadians(static_cast<float>(_rainAngle));
-    float dirRad = qDegreesToRadians(static_cast<float>(_rainDirection));
     float camDist = 2.0f;
 
-    float camX = camDist * qCos(elevRad) * qSin(dirRad);
     float camY = camDist * qSin(elevRad);
-    float camZ = camDist * qCos(elevRad) * qCos(dirRad);
+    float camZ = camDist * qCos(elevRad);
 
-    QVector3D eye(camX, camY, camZ);
+    QVector3D eye(0.0f, camY, camZ);
     QVector3D center(0.0f, 0.0f, 0.0f);
 
     // Up vector: avoid degeneracy when looking straight up/down
@@ -273,6 +273,10 @@ void LayerParticle::playerGLPaint(QOpenGLFunctions* functions, GLint defaultMode
 
     QMatrix4x4 view;
     view.lookAt(eye, center, worldUp);
+
+    // Direction rotates the view around the look axis (screen rotation)
+    // 0=top-to-bottom, 180=bottom-to-top, 90=left-to-right
+    view.rotate(static_cast<float>(_rainDirection), forward);
 
     QMatrix4x4 mvp = projection * view;
 
@@ -364,6 +368,7 @@ void LayerParticle::setParticleCount(int count)
     if(_particleCount == count)
         return;
     _particleCount = count;
+    _objectsDirty = true;
     emit dirty();
     emit update();
 }
@@ -699,14 +704,12 @@ QImage LayerParticle::createRainPreview(const QSize& size) const
     // Build the same MVP as the GL path
     float aspect = static_cast<float>(size.width()) / static_cast<float>(size.height());
     float elevRad = qDegreesToRadians(static_cast<float>(_rainAngle));
-    float dirRad = qDegreesToRadians(static_cast<float>(_rainDirection));
     float camDist = 2.0f;
 
-    float camX = camDist * qCos(elevRad) * qSin(dirRad);
     float camY = camDist * qSin(elevRad);
-    float camZ = camDist * qCos(elevRad) * qCos(dirRad);
+    float camZ = camDist * qCos(elevRad);
 
-    QVector3D eye(camX, camY, camZ);
+    QVector3D eye(0.0f, camY, camZ);
     QVector3D center(0.0f, 0.0f, 0.0f);
     QVector3D forward = (center - eye).normalized();
     QVector3D worldUp(0.0f, 1.0f, 0.0f);
@@ -717,6 +720,7 @@ QImage LayerParticle::createRainPreview(const QSize& size) const
     proj.perspective(60.0f, aspect, 0.1f, 100.0f);
     QMatrix4x4 view;
     view.lookAt(eye, center, worldUp);
+    view.rotate(static_cast<float>(_rainDirection), forward);
     QMatrix4x4 mvp = proj * view;
 
     float halfW = size.width() / 2.0f;
