@@ -182,6 +182,7 @@ void LayerParticle::dmInitialize(QGraphicsScene* scene)
 
     if(_graphicsItem)
     {
+        _graphicsItem->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
         _graphicsItem->setPos(_position);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsMovable, false);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
