@@ -2,26 +2,11 @@
 #include "ui_layerdrawtooldialog.h"
 #include "colorpushbutton.h"
 #include <QMenu>
-#include <QFontComboBox>
-#include <QSpinBox>
-#include <QPushButton>
-#include <QCheckBox>
-#include <QLabel>
-#include <QGridLayout>
-#include <QHBoxLayout>
-#include <QButtonGroup>
 
 LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::LayerDrawToolDialog),
-    _currentLineType{Qt::SolidLine},
-    _btnStraightLine{nullptr},
-    _btnText{nullptr},
-    _fillCheck{nullptr},
-    _btnFillColor{nullptr},
-    _fontLabel{nullptr},
-    _fontCombo{nullptr},
-    _fontSizeSpin{nullptr}
+    _currentLineType{Qt::SolidLine}
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Tool | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
@@ -39,69 +24,10 @@ LayerDrawToolDialog::LayerDrawToolDialog(QWidget *parent) :
     connect(lineTypeMenu, &QMenu::triggered, this, &LayerDrawToolDialog::handleLineTypeTriggered);
 
     ui->btnColor->setRotationVisible(false);
+    ui->btnFillColor->setColor(Qt::white);
+    ui->btnFillColor->setRotationVisible(false);
 
-    // Add straight line button (row 2, col 0)
-    _btnStraightLine = new QPushButton(this);
-    _btnStraightLine->setMinimumSize(50, 50);
-    _btnStraightLine->setMaximumSize(50, 50);
-    _btnStraightLine->setToolTip(QString("Straight Line"));
-    _btnStraightLine->setIcon(QIcon(":/img/data/icon_neweffectline.png"));
-    _btnStraightLine->setIconSize(QSize(40, 40));
-    _btnStraightLine->setCheckable(true);
-    ui->gridLayout->addWidget(_btnStraightLine, 2, 0);
-    ui->buttonGroup->addButton(_btnStraightLine);
-
-    // Add text button (row 2, col 1)
-    _btnText = new QPushButton(this);
-    _btnText->setMinimumSize(50, 50);
-    _btnText->setMaximumSize(50, 50);
-    _btnText->setToolTip(QString("Text"));
-    _btnText->setText(QString("T"));
-    QFont textBtnFont = _btnText->font();
-    textBtnFont.setPointSize(20);
-    textBtnFont.setBold(true);
-    _btnText->setFont(textBtnFont);
-    _btnText->setCheckable(true);
-    ui->gridLayout->addWidget(_btnText, 2, 1);
-    ui->buttonGroup->addButton(_btnText);
-
-    // Fill color picker
-    _fillCheck = new QCheckBox(QString("Fill"), this);
-    _fillCheck->setChecked(false);
-
-    _btnFillColor = new ColorPushButton(this);
-    _btnFillColor->setMinimumSize(50, 50);
-    _btnFillColor->setMaximumSize(50, 50);
-    _btnFillColor->setToolTip(QString("Fill Color"));
-    _btnFillColor->setColor(Qt::white);
-    _btnFillColor->setRotationVisible(false);
-    _btnFillColor->setEnabled(false);
-
-    connect(_fillCheck, &QCheckBox::toggled, this, &LayerDrawToolDialog::updateControlStates);
-
-    QHBoxLayout* fillLayout = new QHBoxLayout();
-    fillLayout->addWidget(_fillCheck);
-    fillLayout->addWidget(_btnFillColor);
-    ui->verticalLayout->addLayout(fillLayout);
-
-    // Font controls
-    _fontLabel = new QLabel(QString("Font:"), this);
-    _fontCombo = new QFontComboBox(this);
-    _fontCombo->setCurrentFont(QFont("Arial"));
-
-    _fontSizeSpin = new QSpinBox(this);
-    _fontSizeSpin->setMinimum(4);
-    _fontSizeSpin->setMaximum(200);
-    _fontSizeSpin->setValue(12);
-    _fontSizeSpin->setSuffix(QString("pt"));
-
-    QHBoxLayout* fontLayout = new QHBoxLayout();
-    fontLayout->addWidget(_fontLabel);
-    fontLayout->addWidget(_fontCombo);
-    fontLayout->addWidget(_fontSizeSpin);
-    ui->verticalLayout->addLayout(fontLayout);
-
-    // Connect button group to update enabled state
+    connect(ui->fillCheck, &QCheckBox::toggled, this, &LayerDrawToolDialog::updateControlStates);
     connect(ui->buttonGroup, &QButtonGroup::idClicked, this, &LayerDrawToolDialog::handleToolChanged);
 
     updateControlStates();
@@ -126,9 +52,9 @@ DMHelper::DrawToolType LayerDrawToolDialog::getToolType() const
         return DMHelper::DrawToolType_Ellipse;
     if(checked == ui->btnRectangle)
         return DMHelper::DrawToolType_Rect;
-    if(checked == _btnStraightLine)
+    if(checked == ui->btnStraightLine)
         return DMHelper::DrawToolType_Line;
-    if(checked == _btnText)
+    if(checked == ui->btnText)
         return DMHelper::DrawToolType_Text;
 
     return DMHelper::DrawToolType_Path;
@@ -151,30 +77,22 @@ int LayerDrawToolDialog::getToolLineWidth() const
 
 QColor LayerDrawToolDialog::getToolFillColor() const
 {
-    if(!_btnFillColor)
-        return Qt::transparent;
-    return _btnFillColor->getColor();
+    return ui->btnFillColor->getColor();
 }
 
 bool LayerDrawToolDialog::isToolFilled() const
 {
-    if(!_fillCheck)
-        return false;
-    return _fillCheck->isChecked();
+    return ui->fillCheck->isChecked();
 }
 
 QString LayerDrawToolDialog::getToolFontFamily() const
 {
-    if(!_fontCombo)
-        return QString("Arial");
-    return _fontCombo->currentFont().family();
+    return ui->fontCombo->currentFont().family();
 }
 
 int LayerDrawToolDialog::getToolFontSize() const
 {
-    if(!_fontSizeSpin)
-        return 12;
-    return _fontSizeSpin->value();
+    return ui->fontSizeSpin->value();
 }
 
 void LayerDrawToolDialog::handleLineTypeTriggered(QAction* action)
@@ -206,17 +124,12 @@ void LayerDrawToolDialog::updateControlStates()
     ui->lblSize->setEnabled(isPen);
     ui->spinSize->setEnabled(isPen);
 
-    if(_fillCheck)
-        _fillCheck->setEnabled(isFill);
-    if(_btnFillColor)
-        _btnFillColor->setEnabled(isFill && _fillCheck && _fillCheck->isChecked());
+    ui->fillCheck->setEnabled(isFill);
+    ui->btnFillColor->setEnabled(isFill && ui->fillCheck->isChecked());
 
-    if(_fontLabel)
-        _fontLabel->setEnabled(isFont);
-    if(_fontCombo)
-        _fontCombo->setEnabled(isFont);
-    if(_fontSizeSpin)
-        _fontSizeSpin->setEnabled(isFont);
+    ui->fontLabel->setEnabled(isFont);
+    ui->fontCombo->setEnabled(isFont);
+    ui->fontSizeSpin->setEnabled(isFont);
 }
 
 
