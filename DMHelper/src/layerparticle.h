@@ -36,6 +36,8 @@ public:
     static const int defaultRainAngle      = 90;
     static const int defaultRainLength     = 10;
     static const int defaultRainOpacity    = 50;
+    static const int defaultRainWidth      = 1;
+    static const int defaultRainMovement     = 0;
 
 signals:
     void update();
@@ -66,6 +68,8 @@ public slots:
     void setRainColor(const QColor& color);
     void setRainLength(int length);
     void setRainOpacity(int opacity);
+    void setRainWidth(int width);
+    void setRainMovement(int movement);
 
 protected:
     virtual void timerEvent(QTimerEvent *event) override;
@@ -100,6 +104,7 @@ protected:
     int _shaderColor;
     int _shaderOpacity;
     int _shaderMVP;
+    int _shaderMovement;
     int _vertexCount;
 
     // Rain parameters
@@ -110,6 +115,8 @@ protected:
     QColor  _rainColor;
     int     _rainLength;
     int     _rainOpacity;
+    int     _rainWidth;
+    int     _rainMovement;
 };
 
 #endif // LAYERPARTICLE_H
