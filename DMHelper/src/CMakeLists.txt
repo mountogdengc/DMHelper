@@ -196,6 +196,7 @@ set(DMHELPER_SOURCES
     layergrid.cpp
     layerimage.cpp
     layerparticle.cpp
+    layerparticlesettings.cpp
     layerreference.cpp
     layerscene.cpp
     layerseditdialog.cpp
@@ -521,6 +522,7 @@ set(DMHELPER_HEADERS
     layergrid.h
     layerimage.h
     layerparticle.h
+    layerparticlesettings.h
     layerreference.h
     layerscene.h
     layertokens.h
@@ -727,6 +729,7 @@ set(DMHELPER_FORMS
     layereffectsettings.ui
     layerfowsettings.ui
     layerframe.ui
+    layerparticlesettings.ui
     layerseditdialog.ui
     layervideoeffectsettings.ui
     legaldialog.ui
