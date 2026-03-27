@@ -2,25 +2,41 @@
 #define LAYERPARTICLE_H
 
 #include "layer.h"
+#include <QColor>
+
+class QGraphicsPixmapItem;
 
 class LayerParticle : public Layer
 {
     Q_OBJECT
 public:
-    explicit LayerParticle(const QString& name, int order = 0, QObject *parent = nullptr);
+    explicit LayerParticle(const QString& name = QString(), int order = 0, QObject *parent = nullptr);
     virtual ~LayerParticle() override;
 
+    virtual void inputXML(const QDomElement &element, bool isImport) override;
+
+    virtual QRectF boundingRect() const override;
+    virtual QImage getLayerIcon() const override;
+    virtual bool defaultShader() const override;
+    virtual bool hasSettings() const override;
     virtual DMHelper::LayerType getType() const override;
     virtual Layer* clone() const override;
-    //virtual void copyBaseValues(Layer *other) const;
 
-    // Local Layer Interface (generally should call set*() versions below
+    // Local Layer Interface
     virtual void applyOrder(int order) override;
     virtual void applyLayerVisibleDM(bool layerVisible) override;
     virtual void applyLayerVisiblePlayer(bool layerVisible) override;
     virtual void applyOpacity(qreal opacity) override;
     virtual void applyPosition(const QPoint& position) override;
     virtual void applySize(const QSize& size) override;
+
+    static const int defaultParticleCount = 500;
+    static const int defaultRainSpeed     = 50;
+    static const int defaultRainAngle     = 0;
+    static const int defaultRainLength    = 10;
+
+signals:
+    void update();
 
 public slots:
     // DM Window Generic Interface
@@ -39,18 +55,19 @@ public slots:
     // Layer Specific Interface
     virtual void initialize(const QSize& sceneSize) override;
     virtual void uninitialize() override;
+    virtual void editSettings() override;
+
+    void setParticleCount(int count);
+    void setRainSpeed(int speed);
+    void setRainAngle(int angle);
+    void setRainColor(const QColor& color);
+    void setRainLength(int length);
 
 protected:
-    // QObject overrides
     virtual void timerEvent(QTimerEvent *event) override;
-
-    // Layer Specific Interface
     virtual void internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
 
-    // DM Window Methods
     void cleanupDM();
-
-    // Player Window Methods
     void cleanupPlayer();
 
     void createShaders();
@@ -58,15 +75,33 @@ protected:
     void createObjects();
     void destroyObjects();
 
-    // Generic Methods
+    void refreshDMPreview();
+    QImage createRainPreview(const QSize& size) const;
 
     // DM Window Members
+    QGraphicsPixmapItem* _graphicsItem;
 
     // Player Window Members
     PublishGLScene* _scene;
-
     int _timerId;
+    int _milliseconds;
+    bool _objectsDirty;
 
+    unsigned int _VAO;
+    unsigned int _VBO;
+
+    int _shaderTime;
+    int _shaderSpeed;
+    int _shaderAngle;
+    int _shaderLength;
+    int _shaderColor;
+
+    // Rain parameters
+    int     _particleCount;
+    int     _rainSpeed;
+    int     _rainAngle;
+    QColor  _rainColor;
+    int     _rainLength;
 };
 
 #endif // LAYERPARTICLE_H
