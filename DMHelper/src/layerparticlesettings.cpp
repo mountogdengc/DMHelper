@@ -19,6 +19,10 @@ LayerParticleSettings::LayerParticleSettings(QWidget *parent) :
     connect(ui->slideSpeed, &QSlider::valueChanged, ui->spinSpeed, &QSpinBox::setValue);
     connect(ui->spinSpeed, qOverload<int>(&QSpinBox::valueChanged), ui->slideSpeed, &QSlider::setValue);
 
+    connect(ui->spinDirection, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainDirectionChanged);
+    connect(ui->slideDirection, &QSlider::valueChanged, ui->spinDirection, &QSpinBox::setValue);
+    connect(ui->spinDirection, qOverload<int>(&QSpinBox::valueChanged), ui->slideDirection, &QSlider::setValue);
+
     connect(ui->spinAngle, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainAngleChanged);
     connect(ui->slideAngle, &QSlider::valueChanged, ui->spinAngle, &QSpinBox::setValue);
     connect(ui->spinAngle, qOverload<int>(&QSpinBox::valueChanged), ui->slideAngle, &QSlider::setValue);
@@ -26,6 +30,10 @@ LayerParticleSettings::LayerParticleSettings(QWidget *parent) :
     connect(ui->spinLength, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainLengthChanged);
     connect(ui->slideLength, &QSlider::valueChanged, ui->spinLength, &QSpinBox::setValue);
     connect(ui->spinLength, qOverload<int>(&QSpinBox::valueChanged), ui->slideLength, &QSlider::setValue);
+
+    connect(ui->spinOpacity, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainOpacityChanged);
+    connect(ui->slideOpacity, &QSlider::valueChanged, ui->spinOpacity, &QSpinBox::setValue);
+    connect(ui->spinOpacity, qOverload<int>(&QSpinBox::valueChanged), ui->slideOpacity, &QSlider::setValue);
 
     connect(ui->btnRainColor, &ColorPushButton::colorChanged, this, &LayerParticleSettings::rainColorChanged);
 }
@@ -45,6 +53,11 @@ int LayerParticleSettings::rainSpeed() const
     return ui->spinSpeed->value();
 }
 
+int LayerParticleSettings::rainDirection() const
+{
+    return ui->spinDirection->value();
+}
+
 int LayerParticleSettings::rainAngle() const
 {
     return ui->spinAngle->value();
@@ -60,6 +73,11 @@ int LayerParticleSettings::rainLength() const
     return ui->spinLength->value();
 }
 
+int LayerParticleSettings::rainOpacity() const
+{
+    return ui->spinOpacity->value();
+}
+
 void LayerParticleSettings::setParticleCount(int count)
 {
     ui->spinCount->setValue(count);
@@ -68,6 +86,11 @@ void LayerParticleSettings::setParticleCount(int count)
 void LayerParticleSettings::setRainSpeed(int speed)
 {
     ui->spinSpeed->setValue(speed);
+}
+
+void LayerParticleSettings::setRainDirection(int direction)
+{
+    ui->spinDirection->setValue(direction);
 }
 
 void LayerParticleSettings::setRainAngle(int angle)
@@ -83,4 +106,9 @@ void LayerParticleSettings::setRainColor(const QColor& color)
 void LayerParticleSettings::setRainLength(int length)
 {
     ui->spinLength->setValue(length);
+}
+
+void LayerParticleSettings::setRainOpacity(int opacity)
+{
+    ui->spinOpacity->setValue(opacity);
 }

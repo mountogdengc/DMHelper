@@ -30,10 +30,12 @@ public:
     virtual void applyPosition(const QPoint& position) override;
     virtual void applySize(const QSize& size) override;
 
-    static const int defaultParticleCount = 500;
-    static const int defaultRainSpeed     = 50;
-    static const int defaultRainAngle     = 0;
-    static const int defaultRainLength    = 10;
+    static const int defaultParticleCount  = 500;
+    static const int defaultRainSpeed      = 250;
+    static const int defaultRainDirection  = 0;
+    static const int defaultRainAngle      = 90;
+    static const int defaultRainLength     = 10;
+    static const int defaultRainOpacity    = 50;
 
 signals:
     void update();
@@ -59,9 +61,11 @@ public slots:
 
     void setParticleCount(int count);
     void setRainSpeed(int speed);
+    void setRainDirection(int direction);
     void setRainAngle(int angle);
     void setRainColor(const QColor& color);
     void setRainLength(int length);
+    void setRainOpacity(int opacity);
 
 protected:
     virtual void timerEvent(QTimerEvent *event) override;
@@ -92,16 +96,20 @@ protected:
 
     int _shaderTime;
     int _shaderSpeed;
-    int _shaderAngle;
     int _shaderLength;
     int _shaderColor;
+    int _shaderOpacity;
+    int _shaderMVP;
+    int _vertexCount;
 
     // Rain parameters
     int     _particleCount;
     int     _rainSpeed;
+    int     _rainDirection;
     int     _rainAngle;
     QColor  _rainColor;
     int     _rainLength;
+    int     _rainOpacity;
 };
 
 #endif // LAYERPARTICLE_H
