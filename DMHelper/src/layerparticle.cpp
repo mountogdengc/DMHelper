@@ -23,12 +23,18 @@ const char *particleVertexShaderSource = "#version 410 core\n"
     "uniform float u_time;\n"
     "uniform float u_speed;\n"
     "uniform float u_length;\n"
+    "uniform float u_movement;\n"
     "void main()\n"
     "{\n"
     "   vec3 pos = aBasePos;\n"
     "   float speed = u_speed * (0.7 + aSpeedVar * 0.6);\n"
     "   pos.y = fract(pos.y - u_time * speed * 0.000005) * 2.0 - 1.0;\n"
     "   pos.xz = pos.xz * 2.0 - 1.0;\n"
+    "   if(u_movement > 0.0) {\n"
+    "       float phase = u_time * 0.003 + aBasePos.z * 17.0 + aSpeedVar * 50.0;\n"
+    "       pos.x += sin(phase) * u_movement * 0.01;\n"
+    "       pos.z += cos(phase * 1.3 + 2.0) * u_movement * 0.01;\n"
+    "   }\n"
     "   pos.y -= aEndpoint * u_length * 0.01;\n"
     "   gl_Position = u_mvp * vec4(pos, 1.0);\n"
     "}\0";
@@ -58,6 +64,7 @@ LayerParticle::LayerParticle(const QString& name, int order, QObject *parent) :
     _shaderColor(0),
     _shaderOpacity(0),
     _shaderMVP(0),
+    _shaderMovement(0),
     _vertexCount(0),
     _particleCount(defaultParticleCount),
     _rainSpeed(defaultRainSpeed),
@@ -65,7 +72,9 @@ LayerParticle::LayerParticle(const QString& name, int order, QObject *parent) :
     _rainAngle(defaultRainAngle),
     _rainColor(QColor(200, 200, 255, 180)),
     _rainLength(defaultRainLength),
-    _rainOpacity(defaultRainOpacity)
+    _rainOpacity(defaultRainOpacity),
+    _rainWidth(defaultRainWidth),
+    _rainMovement(defaultRainMovement)
 {
 }
 
@@ -84,6 +93,8 @@ void LayerParticle::inputXML(const QDomElement &element, bool isImport)
     _rainLength     = element.attribute("rainLength", QString::number(defaultRainLength)).toInt();
     _rainOpacity    = element.attribute("rainOpacity", QString::number(defaultRainOpacity)).toInt();
     _rainColor      = QColor(element.attribute("rainColor", QColor(200, 200, 255, 180).name(QColor::HexArgb)));
+    _rainWidth      = element.attribute("rainWidth", QString::number(defaultRainWidth)).toInt();
+    _rainMovement     = element.attribute("rainMovement", QString::number(defaultRainMovement)).toInt();
 
     Layer::inputXML(element, isImport);
 }
@@ -124,6 +135,8 @@ Layer* LayerParticle::clone() const
     newLayer->_rainColor      = _rainColor;
     newLayer->_rainLength     = _rainLength;
     newLayer->_rainOpacity    = _rainOpacity;
+    newLayer->_rainWidth      = _rainWidth;
+    newLayer->_rainMovement     = _rainMovement;
     return newLayer;
 }
 
@@ -289,9 +302,12 @@ void LayerParticle::playerGLPaint(QOpenGLFunctions* functions, GLint defaultMode
     functions->glUniform1f(_shaderSpeed, static_cast<float>(_rainSpeed));
     functions->glUniform1f(_shaderLength, static_cast<float>(_rainLength));
     functions->glUniform1f(_shaderOpacity, static_cast<float>(_rainOpacity) / 100.f);
+    functions->glUniform1f(_shaderMovement, static_cast<float>(_rainMovement));
     functions->glUniform4f(_shaderColor,
                            _rainColor.redF(), _rainColor.greenF(), _rainColor.blueF(),
                            _opacityReference);
+
+    functions->glLineWidth(static_cast<float>(_rainWidth));
 
     e->glBindVertexArray(_VAO);
     functions->glDrawArrays(GL_LINES, 0, _vertexCount);
@@ -339,13 +355,15 @@ void LayerParticle::editSettings()
     // The timer-driven animation already picks up changes every 30ms
     // for live preview, so we don't need to emit update() per slider tick.
     // Emit dirty() once when the dialog closes to avoid signal spam.
-    connect(dlg, &LayerParticleSettings::particleCountChanged,  this, [this](int v) { _particleCount = v; });
+    connect(dlg, &LayerParticleSettings::particleCountChanged,  this, [this](int v) { _particleCount = v; _objectsDirty = true; });
     connect(dlg, &LayerParticleSettings::rainSpeedChanged,      this, [this](int v) { _rainSpeed = v; });
     connect(dlg, &LayerParticleSettings::rainDirectionChanged,  this, [this](int v) { _rainDirection = v; });
     connect(dlg, &LayerParticleSettings::rainAngleChanged,      this, [this](int v) { _rainAngle = v; });
     connect(dlg, &LayerParticleSettings::rainColorChanged,      this, [this](const QColor& c) { _rainColor = c; });
     connect(dlg, &LayerParticleSettings::rainLengthChanged,     this, [this](int v) { _rainLength = v; });
     connect(dlg, &LayerParticleSettings::rainOpacityChanged,    this, [this](int v) { _rainOpacity = v; });
+    connect(dlg, &LayerParticleSettings::rainWidthChanged,      this, [this](int v) { _rainWidth = v; });
+    connect(dlg, &LayerParticleSettings::rainMovementChanged,     this, [this](int v) { _rainMovement = v; });
 
     dlg->setParticleCount(_particleCount);
     dlg->setRainSpeed(_rainSpeed);
@@ -354,6 +372,8 @@ void LayerParticle::editSettings()
     dlg->setRainColor(_rainColor);
     dlg->setRainLength(_rainLength);
     dlg->setRainOpacity(_rainOpacity);
+    dlg->setRainWidth(_rainWidth);
+    dlg->setRainMovement(_rainMovement);
 
     dlg->exec();
 
@@ -427,6 +447,24 @@ void LayerParticle::setRainOpacity(int opacity)
     emit update();
 }
 
+void LayerParticle::setRainWidth(int width)
+{
+    if(_rainWidth == width)
+        return;
+    _rainWidth = width;
+    emit dirty();
+    emit update();
+}
+
+void LayerParticle::setRainMovement(int movement)
+{
+    if(_rainMovement == movement)
+        return;
+    _rainMovement = movement;
+    emit dirty();
+    emit update();
+}
+
 void LayerParticle::timerEvent(QTimerEvent *event)
 {
     if((event) && (event->timerId() > 0) && (event->timerId() == _timerId))
@@ -455,6 +493,12 @@ void LayerParticle::internalOutputXML(QDomDocument &doc, QDomElement &element, Q
 
     if(_rainOpacity != defaultRainOpacity)
         element.setAttribute("rainOpacity", _rainOpacity);
+
+    if(_rainWidth != defaultRainWidth)
+        element.setAttribute("rainWidth", _rainWidth);
+
+    if(_rainMovement != defaultRainMovement)
+        element.setAttribute("rainMovement", _rainMovement);
 
     QColor defaultColor(200, 200, 255, 180);
     if(_rainColor != defaultColor)
@@ -557,6 +601,7 @@ void LayerParticle::createShaders()
     _shaderLength  = f->glGetUniformLocation(_shaderProgramRGBA, "u_length");
     _shaderColor   = f->glGetUniformLocation(_shaderProgramRGBA, "u_color");
     _shaderOpacity = f->glGetUniformLocation(_shaderProgramRGBA, "u_opacity");
+    _shaderMovement  = f->glGetUniformLocation(_shaderProgramRGBA, "u_movement");
 
     qDebug() << "[LayerParticle] Shaders created. Program:" << _shaderProgramRGBA;
 }
@@ -582,6 +627,7 @@ void LayerParticle::destroyShaders()
     _shaderColor = 0;
     _shaderOpacity = 0;
     _shaderMVP = 0;
+    _shaderMovement = 0;
 }
 
 void LayerParticle::createObjects()
@@ -698,7 +744,7 @@ QImage LayerParticle::createRainPreview(const QSize& size) const
     QColor dropColor = _rainColor;
     dropColor.setAlphaF(static_cast<qreal>(_rainOpacity) / 100.0);
     QPen pen(dropColor);
-    pen.setWidthF(1.0);
+    pen.setWidthF(static_cast<qreal>(_rainWidth));
     painter.setPen(pen);
 
     // Build the same MVP as the GL path

@@ -23,6 +23,8 @@ public:
     QColor rainColor() const;
     int rainLength() const;
     int rainOpacity() const;
+    int rainWidth() const;
+    int rainMovement() const;
 
 signals:
     void particleCountChanged(int count);
@@ -32,6 +34,8 @@ signals:
     void rainColorChanged(const QColor& color);
     void rainLengthChanged(int length);
     void rainOpacityChanged(int opacity);
+    void rainWidthChanged(int width);
+    void rainMovementChanged(int movement);
 
 public slots:
     void setParticleCount(int count);
@@ -41,6 +45,9 @@ public slots:
     void setRainColor(const QColor& color);
     void setRainLength(int length);
     void setRainOpacity(int opacity);
+    void setRainWidth(int width);
+    void setRainMovement(int movement);
+    void applyPreset(int index);
 
 private:
     Ui::LayerParticleSettings *ui;

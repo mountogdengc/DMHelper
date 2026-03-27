@@ -36,6 +36,16 @@ LayerParticleSettings::LayerParticleSettings(QWidget *parent) :
     connect(ui->spinOpacity, qOverload<int>(&QSpinBox::valueChanged), ui->slideOpacity, &QSlider::setValue);
 
     connect(ui->btnRainColor, &ColorPushButton::colorChanged, this, &LayerParticleSettings::rainColorChanged);
+
+    connect(ui->spinWidth, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainWidthChanged);
+    connect(ui->slideWidth, &QSlider::valueChanged, ui->spinWidth, &QSpinBox::setValue);
+    connect(ui->spinWidth, qOverload<int>(&QSpinBox::valueChanged), ui->slideWidth, &QSlider::setValue);
+
+    connect(ui->spinMovement, qOverload<int>(&QSpinBox::valueChanged), this, &LayerParticleSettings::rainMovementChanged);
+    connect(ui->slideMovement, &QSlider::valueChanged, ui->spinMovement, &QSpinBox::setValue);
+    connect(ui->spinMovement, qOverload<int>(&QSpinBox::valueChanged), ui->slideMovement, &QSlider::setValue);
+
+    connect(ui->comboPreset, qOverload<int>(&QComboBox::activated), this, &LayerParticleSettings::applyPreset);
 }
 
 LayerParticleSettings::~LayerParticleSettings()
@@ -78,6 +88,16 @@ int LayerParticleSettings::rainOpacity() const
     return ui->spinOpacity->value();
 }
 
+int LayerParticleSettings::rainWidth() const
+{
+    return ui->spinWidth->value();
+}
+
+int LayerParticleSettings::rainMovement() const
+{
+    return ui->spinMovement->value();
+}
+
 void LayerParticleSettings::setParticleCount(int count)
 {
     ui->spinCount->setValue(count);
@@ -111,4 +131,46 @@ void LayerParticleSettings::setRainLength(int length)
 void LayerParticleSettings::setRainOpacity(int opacity)
 {
     ui->spinOpacity->setValue(opacity);
+}
+
+void LayerParticleSettings::setRainWidth(int width)
+{
+    ui->spinWidth->setValue(width);
+}
+
+void LayerParticleSettings::setRainMovement(int movement)
+{
+    ui->spinMovement->setValue(movement);
+}
+
+void LayerParticleSettings::applyPreset(int index)
+{
+    if(index == 1) // Rain
+    {
+        setParticleCount(500);
+        setRainSpeed(250);
+        setRainDirection(0);
+        setRainAngle(90);
+        setRainLength(10);
+        setRainOpacity(50);
+        setRainWidth(1);
+        setRainMovement(0);
+        setRainColor(QColor(200, 200, 255, 180));
+    }
+    else if(index == 2) // Snow
+    {
+        setParticleCount(800);
+        setRainSpeed(80);
+        setRainDirection(0);
+        setRainAngle(90);
+        setRainLength(1);
+        setRainOpacity(80);
+        setRainWidth(3);
+        setRainMovement(40);
+        setRainColor(QColor(255, 255, 255, 220));
+    }
+
+    // Reset combo to "Custom" so it doesn't stay on a preset name
+    // while the user tweaks individual values
+    ui->comboPreset->setCurrentIndex(0);
 }
