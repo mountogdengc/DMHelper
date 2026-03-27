@@ -147,26 +147,26 @@ void LayerParticleSettings::applyPreset(int index)
 {
     if(index == 1) // Rain
     {
-        setParticleCount(500);
+        setParticleCount(1500);
         setRainSpeed(250);
         setRainDirection(0);
         setRainAngle(90);
         setRainLength(10);
-        setRainOpacity(50);
+        setRainOpacity(75);
         setRainWidth(1);
         setRainMovement(0);
         setRainColor(QColor(200, 200, 255, 180));
     }
     else if(index == 2) // Snow
     {
-        setParticleCount(800);
-        setRainSpeed(80);
+        setParticleCount(5000);
+        setRainSpeed(30);
         setRainDirection(0);
         setRainAngle(90);
         setRainLength(1);
-        setRainOpacity(80);
+        setRainOpacity(100);
         setRainWidth(3);
-        setRainMovement(40);
+        setRainMovement(2);
         setRainColor(QColor(255, 255, 255, 220));
     }
 
