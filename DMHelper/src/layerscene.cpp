@@ -10,6 +10,7 @@
 #include "layerblank.h"
 #include "layereffect.h"
 #include "layerdraw.h"
+#include "layerparticle.h"
 #include "publishglscene.h"
 #include "campaign.h"
 #include <QRectF>
@@ -81,6 +82,9 @@ void LayerScene::inputXML(const QDomElement &element, bool isImport)
                 break;
             case DMHelper::LayerType_Draw:
                 newLayer = new LayerDraw();
+                break;
+            case DMHelper::LayerType_Particle:
+                newLayer = new LayerParticle();
                 break;
             default:
                 qDebug() << "[LayerScene] ERROR: unable to read layer for unexpected type: " << layerType;

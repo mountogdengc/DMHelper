@@ -9,87 +9,38 @@
 #include <QMatrix4x4>
 #include <QTimerEvent>
 #include <QtMath>
+#include <vector>
 
 const int LAYERPARTICLE_PREVIEWSIZE = 512;
 const int LAYERPARTICLE_TIMERPERIOD = 30;
 
-// Vertex shader: full-screen quad, passes tex coords to fragment
+// Vertex shader: 3D particle lines with animated falling
 const char *particleVertexShaderSource = "#version 410 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aColor;\n"
-    "layout (location = 2) in vec2 aTexCoord;\n"
-    "uniform mat4 model;\n"
-    "uniform mat4 view;\n"
-    "uniform mat4 projection;\n"
-    "out vec2 TexCoord;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
-    "   TexCoord = aTexCoord;\n"
-    "}\0";
-
-// Fragment shader: procedural rain
-const char *particleFragmentShaderSource = "#version 410 core\n"
-    "out vec4 FragColor;\n"
-    "in vec2 TexCoord;\n"
+    "layout (location = 0) in vec3 aBasePos;\n"
+    "layout (location = 1) in float aEndpoint;\n"
+    "layout (location = 2) in float aSpeedVar;\n"
+    "uniform mat4 u_mvp;\n"
     "uniform float u_time;\n"
     "uniform float u_speed;\n"
-    "uniform float u_angle;\n"
     "uniform float u_length;\n"
-    "uniform vec4 u_color;\n"
-    "\n"
-    "float hash(vec2 p)\n"
-    "{\n"
-    "    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);\n"
-    "}\n"
-    "\n"
     "void main()\n"
     "{\n"
-    "    float angle = radians(u_angle);\n"
-    "    float ca = cos(angle);\n"
-    "    float sa = sin(angle);\n"
-    "\n"
-    "    // Rotate texture coords into rain-aligned space\n"
-    "    vec2 uv = TexCoord;\n"
-    "    vec2 ruv;\n"
-    "    ruv.x = uv.x * ca - uv.y * sa;\n"
-    "    ruv.y = uv.x * sa + uv.y * ca;\n"
-    "\n"
-    "    float speedFactor = u_speed / 50.0;\n"
-    "    float t = u_time * speedFactor * 0.001;\n"
-    "\n"
-    "    // Multi-layer rain for depth\n"
-    "    float alpha = 0.0;\n"
-    "    for(int i = 0; i < 3; i++)\n"
-    "    {\n"
-    "        float fi = float(i);\n"
-    "        float scale = 20.0 + fi * 15.0;\n"
-    "        float layerSpeed = 1.0 + fi * 0.5;\n"
-    "        float layerAlpha = 0.3 - fi * 0.08;\n"
-    "        float dropLen = u_length * (1.0 + fi * 0.3) / 100.0;\n"
-    "\n"
-    "        // Column hash for x-position variation\n"
-    "        float col = floor(ruv.x * scale);\n"
-    "        float colHash = hash(vec2(col, fi));\n"
-    "\n"
-    "        // Falling position with time offset per column\n"
-    "        float fall = fract(ruv.y * scale * 0.5 - t * layerSpeed + colHash * 100.0);\n"
-    "\n"
-    "        // Horizontal position within the cell\n"
-    "        float cellX = fract(ruv.x * scale) - 0.5;\n"
-    "        float xOffset = (colHash - 0.5) * 0.3;\n"
-    "\n"
-    "        // Rain streak: narrow in x, elongated in y\n"
-    "        float width = 0.04 + colHash * 0.02;\n"
-    "        float streak = smoothstep(width, 0.0, abs(cellX - xOffset))\n"
-    "                      * smoothstep(dropLen, 0.0, fall)\n"
-    "                      * smoothstep(0.0, dropLen * 0.1, fall);\n"
-    "\n"
-    "        alpha += streak * layerAlpha;\n"
-    "    }\n"
-    "\n"
-    "    alpha = clamp(alpha, 0.0, 1.0) * u_color.a;\n"
-    "    FragColor = vec4(u_color.rgb, alpha);\n"
+    "   vec3 pos = aBasePos;\n"
+    "   float speed = u_speed * (0.7 + aSpeedVar * 0.6);\n"
+    "   pos.y = fract(pos.y - u_time * speed * 0.000005) * 2.0 - 1.0;\n"
+    "   pos.xz = pos.xz * 2.0 - 1.0;\n"
+    "   pos.y -= aEndpoint * u_length * 0.01;\n"
+    "   gl_Position = u_mvp * vec4(pos, 1.0);\n"
+    "}\0";
+
+// Fragment shader: simple color output
+const char *particleFragmentShaderSource = "#version 410 core\n"
+    "out vec4 FragColor;\n"
+    "uniform vec4 u_color;\n"
+    "uniform float u_opacity;\n"
+    "void main()\n"
+    "{\n"
+    "    FragColor = vec4(u_color.rgb, u_color.a * u_opacity);\n"
     "}\n";
 
 LayerParticle::LayerParticle(const QString& name, int order, QObject *parent) :
@@ -103,14 +54,18 @@ LayerParticle::LayerParticle(const QString& name, int order, QObject *parent) :
     _VBO(0),
     _shaderTime(0),
     _shaderSpeed(0),
-    _shaderAngle(0),
     _shaderLength(0),
     _shaderColor(0),
+    _shaderOpacity(0),
+    _shaderMVP(0),
+    _vertexCount(0),
     _particleCount(defaultParticleCount),
     _rainSpeed(defaultRainSpeed),
+    _rainDirection(defaultRainDirection),
     _rainAngle(defaultRainAngle),
     _rainColor(QColor(200, 200, 255, 180)),
-    _rainLength(defaultRainLength)
+    _rainLength(defaultRainLength),
+    _rainOpacity(defaultRainOpacity)
 {
 }
 
@@ -122,11 +77,13 @@ LayerParticle::~LayerParticle()
 
 void LayerParticle::inputXML(const QDomElement &element, bool isImport)
 {
-    _particleCount = element.attribute("particleCount", QString::number(defaultParticleCount)).toInt();
-    _rainSpeed     = element.attribute("rainSpeed", QString::number(defaultRainSpeed)).toInt();
-    _rainAngle     = element.attribute("rainAngle", QString::number(defaultRainAngle)).toInt();
-    _rainLength    = element.attribute("rainLength", QString::number(defaultRainLength)).toInt();
-    _rainColor     = QColor(element.attribute("rainColor", QColor(200, 200, 255, 180).name(QColor::HexArgb)));
+    _particleCount  = element.attribute("particleCount", QString::number(defaultParticleCount)).toInt();
+    _rainSpeed      = element.attribute("rainSpeed", QString::number(defaultRainSpeed)).toInt();
+    _rainDirection  = element.attribute("rainDirection", QString::number(defaultRainDirection)).toInt();
+    _rainAngle      = element.attribute("rainAngle", QString::number(defaultRainAngle)).toInt();
+    _rainLength     = element.attribute("rainLength", QString::number(defaultRainLength)).toInt();
+    _rainOpacity    = element.attribute("rainOpacity", QString::number(defaultRainOpacity)).toInt();
+    _rainColor      = QColor(element.attribute("rainColor", QColor(200, 200, 255, 180).name(QColor::HexArgb)));
 
     Layer::inputXML(element, isImport);
 }
@@ -160,11 +117,13 @@ Layer* LayerParticle::clone() const
 {
     LayerParticle* newLayer = new LayerParticle(_name, _order);
     copyBaseValues(newLayer);
-    newLayer->_particleCount = _particleCount;
-    newLayer->_rainSpeed     = _rainSpeed;
-    newLayer->_rainAngle     = _rainAngle;
-    newLayer->_rainColor     = _rainColor;
-    newLayer->_rainLength    = _rainLength;
+    newLayer->_particleCount  = _particleCount;
+    newLayer->_rainSpeed      = _rainSpeed;
+    newLayer->_rainDirection  = _rainDirection;
+    newLayer->_rainAngle      = _rainAngle;
+    newLayer->_rainColor      = _rainColor;
+    newLayer->_rainLength     = _rainLength;
+    newLayer->_rainOpacity    = _rainOpacity;
     return newLayer;
 }
 
@@ -264,6 +223,7 @@ void LayerParticle::playerGLUninitialize()
 void LayerParticle::playerGLPaint(QOpenGLFunctions* functions, GLint defaultModelMatrix, const GLfloat* projectionMatrix)
 {
     Q_UNUSED(defaultModelMatrix);
+    Q_UNUSED(projectionMatrix);
 
     if(!functions)
         return;
@@ -285,23 +245,51 @@ void LayerParticle::playerGLPaint(QOpenGLFunctions* functions, GLint defaultMode
 
     DMH_DEBUG_OPENGL_glUseProgram(_shaderProgramRGBA);
     functions->glUseProgram(_shaderProgramRGBA);
-    DMH_DEBUG_OPENGL_glUniformMatrix4fv4(_shaderProjectionMatrixRGBA, 1, GL_FALSE, projectionMatrix);
-    functions->glUniformMatrix4fv(_shaderProjectionMatrixRGBA, 1, GL_FALSE, projectionMatrix);
 
-    QMatrix4x4 modelMatrix;
-    DMH_DEBUG_OPENGL_glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, modelMatrix.constData(), modelMatrix);
-    functions->glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, modelMatrix.constData());
+    // Build perspective MVP from drop angle and direction
+    float aspect = _size.isEmpty() ? 1.0f : static_cast<float>(_size.width()) / static_cast<float>(_size.height());
+
+    QMatrix4x4 projection;
+    projection.perspective(60.0f, aspect, 0.1f, 100.0f);
+
+    // Camera in spherical coordinates around the particle cube
+    float elevRad = qDegreesToRadians(static_cast<float>(_rainAngle));
+    float dirRad = qDegreesToRadians(static_cast<float>(_rainDirection));
+    float camDist = 2.0f;
+
+    float camX = camDist * qCos(elevRad) * qSin(dirRad);
+    float camY = camDist * qSin(elevRad);
+    float camZ = camDist * qCos(elevRad) * qCos(dirRad);
+
+    QVector3D eye(camX, camY, camZ);
+    QVector3D center(0.0f, 0.0f, 0.0f);
+
+    // Up vector: avoid degeneracy when looking straight up/down
+    QVector3D forward = (center - eye).normalized();
+    QVector3D worldUp(0.0f, 1.0f, 0.0f);
+    if(qAbs(QVector3D::dotProduct(forward, worldUp)) > 0.99f)
+        worldUp = QVector3D(0.0f, 0.0f, -1.0f);
+
+    QMatrix4x4 view;
+    view.lookAt(eye, center, worldUp);
+
+    QMatrix4x4 mvp = projection * view;
+
+    functions->glUniformMatrix4fv(_shaderMVP, 1, GL_FALSE, mvp.constData());
+
+    functions->glEnable(GL_BLEND);
+    functions->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     functions->glUniform1f(_shaderTime, static_cast<float>(_milliseconds));
     functions->glUniform1f(_shaderSpeed, static_cast<float>(_rainSpeed));
-    functions->glUniform1f(_shaderAngle, static_cast<float>(_rainAngle));
     functions->glUniform1f(_shaderLength, static_cast<float>(_rainLength));
+    functions->glUniform1f(_shaderOpacity, static_cast<float>(_rainOpacity) / 100.f);
     functions->glUniform4f(_shaderColor,
                            _rainColor.redF(), _rainColor.greenF(), _rainColor.blueF(),
                            _opacityReference);
 
     e->glBindVertexArray(_VAO);
-    functions->glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    functions->glDrawArrays(GL_LINES, 0, _vertexCount);
 }
 
 void LayerParticle::playerGLResize(int w, int h)
@@ -310,8 +298,6 @@ void LayerParticle::playerGLResize(int w, int h)
     Q_UNUSED(h);
 
     _objectsDirty = true;
-    destroyObjects();
-    destroyShaders();
 }
 
 void LayerParticle::playerSetShaders(unsigned int programRGB, int modelMatrixRGB, int projectionMatrixRGB, unsigned int programRGBA, int modelMatrixRGBA, int projectionMatrixRGBA, int alphaRGBA)
@@ -344,20 +330,29 @@ void LayerParticle::editSettings()
 {
     LayerParticleSettings* dlg = new LayerParticleSettings();
 
-    connect(dlg, &LayerParticleSettings::particleCountChanged, this, &LayerParticle::setParticleCount);
-    connect(dlg, &LayerParticleSettings::rainSpeedChanged,     this, &LayerParticle::setRainSpeed);
-    connect(dlg, &LayerParticleSettings::rainAngleChanged,     this, &LayerParticle::setRainAngle);
-    connect(dlg, &LayerParticleSettings::rainColorChanged,     this, &LayerParticle::setRainColor);
-    connect(dlg, &LayerParticleSettings::rainLengthChanged,    this, &LayerParticle::setRainLength);
+    // Use lambdas to update values directly during dialog interaction.
+    // The timer-driven animation already picks up changes every 30ms
+    // for live preview, so we don't need to emit update() per slider tick.
+    // Emit dirty() once when the dialog closes to avoid signal spam.
+    connect(dlg, &LayerParticleSettings::particleCountChanged,  this, [this](int v) { _particleCount = v; });
+    connect(dlg, &LayerParticleSettings::rainSpeedChanged,      this, [this](int v) { _rainSpeed = v; });
+    connect(dlg, &LayerParticleSettings::rainDirectionChanged,  this, [this](int v) { _rainDirection = v; });
+    connect(dlg, &LayerParticleSettings::rainAngleChanged,      this, [this](int v) { _rainAngle = v; });
+    connect(dlg, &LayerParticleSettings::rainColorChanged,      this, [this](const QColor& c) { _rainColor = c; });
+    connect(dlg, &LayerParticleSettings::rainLengthChanged,     this, [this](int v) { _rainLength = v; });
+    connect(dlg, &LayerParticleSettings::rainOpacityChanged,    this, [this](int v) { _rainOpacity = v; });
 
     dlg->setParticleCount(_particleCount);
     dlg->setRainSpeed(_rainSpeed);
+    dlg->setRainDirection(_rainDirection);
     dlg->setRainAngle(_rainAngle);
     dlg->setRainColor(_rainColor);
     dlg->setRainLength(_rainLength);
+    dlg->setRainOpacity(_rainOpacity);
 
     dlg->exec();
 
+    emit dirty();
     refreshDMPreview();
 
     dlg->deleteLater();
@@ -377,6 +372,15 @@ void LayerParticle::setRainSpeed(int speed)
     if(_rainSpeed == speed)
         return;
     _rainSpeed = speed;
+    emit dirty();
+    emit update();
+}
+
+void LayerParticle::setRainDirection(int direction)
+{
+    if(_rainDirection == direction)
+        return;
+    _rainDirection = direction;
     emit dirty();
     emit update();
 }
@@ -408,6 +412,15 @@ void LayerParticle::setRainLength(int length)
     emit update();
 }
 
+void LayerParticle::setRainOpacity(int opacity)
+{
+    if(_rainOpacity == opacity)
+        return;
+    _rainOpacity = opacity;
+    emit dirty();
+    emit update();
+}
+
 void LayerParticle::timerEvent(QTimerEvent *event)
 {
     if((event) && (event->timerId() > 0) && (event->timerId() == _timerId))
@@ -425,11 +438,17 @@ void LayerParticle::internalOutputXML(QDomDocument &doc, QDomElement &element, Q
     if(_rainSpeed != defaultRainSpeed)
         element.setAttribute("rainSpeed", _rainSpeed);
 
+    if(_rainDirection != defaultRainDirection)
+        element.setAttribute("rainDirection", _rainDirection);
+
     if(_rainAngle != defaultRainAngle)
         element.setAttribute("rainAngle", _rainAngle);
 
     if(_rainLength != defaultRainLength)
         element.setAttribute("rainLength", _rainLength);
+
+    if(_rainOpacity != defaultRainOpacity)
+        element.setAttribute("rainOpacity", _rainOpacity);
 
     QColor defaultColor(200, 200, 255, 180);
     if(_rainColor != defaultColor)
@@ -526,22 +545,12 @@ void LayerParticle::createShaders()
     f->glDeleteShader(fragmentShader);
 
     // Get uniform locations
-    _shaderModelMatrixRGBA = f->glGetUniformLocation(_shaderProgramRGBA, "model");
-    _shaderProjectionMatrixRGBA = f->glGetUniformLocation(_shaderProgramRGBA, "projection");
-    _shaderTime   = f->glGetUniformLocation(_shaderProgramRGBA, "u_time");
-    _shaderSpeed  = f->glGetUniformLocation(_shaderProgramRGBA, "u_speed");
-    _shaderAngle  = f->glGetUniformLocation(_shaderProgramRGBA, "u_angle");
-    _shaderLength = f->glGetUniformLocation(_shaderProgramRGBA, "u_length");
-    _shaderColor  = f->glGetUniformLocation(_shaderProgramRGBA, "u_color");
-
-    // Set view matrix
-    QMatrix4x4 modelMatrix;
-    QMatrix4x4 viewMatrix;
-    viewMatrix.lookAt(QVector3D(0.f, 0.f, 500.f), QVector3D(0.f, 0.f, 0.f), QVector3D(0.f, 1.f, 0.f));
-
-    f->glUniformMatrix4fv(_shaderModelMatrixRGBA, 1, GL_FALSE, modelMatrix.constData());
-    int viewLoc = f->glGetUniformLocation(_shaderProgramRGBA, "view");
-    f->glUniformMatrix4fv(viewLoc, 1, GL_FALSE, viewMatrix.constData());
+    _shaderMVP     = f->glGetUniformLocation(_shaderProgramRGBA, "u_mvp");
+    _shaderTime    = f->glGetUniformLocation(_shaderProgramRGBA, "u_time");
+    _shaderSpeed   = f->glGetUniformLocation(_shaderProgramRGBA, "u_speed");
+    _shaderLength  = f->glGetUniformLocation(_shaderProgramRGBA, "u_length");
+    _shaderColor   = f->glGetUniformLocation(_shaderProgramRGBA, "u_color");
+    _shaderOpacity = f->glGetUniformLocation(_shaderProgramRGBA, "u_opacity");
 
     qDebug() << "[LayerParticle] Shaders created. Program:" << _shaderProgramRGBA;
 }
@@ -563,17 +572,15 @@ void LayerParticle::destroyShaders()
     _shaderProjectionMatrixRGBA = 0;
     _shaderTime = 0;
     _shaderSpeed = 0;
-    _shaderAngle = 0;
     _shaderLength = 0;
     _shaderColor = 0;
+    _shaderOpacity = 0;
+    _shaderMVP = 0;
 }
 
 void LayerParticle::createObjects()
 {
     if(!QOpenGLContext::currentContext())
-        return;
-
-    if(_size.isEmpty())
         return;
 
     destroyObjects();
@@ -583,16 +590,43 @@ void LayerParticle::createObjects()
     if((!f) || (!e))
         return;
 
-    float hw = static_cast<float>(_size.width())  / 2.f;
-    float hh = static_cast<float>(_size.height()) / 2.f;
+    // Generate particle data: 2 vertices per particle (top + bottom of line)
+    // Each vertex: baseX, baseY, baseZ, endpoint, speedVar = 5 floats
+    _vertexCount = _particleCount * 2;
+    int floatsPerVertex = 5;
+    std::vector<float> vertices(_vertexCount * floatsPerVertex);
 
-    float vertices[] = {
-        // positions          // colors           // texture coords
-        -hw,  hh, 0.0f,      1.f, 1.f, 1.f,      0.0f, 1.0f,  // top left
-         hw,  hh, 0.0f,      1.f, 1.f, 1.f,      1.0f, 1.0f,  // top right
-         hw, -hh, 0.0f,      1.f, 1.f, 1.f,      1.0f, 0.0f,  // bottom right
-        -hw, -hh, 0.0f,      1.f, 1.f, 1.f,      0.0f, 0.0f,  // bottom left
+    // Deterministic pseudo-random
+    uint seed = 12345;
+    auto nextRand = [&seed]() -> float {
+        seed = seed * 1103515245 + 12345;
+        return static_cast<float>((seed >> 16) & 0x7FFF) / 32767.0f;
     };
+
+    for(int i = 0; i < _particleCount; ++i)
+    {
+        float bx = nextRand();
+        float by = nextRand();
+        float bz = nextRand();
+        float speedVar = nextRand();
+
+        int base0 = i * 2 * floatsPerVertex;
+        int base1 = base0 + floatsPerVertex;
+
+        // Top vertex (endpoint = 0)
+        vertices[base0 + 0] = bx;
+        vertices[base0 + 1] = by;
+        vertices[base0 + 2] = bz;
+        vertices[base0 + 3] = 0.0f;
+        vertices[base0 + 4] = speedVar;
+
+        // Bottom vertex (endpoint = 1)
+        vertices[base1 + 0] = bx;
+        vertices[base1 + 1] = by;
+        vertices[base1 + 2] = bz;
+        vertices[base1 + 3] = 1.0f;
+        vertices[base1 + 4] = speedVar;
+    }
 
     e->glGenVertexArrays(1, &_VAO);
     f->glGenBuffers(1, &_VBO);
@@ -600,21 +634,21 @@ void LayerParticle::createObjects()
     e->glBindVertexArray(_VAO);
 
     f->glBindBuffer(GL_ARRAY_BUFFER, _VBO);
-    f->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    f->glBufferData(GL_ARRAY_BUFFER, static_cast<int>(vertices.size() * sizeof(float)), vertices.data(), GL_STATIC_DRAW);
 
-    // position attribute
-    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    // aBasePos (location 0): vec3
+    f->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, floatsPerVertex * sizeof(float), (void*)0);
     f->glEnableVertexAttribArray(0);
-    // color attribute
-    f->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    // aEndpoint (location 1): float
+    f->glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, floatsPerVertex * sizeof(float), (void*)(3 * sizeof(float)));
     f->glEnableVertexAttribArray(1);
-    // texture attribute
-    f->glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    // aSpeedVar (location 2): float
+    f->glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, floatsPerVertex * sizeof(float), (void*)(4 * sizeof(float)));
     f->glEnableVertexAttribArray(2);
 
     _objectsDirty = false;
 
-    qDebug() << "[LayerParticle] Objects created, size:" << _size;
+    qDebug() << "[LayerParticle] Objects created, particles:" << _particleCount;
 }
 
 void LayerParticle::destroyObjects()
@@ -655,24 +689,76 @@ QImage LayerParticle::createRainPreview(const QSize& size) const
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    QPen pen(_rainColor);
-    pen.setWidthF(1.5);
+    QColor dropColor = _rainColor;
+    dropColor.setAlphaF(static_cast<qreal>(_rainOpacity) / 100.0);
+    QPen pen(dropColor);
+    pen.setWidthF(1.0);
     painter.setPen(pen);
 
-    qreal angleRad = qDegreesToRadians(static_cast<qreal>(_rainAngle));
-    qreal dx = qSin(angleRad) * _rainLength;
-    qreal dy = qCos(angleRad) * _rainLength;
+    // Build the same MVP as the GL path
+    float aspect = static_cast<float>(size.width()) / static_cast<float>(size.height());
+    float elevRad = qDegreesToRadians(static_cast<float>(_rainAngle));
+    float dirRad = qDegreesToRadians(static_cast<float>(_rainDirection));
+    float camDist = 2.0f;
 
-    // Deterministic pseudo-random rain line positions
-    uint seed = 42;
+    float camX = camDist * qCos(elevRad) * qSin(dirRad);
+    float camY = camDist * qSin(elevRad);
+    float camZ = camDist * qCos(elevRad) * qCos(dirRad);
+
+    QVector3D eye(camX, camY, camZ);
+    QVector3D center(0.0f, 0.0f, 0.0f);
+    QVector3D forward = (center - eye).normalized();
+    QVector3D worldUp(0.0f, 1.0f, 0.0f);
+    if(qAbs(QVector3D::dotProduct(forward, worldUp)) > 0.99f)
+        worldUp = QVector3D(0.0f, 0.0f, -1.0f);
+
+    QMatrix4x4 proj;
+    proj.perspective(60.0f, aspect, 0.1f, 100.0f);
+    QMatrix4x4 view;
+    view.lookAt(eye, center, worldUp);
+    QMatrix4x4 mvp = proj * view;
+
+    float halfW = size.width() / 2.0f;
+    float halfH = size.height() / 2.0f;
+    float streakLen = _rainLength * 0.01f;
+
+    // Project a 3D point to screen coordinates
+    auto project = [&](const QVector3D& worldPos) -> QPointF {
+        QVector4D clip = mvp * QVector4D(worldPos, 1.0f);
+        if(clip.w() <= 0.001f)
+            return QPointF(-1, -1);
+        float ndcX = clip.x() / clip.w();
+        float ndcY = clip.y() / clip.w();
+        float sx = (ndcX * 0.5f + 0.5f) * size.width();
+        float sy = (1.0f - (ndcY * 0.5f + 0.5f)) * size.height();
+        return QPointF(sx, sy);
+    };
+
+    // Deterministic pseudo-random particles in a [-1,1] cube
+    uint seed = 12345;
+    auto nextRand = [&seed]() -> float {
+        seed = seed * 1103515245 + 12345;
+        return static_cast<float>((seed >> 16) & 0x7FFF) / 32767.0f;
+    };
+
     for(int i = 0; i < _particleCount; ++i)
     {
-        seed = seed * 1103515245 + 12345;
-        qreal x = static_cast<qreal>(seed % static_cast<uint>(size.width()));
-        seed = seed * 1103515245 + 12345;
-        qreal y = static_cast<qreal>(seed % static_cast<uint>(size.height()));
+        float bx = nextRand() * 2.0f - 1.0f;
+        float by = nextRand() * 2.0f - 1.0f;
+        float bz = nextRand() * 2.0f - 1.0f;
 
-        painter.drawLine(QPointF(x, y), QPointF(x + dx, y + dy));
+        QVector3D top(bx, by, bz);
+        QVector3D bottom(bx, by - streakLen, bz);
+
+        QPointF p0 = project(top);
+        QPointF p1 = project(bottom);
+
+        if(p0.x() < -50 || p0.x() > size.width() + 50 || p0.y() < -50 || p0.y() > size.height() + 50)
+            continue;
+        if(p1.x() < -50 || p1.x() > size.width() + 50 || p1.y() < -50 || p1.y() > size.height() + 50)
+            continue;
+
+        painter.drawLine(p0, p1);
     }
 
     painter.end();
