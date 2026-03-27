@@ -4,13 +4,6 @@
 #include "dmconstants.h"
 #include <QDialog>
 
-class QCheckBox;
-class QLabel;
-class ColorPushButton;
-class QFontComboBox;
-class QSpinBox;
-class QPushButton;
-
 namespace Ui {
 class LayerDrawToolDialog;
 }
@@ -41,15 +34,6 @@ private:
 
     Ui::LayerDrawToolDialog *ui;
     Qt::PenStyle _currentLineType;
-
-    // Programmatically added controls
-    QPushButton* _btnStraightLine;
-    QPushButton* _btnText;
-    QCheckBox* _fillCheck;
-    ColorPushButton* _btnFillColor;
-    QLabel* _fontLabel;
-    QFontComboBox* _fontCombo;
-    QSpinBox* _fontSizeSpin;
 };
 
 class LayerDrawToolDialog_LineTypeAction : public QAction
