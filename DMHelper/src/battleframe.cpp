@@ -745,7 +745,8 @@ void BattleFrame::resizeGrid()
     _gridSizer = new GridSizer(currentScale);
     _gridSizer->setBackgroundColor(QColor(255,255,255,204));
     _scene->addItem(_gridSizer);
-    _gridSizer->setPos(currentScale, currentScale);
+    QRectF visibleRect = ui->graphicsView->mapToScene(ui->graphicsView->viewport()->rect()).boundingRect();
+    _gridSizer->setPos(visibleRect.topLeft() + QPointF(currentScale, currentScale));
     connect(_gridSizer, &GridSizer::accepted, this, &BattleFrame::gridSizerAccepted);
     connect(_gridSizer, &GridSizer::rejected, this, &BattleFrame::gridSizerRejected);
 }

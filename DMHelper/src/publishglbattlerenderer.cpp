@@ -319,6 +319,10 @@ void PublishGLBattleRenderer::paintGL()
     DMH_DEBUG_OPENGL_glUniformMatrix4fv(_shaderProjectionMatrixRGB, 1, GL_FALSE, _projectionMatrix.constData(), _projectionMatrix);
     f->glUniformMatrix4fv(_shaderProjectionMatrixRGB, 1, GL_FALSE, _projectionMatrix.constData());
 
+    // Clear the full viewport to the background color to avoid artifacts outside the scissor region
+    f->glClearColor(_model->getBackgroundColor().redF(), _model->getBackgroundColor().greenF(), _model->getBackgroundColor().blueF(), 1.0f);
+    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     if(!_scissorRect.isEmpty())
     {
         qreal pixelRatio = _targetWidget->devicePixelRatio();
@@ -328,10 +332,6 @@ void PublishGLBattleRenderer::paintGL()
                      static_cast<GLsizei>(static_cast<qreal>(_scissorRect.width()) * pixelRatio),
                      static_cast<GLsizei>(static_cast<qreal>(_scissorRect.height()) * pixelRatio));
     }
-
-    // Draw the scene:
-    f->glClearColor(_model->getBackgroundColor().redF(), _model->getBackgroundColor().greenF(), _model->getBackgroundColor().blueF(), 1.0f);
-    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     _model->getLayerScene().playerGLPaint(f, _shaderProgramRGB, _shaderModelMatrixRGB, _projectionMatrix.constData());
 
@@ -349,13 +349,13 @@ void PublishGLBattleRenderer::paintGL()
         _lineTextImage->paintGL(f, nullptr);
     }
 
+    if(_pointerImage)
+        paintPointer(f, _model->getLayerScene().sceneSize().toSize(), _shaderModelMatrixRGB);
+
     if(!_scissorRect.isEmpty())
         f->glDisable(GL_SCISSOR_TEST);
 
     paintInitiative(f);
-
-    if(_pointerImage)
-        paintPointer(f, _model->getLayerScene().sceneSize().toSize(), _shaderModelMatrixRGB);
 }
 
 void PublishGLBattleRenderer::updateProjectionMatrix()

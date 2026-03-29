@@ -69,12 +69,20 @@ Layer* LayerDraw::clone() const
 
 void LayerDraw::applyOrder(int order)
 {
-    Q_UNUSED(order);
+    for(QGraphicsItem* item : std::as_const(_graphicsItems))
+    {
+        if(item)
+            item->setZValue(order);
+    }
 }
 
 void LayerDraw::applyLayerVisibleDM(bool layerVisible)
 {
-    Q_UNUSED(layerVisible);
+    for(QGraphicsItem* item : std::as_const(_graphicsItems))
+    {
+        if(item)
+            item->setVisible(layerVisible);
+    }
 }
 
 void LayerDraw::applyLayerVisiblePlayer(bool layerVisible)
