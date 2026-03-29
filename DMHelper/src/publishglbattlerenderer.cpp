@@ -1271,7 +1271,8 @@ void PublishGLBattleRenderer::createLineToken()
             _lineTextImage = new PublishGLImage(textImage, false);
 
         QPointF textPos = PublishGLBattleObject::sceneToWorld(_scene.getSceneRect(), _lineText->pos());
-        _lineTextImage->setPosition(textPos.x(), textPos.y() - textRect.height());
+        _lineTextImage->setPosition(textPos.x(), textPos.y() - textRect.height() * _pointerScaleFactor);
+        _lineTextImage->setScale(_pointerScaleFactor);
     }
 
     emit updateWidget();
