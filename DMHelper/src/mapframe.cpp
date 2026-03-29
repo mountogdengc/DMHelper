@@ -1445,7 +1445,7 @@ bool MapFrame::execEventFilterEditModeDistance(QObject *obj, QEvent *event)
         _distanceText = _scene->addSimpleText(QString("0"));
         _distanceText->setBrush(QBrush(_mapSource->getDistanceLineColor()));
         QFont textFont = _distanceText->font();
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPointSize(16);
         _distanceText->setFont(textFont);
         _distanceText->setPos(scenePos);
         _distanceText->setZValue(DMHelper::BattleDialog_Z_FrontHighlight);
@@ -1512,7 +1512,7 @@ bool MapFrame::execEventFilterEditModeFreeDistance(QObject *obj, QEvent *event)
         _distanceText = _scene->addSimpleText(QString("0"));
         _distanceText->setBrush(QBrush(_mapSource->getDistanceLineColor()));
         QFont textFont = _distanceText->font();
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPointSize(16);
         _distanceText->setFont(textFont);
         _distanceText->setPos(ui->graphicsView->mapToScene(mouseEvent->pos() + QPoint(5, 5)));
         _distanceText->setZValue(DMHelper::BattleDialog_Z_FrontHighlight);

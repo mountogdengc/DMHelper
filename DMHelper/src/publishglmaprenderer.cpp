@@ -446,7 +446,7 @@ void PublishGLMapRenderer::createLineToken(const QSize& sceneSize)
     if(line)
     {
         QFont textFont;
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPixelSize(qBound(12, static_cast<int>(16.0 * _pointerScaleFactor), 200));
         qreal lineDistance = line->length() * _map->getMapScale() / 1000.0;
         QString distanceText;
         distanceText = QString::number(lineDistance, 'f', 1);
@@ -486,7 +486,7 @@ void PublishGLMapRenderer::createLineToken(const QSize& sceneSize)
             painterPath.lineTo(path->points().at(i) - pathRect.topLeft());
 
         QFont textFont;
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPixelSize(qBound(12, static_cast<int>(16.0 * _pointerScaleFactor), 200));
         qreal pathDistance = painterPath.length() * _map->getMapScale() / 1000.0;
         QString distanceText;
         distanceText = QString::number(pathDistance, 'f', 1);
