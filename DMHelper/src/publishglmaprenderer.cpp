@@ -255,6 +255,10 @@ void PublishGLMapRenderer::paintGL()
     if((!f) || (!e))
         return;
 
+    // Clear the full viewport to the background color to avoid artifacts outside the scissor region
+    f->glClearColor(_color.redF(), _color.greenF(), _color.blueF(), 1.0f);
+    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     if(!_scissorRect.isEmpty())
     {
         qreal pixelRatio = _targetWidget->devicePixelRatio();
@@ -264,10 +268,6 @@ void PublishGLMapRenderer::paintGL()
                      static_cast<GLsizei>(static_cast<qreal>(_scissorRect.width()) * pixelRatio),
                      static_cast<GLsizei>(static_cast<qreal>(_scissorRect.height()) * pixelRatio));
     }
-
-    // Draw the scene
-    f->glClearColor(_color.redF(), _color.greenF(), _color.blueF(), 1.0f);
-    f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set the default render program
 #ifdef DEBUG_MAP_RENDERER
@@ -312,10 +312,10 @@ void PublishGLMapRenderer::paintGL()
         }
     }
 
+    paintPointer(f, sceneSize, _shaderModelMatrixRGB);
+
     if(!_scissorRect.isEmpty())
         f->glDisable(GL_SCISSOR_TEST);
-
-    paintPointer(f, sceneSize, _shaderModelMatrixRGB);
 }
 
 void PublishGLMapRenderer::updateProjectionMatrix()
