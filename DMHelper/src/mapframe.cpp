@@ -787,6 +787,7 @@ void MapFrame::initializeMap()
     connect(_scene, &MapFrameScene::deleteMarker, this, &MapFrame::deleteMapMarker);
     connect(_scene, &MapFrameScene::centerView, this, &MapFrame::centerWindow);
     connect(_scene, &MapFrameScene::clearFoW, this, &MapFrame::clearFoW);
+    connect(_scene, &MapFrameScene::editFile, this, &MapFrame::editMapFile);
 
     connect(_scene, &MapFrameScene::itemChanged, this, &MapFrame::handleItemChanged);
     connect(_scene, &MapFrameScene::changed, this, &MapFrame::handleSceneChanged);
