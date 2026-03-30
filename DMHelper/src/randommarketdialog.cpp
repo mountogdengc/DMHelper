@@ -17,6 +17,7 @@ RandomMarketDialog::RandomMarketDialog(const QString& shopFile, QWidget *parent)
     _locations()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     connect(ui->btnRandomize, SIGNAL(clicked()), this, SLOT(randomizeMarket()));
     connect(ui->cmbLocation, SIGNAL(currentIndexChanged(int)), this, SLOT(locationSelected(int)));

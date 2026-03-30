@@ -23,6 +23,7 @@ CombatantDialog::CombatantDialog(LayerScene& layerScene, QDialogButtonBox::Stand
     _iconFile()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     ui->edtCount->setValidator(new QIntValidator(1, 100, this));
     ui->edtHitPointsLocal->setValidator(new QIntValidator(-10, 1000, this));

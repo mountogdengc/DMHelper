@@ -55,6 +55,7 @@ NewEntryDialog::NewEntryDialog(Campaign* campaign, OptionsContainer* options, Ca
     _imageColor()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     connect(ui->edtEntryName, &QLineEdit::textChanged, this, &NewEntryDialog::validateNewEntry);
     connect(ui->edtLinkedFile, &QLineEdit::textChanged, this, &NewEntryDialog::validateNewEntry);

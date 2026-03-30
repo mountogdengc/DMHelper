@@ -745,8 +745,21 @@ void BattleFrame::resizeGrid()
     _gridSizer = new GridSizer(currentScale);
     _gridSizer->setBackgroundColor(QColor(255,255,255,204));
     _scene->addItem(_gridSizer);
+
+    // Position the grid sizer at the first grid-aligned point inside the visible area
     QRectF visibleRect = ui->graphicsView->mapToScene(ui->graphicsView->viewport()->rect()).boundingRect();
-    _gridSizer->setPos(visibleRect.topLeft() + QPointF(currentScale, currentScale));
+    qreal xPixelOffset = 0.0;
+    qreal yPixelOffset = 0.0;
+    if(gridLayer)
+    {
+        xPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetX() / 100.0;
+        yPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetY() / 100.0;
+    }
+    // Find the first grid line at or past the visible left/top, then add one grid square
+    qreal xPos = xPixelOffset + qCeil((visibleRect.left() - xPixelOffset) / currentScale) * currentScale + currentScale;
+    qreal yPos = yPixelOffset + qCeil((visibleRect.top() - yPixelOffset) / currentScale) * currentScale + currentScale;
+    _gridSizer->setPos(xPos, yPos);
+
     connect(_gridSizer, &GridSizer::accepted, this, &BattleFrame::gridSizerAccepted);
     connect(_gridSizer, &GridSizer::rejected, this, &BattleFrame::gridSizerRejected);
 }

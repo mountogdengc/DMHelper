@@ -17,6 +17,7 @@ DMScreenTabWidget::DMScreenTabWidget(const QString& equipmentFile, QWidget *pare
     ui(new Ui::DMScreenTabWidget)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     readEquipment(equipmentFile);
 }
