@@ -34,6 +34,7 @@ ExportDialog::ExportDialog(Campaign& campaign, const QUuid& selectedItem, QWidge
     _waitingDlg(nullptr)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
     connect(ui->treeCampaign, &QTreeWidget::itemClicked, this, &ExportDialog::handleCampaignItemChanged);
     connect(ui->btnExport, &QAbstractButton::clicked, this, &ExportDialog::runExport);
     connect(ui->btnAddMonsters, &QAbstractButton::clicked, this, &ExportDialog::addMonsters);

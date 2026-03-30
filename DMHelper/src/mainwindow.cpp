@@ -270,6 +270,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QImageReader::setAllocationLimit(0);
 
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
+
+    // Fix CampaignTree parchment background for Qt6: QTreeView uses QPalette::Base
+    // for its viewport background, not the widget stylesheet background-image.
+    ui->treeView->setStyleSheet(QString());
+    QPalette treePal = ui->treeView->palette();
+    treePal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->treeView->setPalette(treePal);
+
     if(screen)
     {
         resize(screen->availableSize().width() * 4 / 5, screen->availableSize().height() * 4 / 5);

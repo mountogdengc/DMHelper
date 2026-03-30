@@ -32,6 +32,7 @@ BestiaryPopulateTokensDialog::BestiaryPopulateTokensDialog(const OptionsContaine
     _totalMonsters(0)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     ui->chkFill->setChecked(options.getTokenBackgroundFill());
     ui->btnFillColor->setColor(options.getTokenBackgroundFillColor());

@@ -28,6 +28,7 @@
 #include <QStyleOptionGraphicsItem>
 #include <QMessageBox>
 #include <QDebug>
+#include <QtMath>
 
 MapFrame::MapFrame(QWidget *parent) :
     CampaignObjectFrame(parent),
@@ -344,8 +345,21 @@ void MapFrame::resizeGrid()
     _gridSizer = new GridSizer(currentScale);
     _gridSizer->setBackgroundColor(QColor(255,255,255,204));
     _scene->addItem(_gridSizer);
+
+    // Position the grid sizer at the first grid-aligned point inside the visible area
     QRectF visibleRect = ui->graphicsView->mapToScene(ui->graphicsView->viewport()->rect()).boundingRect();
-    _gridSizer->setPos(visibleRect.topLeft() + QPointF(currentScale, currentScale));
+    qreal xPixelOffset = 0.0;
+    qreal yPixelOffset = 0.0;
+    if(gridLayer)
+    {
+        xPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetX() / 100.0;
+        yPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetY() / 100.0;
+    }
+    // Find the first grid line at or past the visible left/top, then add one grid square
+    qreal xPos = xPixelOffset + qCeil((visibleRect.left() - xPixelOffset) / currentScale) * currentScale + currentScale;
+    qreal yPos = yPixelOffset + qCeil((visibleRect.top() - yPixelOffset) / currentScale) * currentScale + currentScale;
+    _gridSizer->setPos(xPos, yPos);
+
     connect(_gridSizer, &GridSizer::accepted, this, &MapFrame::gridSizerAccepted);
     connect(_gridSizer, &GridSizer::rejected, this, &MapFrame::gridSizerRejected);
 }
@@ -1856,7 +1870,16 @@ void MapFrame::gridSizerAccepted()
     if(!_gridSizer)
         return;
 
-    setPartyScale(_gridSizer->getSize());
+    int intSize = _gridSizer->getSize();
+    int xOffset = static_cast<int>(_gridSizer->x()) % intSize;
+    int yOffset = static_cast<int>(_gridSizer->y()) % intSize;
+
+    setPartyScale(intSize);
+
+    LayerGrid* gridLayer = dynamic_cast<LayerGrid*>(_mapSource->getLayerScene().getNearest(_mapSource->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Grid));
+    if(gridLayer)
+        gridLayer->setGridScaleAndOffset(intSize, (100 * xOffset) / intSize, (100 * yOffset) / intSize);
+
     gridSizerRejected();
 }
 

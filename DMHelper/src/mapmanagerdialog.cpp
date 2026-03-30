@@ -41,6 +41,7 @@ MapManagerDialog::MapManagerDialog(OptionsContainer& options, QWidget *parent) :
     _tagList()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     DMHCache().ensureCacheExists(QString("maps"));
 

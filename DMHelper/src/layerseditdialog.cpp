@@ -34,6 +34,7 @@ LayersEditDialog::LayersEditDialog(LayerScene& scene, BattleDialogModel* model, 
     _model(model)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     _layerLayout = new QVBoxLayout;
     _layerLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

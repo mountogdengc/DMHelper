@@ -36,6 +36,16 @@ BestiaryDialog::BestiaryDialog(QWidget *parent) :
     _searchString()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
+
+    // Fix parchment background for QScrollArea viewports in Qt6
+    QPalette parchPal;
+    parchPal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->scrollArea->setPalette(parchPal);
+    ui->scrollActions->setPalette(parchPal);
+    ui->scrollLegendaryActions->setPalette(parchPal);
+    ui->scrollSpecialAbilities->setPalette(parchPal);
+    ui->scrollReactions->setPalette(parchPal);
 
     connect(ui->btnLeft, SIGNAL(clicked()), this, SLOT(previousMonster()));
     connect(ui->btnRight, SIGNAL(clicked()), this, SLOT(nextMonster()));
