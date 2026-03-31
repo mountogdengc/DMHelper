@@ -41,6 +41,7 @@ MapManagerDialog::MapManagerDialog(OptionsContainer& options, QWidget *parent) :
     _tagList()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
 
     DMHCache().ensureCacheExists(QString("maps"));
 
@@ -359,16 +360,13 @@ void MapManagerDialog::readModel()
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
-    QString contentError;
-    int contentErrorLine = 0;
-    int contentErrorColumn = 0;
-    bool contentResult = doc.setContent(in.readAll(), &contentError, &contentErrorLine, &contentErrorColumn);
+    QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
     file.close();
 
-    if(contentResult == false)
+    if(!contentResult)
     {
-        qDebug() << "[MapManagerDialog] Loading Failed: Error reading XML " << _currentPath << ", file: " << modelFile << ", (line " << contentErrorLine << ", column " << contentErrorColumn << "): " << contentError;
+        qDebug() << "[MapManagerDialog] Loading Failed: Error reading XML " << _currentPath << ", file: " << modelFile << ", (line " << contentResult.errorLine << ", column " << contentResult.errorColumn << "): " << contentResult.errorMessage;
         return;
     }
 
@@ -772,14 +770,16 @@ QStringList MapManagerDialog::TagFilterProxyModel::getRequiredTags()
 
 void MapManagerDialog::TagFilterProxyModel::setRequiredTags(const QStringList& tags)
 {
+    beginFilterChange();
     _requiredTags = tags;
-    invalidateFilter();
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
 }
 
 void MapManagerDialog::TagFilterProxyModel::clearRequiredTags()
 {
+    beginFilterChange();
     _requiredTags.clear();
-    invalidateFilter();
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
 }
 
 bool MapManagerDialog::TagFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const

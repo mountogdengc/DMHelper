@@ -270,6 +270,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QImageReader::setAllocationLimit(0);
 
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
+
+    // Fix CampaignTree parchment background for Qt6: QTreeView uses QPalette::Base
+    // for its viewport background, not the widget stylesheet background-image.
+    ui->treeView->setStyleSheet(QString());
+    QPalette treePal = ui->treeView->palette();
+    treePal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->treeView->setPalette(treePal);
+
     if(screen)
     {
         resize(screen->availableSize().width() * 4 / 5, screen->availableSize().height() * 4 / 5);
@@ -903,6 +912,8 @@ bool MainWindow::closeCampaign()
             qDebug() << "[MainWindow] User decided not to save Campaign: " << _campaignFileName;
     }
 
+    _campaign->setLastMonster(_bestiaryDlg.getMonster() ? _bestiaryDlg.getMonster()->getStringValue("name") : QString());
+
     writeBestiary();
     deleteCampaign();
 
@@ -1475,7 +1486,6 @@ void MainWindow::closeEvent(QCloseEvent * event)
     if((Spellbook::Instance()) && (Spellbook::Instance()->isDirty()))
         writeSpellbook();
 
-    _options->setLastMonster(_bestiaryDlg.getMonster() ? _bestiaryDlg.getMonster()->getStringValue("name") : "");
     _options->setLastSpell(_spellDlg.getSpell() ? _spellDlg.getSpell()->getName() : "");
     _options->writeSettings();
 
@@ -1671,6 +1681,8 @@ void MainWindow::connectBattleView(bool toBattle)
         connect(_ribbonTabBattleView, SIGNAL(heightChanged(bool, qreal)), _battleFrame, SLOT(setDistanceHeight(bool, qreal)));
         connect(_ribbonTabBattleView, SIGNAL(pointerClicked(bool)), _battleFrame, SLOT(setPointerOn(bool)));
         connect(_battleFrame, SIGNAL(pointerToggled(bool)), _ribbonTabBattleView, SLOT(setPointerOn(bool)));
+        connect(_ribbonTabBattleView, &RibbonTabBattleView::drawClicked, _battleFrame, &BattleFrame::setDrawOn);
+        connect(_battleFrame, &BattleFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _battleFrame, &BattleFrame::setDistance);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _battleFrame, &BattleFrame::setFreeDistance);
         //connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _battleFrame, &BattleFrame::setDistanceScale);
@@ -1699,6 +1711,8 @@ void MainWindow::connectBattleView(bool toBattle)
         disconnect(_mapFrame, &MapFrame::cameraEditToggled, _ribbonTabBattleView, &RibbonTabBattleView::setCameraEdit);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::pointerClicked, _mapFrame, &MapFrame::setPointerOn);
         disconnect(_mapFrame, &MapFrame::pointerToggled, _ribbonTabBattleView, &RibbonTabBattleView::setPointerOn);
+        disconnect(_ribbonTabBattleView, &RibbonTabBattleView::drawClicked, _mapFrame, &MapFrame::setDrawOn);
+        disconnect(_mapFrame, &MapFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _mapFrame, &MapFrame::setDistance);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _mapFrame, &MapFrame::setFreeDistance);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _mapFrame, &MapFrame::setDistanceScale);
@@ -1731,6 +1745,8 @@ void MainWindow::connectBattleView(bool toBattle)
         disconnect(_ribbonTabBattleView, SIGNAL(heightChanged(bool, qreal)), _battleFrame, SLOT(setDistanceHeight(bool, qreal)));
         disconnect(_ribbonTabBattleView, SIGNAL(pointerClicked(bool)), _battleFrame, SLOT(setPointerOn(bool)));
         disconnect(_battleFrame, SIGNAL(pointerToggled(bool)), _ribbonTabBattleView, SLOT(setPointerOn(bool)));
+        disconnect(_ribbonTabBattleView, &RibbonTabBattleView::drawClicked, _battleFrame, &BattleFrame::setDrawOn);
+        disconnect(_battleFrame, &BattleFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _battleFrame, &BattleFrame::setDistance);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _battleFrame, &BattleFrame::setFreeDistance);
         //disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _battleFrame, &BattleFrame::setDistanceScale);
@@ -1759,6 +1775,8 @@ void MainWindow::connectBattleView(bool toBattle)
         connect(_mapFrame, &MapFrame::cameraEditToggled, _ribbonTabBattleView, &RibbonTabBattleView::setCameraEdit);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::pointerClicked, _mapFrame, &MapFrame::setPointerOn);
         connect(_mapFrame, &MapFrame::pointerToggled, _ribbonTabBattleView, &RibbonTabBattleView::setPointerOn);
+        connect(_ribbonTabBattleView, &RibbonTabBattleView::drawClicked, _mapFrame, &MapFrame::setDrawOn);
+        connect(_mapFrame, &MapFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _mapFrame, &MapFrame::setDistance);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _mapFrame, &MapFrame::setFreeDistance);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _mapFrame, &MapFrame::setDistanceScale);
@@ -2065,18 +2083,15 @@ void MainWindow::openCampaign(const QString& filename)
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
-    QString contentError;
-    int contentErrorLine = 0;
-    int contentErrorColumn = 0;
-    bool contentResult = doc.setContent(in.readAll(), &contentError, &contentErrorLine, &contentErrorColumn);
+    QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
     file.close();
 
-    if(contentResult == false)
+    if(!contentResult)
     {
         QMessageBox::critical(this, QString("Campaign file open failed"),
-                              QString("Error reading the campaign file: (line ") + QString::number(contentErrorLine) + QString(", column ") + QString::number(contentErrorColumn) + QString("): ") + contentError);
-        qDebug() << "[MainWindow] Loading Failed: Error reading XML (line " << contentErrorLine << ", column " << contentErrorColumn << "): " << contentError;
+                              QString("Error reading the campaign file: (line ") + QString::number(contentResult.errorLine) + QString(", column ") + QString::number(contentResult.errorColumn) + QString("): ") + contentResult.errorMessage);
+        qDebug() << "[MainWindow] Loading Failed: Error reading XML (line " << contentResult.errorLine << ", column " << contentResult.errorColumn << "): " << contentResult.errorMessage;
         return;
     }
 
@@ -2139,6 +2154,9 @@ void MainWindow::openCampaign(const QString& filename)
     _campaign->inputXML(campaignElement, false);
     _campaign->postProcessXML(campaignElement, false);
     Bestiary::Instance()->finishBatchProcessing();
+
+    if((!_campaign->getLastMonster().isEmpty()) && (Bestiary::Instance()->exists(_campaign->getLastMonster())))
+        _bestiaryDlg.setMonster(_campaign->getLastMonster());
 
     if(!_campaign->isValid())
     {
@@ -2759,17 +2777,13 @@ void MainWindow::importBestiary()
 
         QTextStream in(&file);
         in.setEncoding(QStringConverter::Utf8);
-        QString errMsg;
-        int errRow;
-        int errColumn;
-        bool contentResult = doc.setContent(in.readAll(), &errMsg, &errRow, &errColumn);
+        QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
         file.close();
 
-        if(contentResult == false)
+        if(!contentResult)
         {
-            qDebug() << "[MainWindow] Error reading bestiary import XML content.";
-            qDebug() << errMsg << errRow << errColumn;
+            qDebug() << "[MainWindow] Error reading bestiary import XML content at line " << contentResult.errorLine << ", column " << contentResult.errorColumn << ": " << contentResult.errorMessage;
             return;
         }
 
@@ -2821,14 +2835,20 @@ void MainWindow::writeBestiary()
 
 void MainWindow::handleBestiaryRead(const QString& bestiaryFileName, bool converted)
 {
+    if(bestiaryFileName.isEmpty())
+    {
+        qDebug() << "[MainWindow] Bestiary closed, resetting bestiary dialog";
+        _bestiaryDlg.dataChanged();
+    }
+
     qDebug() << "[MainWindow] Bestiary reading completed";
 
     // Bestiary file seems ok, make a backup
     _options->backupFile(bestiaryFileName, converted ? QString("_converted_%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss")) : QString());
 
     // Try to reset the monster to the previously selected one
-    if(!_options->getLastMonster().isEmpty() && Bestiary::Instance()->exists(_options->getLastMonster()))
-        _bestiaryDlg.setMonster(_options->getLastMonster());
+    if((_campaign) && (!_campaign->getLastMonster().isEmpty()) && (Bestiary::Instance()->exists(_campaign->getLastMonster())))
+        _bestiaryDlg.setMonster(_campaign->getLastMonster());
     else
         _bestiaryDlg.setMonster(Bestiary::Instance()->getFirstMonsterClass());
 }

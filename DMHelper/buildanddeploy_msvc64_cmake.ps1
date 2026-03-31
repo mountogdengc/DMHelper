@@ -14,11 +14,30 @@ Set-Location $ScriptRoot
 # Configuration
 # =========================
 
-$QtDir      = "C:\Qt"
-$QtVersion  = "6.10.1"
-$QtInstallerVersion = "4.10"
-$MsvcYear   = "2022"
+# ------------------------
+# Qt configuration
+# ------------------------
+
+if ($env:QT_ROOT_DIR) {
+    $QtDir = $env:QT_ROOT_DIR
+    $QtRoot = Split-Path (Split-Path $QtDir -Parent) -Parent
+    $QtVersion  = "6.10.1"
+    $QtInstallerVersion = "4.7"
+    $MsvcYear   = "2022"
+    Write-Host "Using Qt from environment: $QtDir"
+} else {
+    $QtRoot = "C:\Qt"
+    $QtDir = Join-Path $QtDir "$QtVersion\msvc${MsvcYear}_64"
+    $QtVersion  = "6.10.1"
+    $QtInstallerVersion = "4.10"
+    $MsvcYear   = "2022"
+    Write-Host "Using default Qt path: $QtDir"
+}
+
 $SevenZip   = "C:\Program Files\7-Zip\7z.exe"
+if (-not (Test-Path $SevenZip)) {
+    $SevenZip   = "7z.exe"
+}
 
 $SrcDir     = Join-Path $ScriptRoot "src"
 $BuildDir   = Join-Path $ScriptRoot "build-64_bit-release"
@@ -105,19 +124,19 @@ if (-not (Get-Command cl.exe -ErrorAction SilentlyContinue)) {
 # Qt configuration
 # =========================
 
-$QtPrefixPath = Join-Path $QtDir "$QtVersion\msvc${MsvcYear}_64"
-$Qt6Dir       = Join-Path $QtPrefixPath "lib\cmake\Qt6"
-$QtBinDir = Join-Path $QtPrefixPath "bin"
+$Qt6Dir       = Join-Path $QtDir "lib\cmake\Qt6"
+$QtBinDir = Join-Path $QtDir "bin"
 $WinDeployQt = Join-Path $QtBinDir "windeployqt.exe"
-$QtIfwDir       = Join-Path $QtDir "Tools\QtInstallerFramework\$QtInstallerVersion\bin"
+$QtIfwDir       = Join-Path $QtRoot "Tools\QtInstallerFramework\$QtInstallerVersion\bin"
 $BinaryCreator  = Join-Path $QtIfwDir "binarycreator.exe"
 
-Assert-Exists $QtPrefixPath "Qt MSVC directory"
+Assert-Exists $QtDir "Qt MSVC directory"
 Assert-Exists $Qt6Dir "Qt6 CMake config"
 Assert-Exists $WinDeployQt "windeployqt"
 Assert-Exists $BinaryCreator "binarycreator"
+Assert-Exists $SevenZip "7-zip"
 
-$env:CMAKE_PREFIX_PATH = $QtPrefixPath
+$env:CMAKE_PREFIX_PATH = $QtDir
 $env:Qt6_DIR           = $Qt6Dir
 
 # =========================
@@ -174,7 +193,7 @@ Copy-Item `
     "$BinDir\packages\com.dmhelper.app\data\"
 
 Copy-Item `
-    "$QtPrefixPath\bin\Qt6Xml.dll" `
+    "$QtDir\bin\Qt6Xml.dll" `
     "$BinDir\packages\com.dmhelper.app\data\"
 
 Copy-Item -Recurse -Force `
@@ -207,12 +226,12 @@ Push-Location $BinDir
 & $BinaryCreator `
     -c config\config_win64.xml `
     -p packages `
-    "DMHelper 64-bit release Installer"
+    "DMHelper-64-bit-release-Installer"
 Pop-Location
 
 Move-Item `
-    "$BinDir\DMHelper 64-bit release Installer.exe" `
-    "$ScriptRoot\DMHelper 64-bit release Installer.exe" `
+    "$BinDir\DMHelper-64-bit-release-Installer.exe" `
+    "$ScriptRoot\DMHelper-64-bit-release-Installer.exe" `
     -Force
 
 # =========================
@@ -225,7 +244,7 @@ Write-Section "Creating ZIP distribution"
     a -tzip archive.zip `
     "$BinDir\packages\com.dmhelper.app\data\*"
 
-Move-Item archive.zip "DMHelper 64-bit release.zip" -Force
+Move-Item archive.zip "DMHelper-64-bit-release.zip" -Force
 
 Write-Host ""
 Write-Host "Build completed successfully."
