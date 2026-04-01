@@ -24,6 +24,7 @@ BestiaryTemplateDialog::BestiaryTemplateDialog(QWidget *parent) :
     _monster(nullptr)
 {
     ui->setupUi(this);
+    setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
     setAttribute(Qt::WA_StyledBackground, true);
 
     // Fix parchment background for QScrollArea viewport in Qt6

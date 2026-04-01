@@ -97,7 +97,6 @@ set(DMHELPER_SOURCES
     battleframestate.cpp
     battleframestatemachine.cpp
     bestiary.cpp
-    bestiarydialog.cpp
     bestiaryexportdialog.cpp
     bestiaryfindtokendialog.cpp
     bestiarypopulatetokensdialog.cpp
@@ -420,7 +419,6 @@ set(DMHELPER_HEADERS
     battleframestate.h
     battleframestatemachine.h
     bestiary.h
-    bestiarydialog.h
     bestiaryexportdialog.h
     bestiaryfindtokendialog.h
     bestiarypopulatetokensdialog.h
@@ -689,7 +687,6 @@ set(DMHELPER_FORMS
     battledialogeffectsettingsobjectvideo.ui
     battledialoglogview.ui
     battleframe.ui
-    bestiarydialog.ui
     bestiaryexportdialog.ui
     bestiaryfindtokendialog.ui
     bestiarypopulatetokensdialog.ui
