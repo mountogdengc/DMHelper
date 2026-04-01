@@ -11,6 +11,7 @@
 #include <QMouseEvent>
 #include <QTextEdit>
 #include <QMenu>
+#include <QMessageBox>
 #include <QDebug>
 
 CharacterTemplateFrame::CharacterTemplateFrame(OptionsContainer* options, QWidget *parent) :
@@ -22,14 +23,20 @@ CharacterTemplateFrame::CharacterTemplateFrame(OptionsContainer* options, QWidge
     _mouseDown(false),
     _reading(false),
     _rotation(0),
+    _currentToken(0),
     _heroForgeToken()
 {
     ui->setupUi(this);
 
     connect(ui->btnEditIcon, &QAbstractButton::clicked, this, &CharacterTemplateFrame::editCharacterIcon);
-    connect(ui->btnSync, &QAbstractButton::clicked, this, &CharacterTemplateFrame::syncDndBeyond);
+    connect(ui->btnSync_2, &QAbstractButton::clicked, this, &CharacterTemplateFrame::syncDndBeyond);
     enableDndBeyondSync(false);
-    connect(ui->btnHeroForge, &QAbstractButton::clicked, this, &CharacterTemplateFrame::importHeroForge);
+    connect(ui->btnHeroForge_2, &QAbstractButton::clicked, this, &CharacterTemplateFrame::importHeroForge);
+    connect(ui->btnPreviousToken, &QAbstractButton::clicked, this, &CharacterTemplateFrame::handlePreviousToken);
+    connect(ui->btnAddToken, &QAbstractButton::clicked, this, &CharacterTemplateFrame::handleAddToken);
+    connect(ui->btnReload, &QAbstractButton::clicked, this, &CharacterTemplateFrame::handleReloadImage);
+    connect(ui->btnClear, &QAbstractButton::clicked, this, &CharacterTemplateFrame::handleClearImage);
+    connect(ui->btnNextToken, &QAbstractButton::clicked, this, &CharacterTemplateFrame::handleNextToken);
 
 }
 
@@ -210,8 +217,8 @@ void CharacterTemplateFrame::mouseReleaseEvent(QMouseEvent * event)
     if(filename.isEmpty())
         return;
 
-    _character->setIcon(filename);
-    loadCharacterImage();
+    _character->addIcon(filename);
+    setTokenIndex(_character->getIconCount() - 1);
 }
 
 QObject* CharacterTemplateFrame::getFrameObject()
@@ -229,7 +236,8 @@ void CharacterTemplateFrame::readCharacterData()
     CombatantFactory::Instance()->readObjectData(_uiWidget, _character, this, this);
 
     emit backgroundColorChanged(_character->getBackgroundColor());
-    loadCharacterImage();
+    _currentToken = 0;
+    setTokenIndex(0);
     enableDndBeyondSync(_character->getDndBeyondID() != -1);
 
     _reading = false;
@@ -241,9 +249,9 @@ void CharacterTemplateFrame::handlePublishClicked()
         return;
 
     QImage iconImg;
-    QString iconFile = _character->getIconFile();
-    if(!iconImg.load(iconFile))
-        iconImg = _character->getIconPixmap(DMHelper::PixmapSize_Full).toImage();
+    QString iconFile = _character->getIcon(_currentToken);
+    if((!iconFile.isEmpty()) && (!iconImg.load(iconFile)))
+        iconImg = _character->getIconPixmap(DMHelper::PixmapSize_Full, _currentToken).toImage();
 
     if(iconImg.isNull())
         return;
@@ -260,7 +268,7 @@ void CharacterTemplateFrame::editCharacterIcon()
     if((!_character) || (!_options))
         return;
 
-    TokenEditDialog* dlg = new TokenEditDialog(_character->getIconPixmap(DMHelper::PixmapSize_Full).toImage(),
+    TokenEditDialog* dlg = new TokenEditDialog(_character->getIconPixmap(DMHelper::PixmapSize_Full, _currentToken).toImage(),
                                                *_options,
                                                1.0,
                                                QPoint(),
@@ -271,7 +279,8 @@ void CharacterTemplateFrame::editCharacterIcon()
         if(newToken.isNull())
             return;
 
-        QString tokenPath = QFileDialog::getExistingDirectory(this, tr("Select Token Directory"), _character->getIconFile().isEmpty() ? QString() : QFileInfo(_character->getIconFile()).absolutePath());
+        QString currentFile = _character->getIcon(_currentToken);
+        QString tokenPath = QFileDialog::getExistingDirectory(this, tr("Select Token Directory"), currentFile.isEmpty() ? QString() : QFileInfo(currentFile).absolutePath());
         if(tokenPath.isEmpty())
             return;
 
@@ -285,8 +294,12 @@ void CharacterTemplateFrame::editCharacterIcon()
         QString finalTokenPath = tokenDir.absoluteFilePath(tokenFile);
         newToken.save(finalTokenPath);
 
-        _character->setIcon(finalTokenPath);
-        loadCharacterImage();
+        if(_character->getIconCount() > 0 && _currentToken < _character->getIconCount())
+            _character->setIcon(_currentToken, finalTokenPath);
+        else
+            _character->addIcon(finalTokenPath);
+
+        setTokenIndex(_currentToken);
 
         if(dlg->getEditor())
             dlg->getEditor()->applyEditorToOptions(*_options);
@@ -365,15 +378,71 @@ void CharacterTemplateFrame::updateCharacterName()
     //ui->edtName->setText(_character->getName());
 }
 
+void CharacterTemplateFrame::handlePreviousToken()
+{
+    setTokenIndex(_currentToken - 1);
+}
+
+void CharacterTemplateFrame::handleNextToken()
+{
+    setTokenIndex(_currentToken + 1);
+}
+
+void CharacterTemplateFrame::handleAddToken()
+{
+    if(!_character)
+        return;
+
+    QString filename = QFileDialog::getOpenFileName(this, QString("Select Token Image..."));
+    if(filename.isEmpty())
+        return;
+
+    _character->addIcon(filename);
+    setTokenIndex(_character->getIconCount() - 1);
+}
+
+void CharacterTemplateFrame::handleReloadImage()
+{
+    if(!_character)
+        return;
+
+    _character->refreshIconPixmaps();
+    setTokenIndex(_currentToken);
+}
+
+void CharacterTemplateFrame::handleClearImage()
+{
+    if(!_character)
+        return;
+
+    int iconCount = _character->getIconCount();
+    if(iconCount <= 0)
+        return;
+
+    if(QMessageBox::question(this,
+                              QString("Confirm Delete"),
+                              QString("Are you sure you want to remove this token image?")) != QMessageBox::Yes)
+        return;
+
+    _character->removeIcon(_currentToken);
+
+    if(_currentToken >= _character->getIconCount())
+        _currentToken = _character->getIconCount() - 1;
+    if(_currentToken < 0)
+        _currentToken = 0;
+
+    setTokenIndex(_currentToken);
+}
+
 void CharacterTemplateFrame::loadCharacterImage()
 {
     if(_character)
-        ui->lblIcon->setPixmap(_character->getIconPixmap(DMHelper::PixmapSize_Showcase));
+        ui->lblIcon->setPixmap(_character->getIconPixmap(DMHelper::PixmapSize_Showcase, _currentToken));
 }
 
 void CharacterTemplateFrame::enableDndBeyondSync(bool enabled)
 {
-    ui->btnSync->setVisible(enabled);
+    ui->btnSync_2->setVisible(enabled);
     ui->lblDndBeyondLink->setVisible(enabled);
 
     if(_character)
@@ -383,4 +452,36 @@ void CharacterTemplateFrame::enableDndBeyondSync(bool enabled)
         qDebug() << "[CharacterTemplateFrame] Setting Dnd Beyond link for character to: " << fullLink;
         ui->lblDndBeyondLink->setText(fullLink);
     }
+}
+
+void CharacterTemplateFrame::setTokenIndex(int index)
+{
+    if(!_character)
+        return;
+
+    int count = _character->getIconCount();
+    if(count <= 0)
+    {
+        _currentToken = 0;
+        ui->lblIcon->setPixmap(QPixmap());
+        ui->btnPreviousToken->setEnabled(false);
+        ui->btnNextToken->setEnabled(false);
+        ui->btnClear->setEnabled(false);
+        ui->btnEditIcon->setEnabled(false);
+        return;
+    }
+
+    if(index < 0)
+        index = 0;
+    if(index >= count)
+        index = count - 1;
+
+    _currentToken = index;
+
+    ui->btnPreviousToken->setEnabled((count > 1) && (index > 0));
+    ui->btnNextToken->setEnabled((count > 1) && (index < count - 1));
+    ui->btnClear->setEnabled(true);
+    ui->btnEditIcon->setEnabled(true);
+
+    loadCharacterImage();
 }

@@ -210,6 +210,8 @@ BattleFrame::BattleFrame(QWidget *parent) :
     connect(_scene, SIGNAL(combatantHeal(BattleDialogModelCombatant*)), this, SLOT(handleCombatantHeal(BattleDialogModelCombatant*)));
     connect(_scene, &BattleDialogGraphicsScene::monsterChangeToken, this, &BattleFrame::handleChangeMonsterToken);
     connect(_scene, &BattleDialogGraphicsScene::monsterChangeTokenCustom, this, &BattleFrame::handleChangeMonsterTokenCustom);
+    connect(_scene, &BattleDialogGraphicsScene::characterChangeToken, this, &BattleFrame::handleChangeCharacterToken);
+    connect(_scene, &BattleDialogGraphicsScene::characterChangeTokenCustom, this, &BattleFrame::handleChangeCharacterTokenCustom);
     connect(_scene, SIGNAL(itemLink(BattleDialogModelObject*)), this, SLOT(handleItemLink(BattleDialogModelObject*)));
     connect(_scene, SIGNAL(itemUnlink(BattleDialogModelObject*)), this, SLOT(handleItemUnlink(BattleDialogModelObject*)));
     connect(_scene, SIGNAL(itemChanged(QGraphicsItem*)), this, SLOT(handleItemChanged(QGraphicsItem*)));
@@ -2411,6 +2413,32 @@ void BattleFrame::handleChangeMonsterTokenCustom(BattleDialogModelMonsterClass* 
     }
 }
 
+void BattleFrame::handleChangeCharacterToken(BattleDialogModelCharacter* character, int iconIndex)
+{
+    if(!character)
+        return;
+
+    character->setIconIndex(iconIndex);
+}
+
+void BattleFrame::handleChangeCharacterTokenCustom(BattleDialogModelCharacter* character)
+{
+    if(!character)
+        return;
+
+    QString filename = QFileDialog::getOpenFileName(nullptr, QString("Select character token..."));
+    if(filename.isEmpty())
+        return;
+
+    if(!QImageReader(filename).canRead())
+    {
+        qDebug() << "[BattleFrame] handleChangeCharacterTokenCustom: " << filename << " is not a valid image file.";
+        return;
+    }
+
+    character->setIconFile(filename);
+}
+
 void BattleFrame::handleApplyEffect(QGraphicsItem* effect)
 {
     if((!effect) || (!_model))
@@ -3654,6 +3682,7 @@ CombatantWidget* BattleFrame::createCombatantWidget(BattleDialogModelCombatant* 
                 connect(widgetInternals, SIGNAL(hitPointsChanged(BattleDialogModelCombatant*, int)), this, SLOT(updateCombatantVisibility()));
                 connect(widgetInternals, SIGNAL(hitPointsChanged(BattleDialogModelCombatant*, int)), this, SLOT(registerCombatantDamage(BattleDialogModelCombatant*, int)));
                 connect(newWidget, SIGNAL(imageChanged(BattleDialogModelCombatant*)), this, SLOT(updateCombatantIcon(BattleDialogModelCombatant*)));
+                connect(character, &BattleDialogModelCharacter::imageChanged, this, [this](BattleDialogModelCharacter* c){this->updateCombatantIcon(c);});
                 connect(character, SIGNAL(moveUpdated()), newWidget, SLOT(updateMove()));
                 connect(character, &BattleDialogModelCharacter::initiativeChanged, newWidget, &CombatantWidget::updateData);
             }

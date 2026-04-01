@@ -242,6 +242,8 @@ private slots:
     void handleCombatantHeal(BattleDialogModelCombatant* combatant);
     void handleChangeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void handleChangeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
+    void handleChangeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
+    void handleChangeCharacterTokenCustom(BattleDialogModelCharacter* character);
     void handleApplyEffect(QGraphicsItem* effect);
 
     void handleItemChangeLayer(BattleDialogModelObject* battleObject);
