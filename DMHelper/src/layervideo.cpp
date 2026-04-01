@@ -374,6 +374,22 @@ void LayerVideo::setLooping(bool looping)
     emit dirty();
 }
 
+void LayerVideo::setVideoFile(const QString& filename)
+{
+    if((filename.isEmpty()) || (_filename == filename))
+        return;
+
+    cleanupDM();
+    cleanupPlayer();
+    clearScreenshot();
+    _layerScreenshot = QImage();
+
+    _filename = filename;
+
+    requestScreenshot();
+    emit dirty();
+}
+
 void LayerVideo::handleScreenshotReady(const QImage& image)
 {
     if((image.isNull()) || (_layerScreenshot == image))

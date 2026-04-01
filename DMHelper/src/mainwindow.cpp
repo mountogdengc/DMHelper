@@ -2437,6 +2437,13 @@ void MainWindow::handleCustomContextMenu(const QPoint& point)
         contextMenu->addAction(previewWindowItem);
     }
 
+    if(campaignObject->getObjectType() == DMHelper::CampaignType_Map)
+    {
+        QAction* editFileAction = new QAction(QIcon(":/img/data/icon_edit.png"), QString("Edit File..."), contextMenu);
+        connect(editFileAction, &QAction::triggered, _mapFrame, &MapFrame::editMapFile);
+        contextMenu->addAction(editFileAction);
+    }
+
     QAction* importItem = new QAction(QIcon(":/img/data/icon_importitem.png"), QString("Import Item..."));
     connect(importItem, SIGNAL(triggered()), this, SLOT(importItem()));
     contextMenu->addAction(importItem);
