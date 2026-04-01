@@ -83,7 +83,7 @@
          </property>
          <property name="icon">
           <iconset resource="resources.qrc">
-           <normaloff>:/img/data/circle.png</normaloff>:/img/data/circle.png</iconset>
+           <normaloff>:/img/data/icon_circle.png</normaloff>:/img/data/icon_circle.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -218,7 +218,7 @@
          </property>
          <property name="icon">
           <iconset resource="resources.qrc">
-           <normaloff>:/img/data/square.png</normaloff>:/img/data/square.png</iconset>
+           <normaloff>:/img/data/icon_square.png</normaloff>:/img/data/icon_square.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -296,7 +296,7 @@
          </property>
          <property name="icon">
           <iconset resource="resources.qrc">
-           <normaloff>:/img/data/icon_fowerase.png</normaloff>:/img/data/icon_fowerase.png</iconset>
+           <normaloff>:/img/data/icon_erase.png</normaloff>:/img/data/icon_erase.png</iconset>
          </property>
          <property name="iconSize">
           <size>

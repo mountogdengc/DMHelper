@@ -10,6 +10,7 @@
 #include <QPen>
 #include <QInputDialog>
 #include <QKeyEvent>
+#include <QCursor>
 
 LayerDrawEngine::LayerDrawEngine(QObject *parent) :
     QObject{parent},
@@ -34,9 +35,11 @@ void LayerDrawEngine::setActive(bool active)
         {
             QWidget* parentWidget = qobject_cast<QWidget*>(parent());
             _toolDialog = new LayerDrawToolDialog(parentWidget ? parentWidget->window() : nullptr);
+            connect(_toolDialog, &LayerDrawToolDialog::toolTypeChanged, this, &LayerDrawEngine::handleToolTypeChanged);
         }
 
         _toolDialog->show();
+        handleToolTypeChanged(_toolDialog->getToolType());
     }
     else
     {
@@ -291,6 +294,26 @@ void LayerDrawEngine::handleEraserMouseDown(const QPointF& pos)
         return;
 
     _drawLayer->eraseObjectAtPosition(pos);
+}
+
+void LayerDrawEngine::handleToolTypeChanged(DMHelper::DrawToolType toolType)
+{
+    if(toolType == DMHelper::DrawToolType_Eraser)
+    {
+        QPixmap erasePixmap(":/img/data/icon_erase.png");
+        int cursorSize = DMHelper::CURSOR_SIZE / 2;
+        QPixmap scaled = erasePixmap.scaled(cursorSize, cursorSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        emit cursorChanged(QCursor(scaled, cursorSize / 2, cursorSize / 2));
+    }
+    else
+    {
+        QPixmap drawPixmap(":/img/data/icon_edit.png");
+        int cursorSize = DMHelper::CURSOR_SIZE / 2;
+        QPixmap scaled = drawPixmap.scaled(cursorSize, cursorSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        emit cursorChanged(QCursor(scaled,
+                                   58 * cursorSize / drawPixmap.width(),
+                                   350 * cursorSize / drawPixmap.height()));
+    }
 }
 
 // --- Helpers ---

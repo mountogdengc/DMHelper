@@ -1068,6 +1068,11 @@ void BattleFrame::cancelSelect()
     _stateMachine.deactivateState();
 }
 
+void BattleFrame::ribbonTabChanged()
+{
+    _stateMachine.deactivateState();
+}
+
 bool BattleFrame::createNewBattle()
 {
     if((!_battle) || (!_battle->getBattleDialogModel()))
@@ -2758,7 +2763,14 @@ void BattleFrame::handleDrawToggled(bool enabled)
     if(enabled)
     {
         if(!_drawEngine)
+        {
             _drawEngine = new LayerDrawEngine(this);
+            connect(_drawEngine, &LayerDrawEngine::cursorChanged, this, [this](const QCursor& cursor) {
+                BattleFrameState* currentState = _stateMachine.getCurrentState();
+                if(currentState)
+                    currentState->setCursor(cursor);
+            });
+        }
 
         disconnect(_scene, &BattleDialogGraphicsScene::itemMouseDown, this, &BattleFrame::handleItemMouseDown);
         disconnect(_scene, &BattleDialogGraphicsScene::itemMouseUp, this, &BattleFrame::handleItemMouseUp);
@@ -4694,6 +4706,7 @@ instead move the player view
     }
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::handleDrawToggled);
     connect(drawState, &BattleFrameState::stateChanged, this, &BattleFrame::drawToggled);
+    connect(drawState, SIGNAL(cursorChanged(const QCursor&)), this, SLOT(stateUpdated()));
     _stateMachine.addState(drawState);
 
     BattleFrameState* pointerState = new BattleFrameState(DMHelper::BattleFrameState_Pointer, BattleFrameState::BattleFrameStateType_Persistent, getPointerPixmap(), 0, 0);

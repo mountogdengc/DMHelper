@@ -108,6 +108,7 @@ void LayerDrawToolDialog::handleLineTypeTriggered(QAction* action)
 void LayerDrawToolDialog::handleToolChanged()
 {
     updateControlStates();
+    emit toolTypeChanged(getToolType());
 }
 
 void LayerDrawToolDialog::updateControlStates()

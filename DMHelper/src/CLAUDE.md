@@ -11,6 +11,22 @@ is archived — do not touch.
 cmake -S DMHelper/src -B build-64_bit-release -DCMAKE_BUILD_TYPE=Release
 cmake --build build-64_bit-release --config Release
 ```
+
+**Windows environment:** `cmake` is not on the default PATH. Use the VS
+instance at:
+```
+C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe
+```
+Prepend that `bin` directory to `$env:PATH` before running cmake commands.
+
+**IntelliSense errors are unreliable.** The IDE's clangd/IntelliSense uses a
+different Qt configuration than the actual build. Errors like "no type named
+'in_place_t'", "Cannot initialize a parameter of type 'QDialog *'", and
+"'QFlagsStorageHelper' is a protected member" are false positives. Do not
+attempt to fix them — verify correctness by running the actual cmake build
+instead. The `get_errors` tool output should be ignored for `.cpp` files in
+this project.
+
 Sources are listed **explicitly** in `CMakeLists.txt` — no globbing. If you
 create a `.cpp`/`.h` pair, you must add both to the source list manually.
 

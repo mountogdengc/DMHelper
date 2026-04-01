@@ -527,6 +527,11 @@ void MapFrame::cancelSelect()
     editModeToggled(DMHelper::EditMode_Move);
 }
 
+void MapFrame::ribbonTabChanged()
+{
+    editModeToggled(DMHelper::EditMode_Move);
+}
+
 void MapFrame::setErase(bool enabled)
 {
     _erase = enabled;

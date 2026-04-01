@@ -25,6 +25,9 @@ public:
     QString getToolFontFamily() const;
     int getToolFontSize() const;
 
+signals:
+    void toolTypeChanged(DMHelper::DrawToolType toolType);
+
 private slots:
     void handleLineTypeTriggered(QAction* action);
     void handleToolChanged();
