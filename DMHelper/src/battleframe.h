@@ -241,6 +241,10 @@ private slots:
     void handleCombatantRemoved(BattleDialogModelCombatant* combatant);
     void handleCombatantDamage(BattleDialogModelCombatant* combatant);
     void handleCombatantHeal(BattleDialogModelCombatant* combatant);
+    void handleCombatantHideSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantUnhideSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantKnowSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantUnknowSelected(BattleDialogModelCombatant* combatant);
     void handleChangeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void handleChangeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
     void handleChangeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
@@ -274,6 +278,10 @@ private slots:
     void changeCombatantLayer();
     void damageCombatant();
     void healCombatant();
+    void hideSelectedCombatant();
+    void unhideSelectedCombatant();
+    void knowSelectedCombatant();
+    void unknowSelectedCombatant();
     void applyCombatantHPChange(BattleDialogModelCombatant* combatant, int hpChange);
     void setSelectedCombatant(BattleDialogModelCombatant* selected);
     void setUniqueSelection(BattleDialogModelCombatant* selected);
