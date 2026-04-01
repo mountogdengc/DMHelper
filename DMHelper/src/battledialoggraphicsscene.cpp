@@ -601,6 +601,24 @@ bool BattleDialogGraphicsScene::handleMouseReleaseEvent(QGraphicsSceneMouseEvent
 
             menu.addSeparator();
 
+            QAction* hideSelectedItem = new QAction(QString("Hide Selected"), &menu);
+            connect(hideSelectedItem, SIGNAL(triggered()), this, SLOT(hideSelectedCombatants()));
+            menu.addAction(hideSelectedItem);
+
+            QAction* unhideSelectedItem = new QAction(QString("Unhide Selected"), &menu);
+            connect(unhideSelectedItem, SIGNAL(triggered()), this, SLOT(unhideSelectedCombatants()));
+            menu.addAction(unhideSelectedItem);
+
+            QAction* knowSelectedItem = new QAction(QString("Know Selected"), &menu);
+            connect(knowSelectedItem, SIGNAL(triggered()), this, SLOT(knowSelectedCombatants()));
+            menu.addAction(knowSelectedItem);
+
+            QAction* unknowSelectedItem = new QAction(QString("Unknow Selected"), &menu);
+            connect(unknowSelectedItem, SIGNAL(triggered()), this, SLOT(unknowSelectedCombatants()));
+            menu.addAction(unknowSelectedItem);
+
+            menu.addSeparator();
+
             if(object)
             {
                 BattleDialogModelMonsterClass* monster = dynamic_cast<BattleDialogModelMonsterClass*>(object);
@@ -996,6 +1014,50 @@ void BattleDialogGraphicsScene::healCombatant()
     BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
     if(combatant)
         emit combatantHeal(combatant);
+}
+
+void BattleDialogGraphicsScene::hideSelectedCombatants()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantHideSelected(combatant);
+}
+
+void BattleDialogGraphicsScene::unhideSelectedCombatants()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantUnhideSelected(combatant);
+}
+
+void BattleDialogGraphicsScene::knowSelectedCombatants()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantKnowSelected(combatant);
+}
+
+void BattleDialogGraphicsScene::unknowSelectedCombatants()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantUnknowSelected(combatant);
 }
 
 void BattleDialogGraphicsScene::changeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex)

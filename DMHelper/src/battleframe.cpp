@@ -208,6 +208,10 @@ BattleFrame::BattleFrame(QWidget *parent) :
     connect(_scene, SIGNAL(combatantRemove(BattleDialogModelCombatant*)), this, SLOT(handleCombatantRemove(BattleDialogModelCombatant*)));
     connect(_scene, SIGNAL(combatantDamage(BattleDialogModelCombatant*)), this, SLOT(handleCombatantDamage(BattleDialogModelCombatant*)));
     connect(_scene, SIGNAL(combatantHeal(BattleDialogModelCombatant*)), this, SLOT(handleCombatantHeal(BattleDialogModelCombatant*)));
+    connect(_scene, &BattleDialogGraphicsScene::combatantHideSelected, this, &BattleFrame::handleCombatantHideSelected);
+    connect(_scene, &BattleDialogGraphicsScene::combatantUnhideSelected, this, &BattleFrame::handleCombatantUnhideSelected);
+    connect(_scene, &BattleDialogGraphicsScene::combatantKnowSelected, this, &BattleFrame::handleCombatantKnowSelected);
+    connect(_scene, &BattleDialogGraphicsScene::combatantUnknowSelected, this, &BattleFrame::handleCombatantUnknowSelected);
     connect(_scene, &BattleDialogGraphicsScene::monsterChangeToken, this, &BattleFrame::handleChangeMonsterToken);
     connect(_scene, &BattleDialogGraphicsScene::monsterChangeTokenCustom, this, &BattleFrame::handleChangeMonsterTokenCustom);
     connect(_scene, &BattleDialogGraphicsScene::characterChangeToken, this, &BattleFrame::handleChangeCharacterToken);
@@ -2132,6 +2136,24 @@ void BattleFrame::handleContextMenu(BattleDialogModelCombatant* combatant, const
     connect(healItem, SIGNAL(triggered()), this, SLOT(healCombatant()));
     contextMenu->addAction(healItem);
 
+    contextMenu->addSeparator();
+
+    QAction* hideSelectedItem = new QAction(QString("Hide Selected"), contextMenu);
+    connect(hideSelectedItem, SIGNAL(triggered()), this, SLOT(hideSelectedCombatant()));
+    contextMenu->addAction(hideSelectedItem);
+
+    QAction* unhideSelectedItem = new QAction(QString("Unhide Selected"), contextMenu);
+    connect(unhideSelectedItem, SIGNAL(triggered()), this, SLOT(unhideSelectedCombatant()));
+    contextMenu->addAction(unhideSelectedItem);
+
+    QAction* knowSelectedItem = new QAction(QString("Know Selected"), contextMenu);
+    connect(knowSelectedItem, SIGNAL(triggered()), this, SLOT(knowSelectedCombatant()));
+    contextMenu->addAction(knowSelectedItem);
+
+    QAction* unknowSelectedItem = new QAction(QString("Unknow Selected"), contextMenu);
+    connect(unknowSelectedItem, SIGNAL(triggered()), this, SLOT(unknowSelectedCombatant()));
+    contextMenu->addAction(unknowSelectedItem);
+
     contextMenu->exec(position);
     delete contextMenu;
 
@@ -2353,6 +2375,102 @@ void BattleFrame::handleCombatantHeal(BattleDialogModelCombatant* combatant)
             applyCombatantHPChange(getCombatantFromItem(graphicsItem), heal);
         }
     }
+}
+
+void BattleFrame::handleCombatantHideSelected(BattleDialogModelCombatant* combatant)
+{
+    if(!combatant)
+        return;
+
+    // if there is no selection or the mouse click was on a different icon than the selection, ignore the selection
+    QList<QGraphicsItem*> selected = _scene->selectedItems();
+    QGraphicsItem* currentItem = getItemFromCombatant(combatant);
+    if((selected.count() == 0) || ((currentItem) && (!selected.contains(currentItem))))
+    {
+        combatant->setShown(false);
+    }
+    else
+    {
+        foreach(QGraphicsItem* graphicsItem, selected)
+        {
+            BattleDialogModelCombatant* c = getCombatantFromItem(graphicsItem);
+            if(c)
+                c->setShown(false);
+        }
+    }
+    updateCombatantVisibility();
+}
+
+void BattleFrame::handleCombatantUnhideSelected(BattleDialogModelCombatant* combatant)
+{
+    if(!combatant)
+        return;
+
+    // if there is no selection or the mouse click was on a different icon than the selection, ignore the selection
+    QList<QGraphicsItem*> selected = _scene->selectedItems();
+    QGraphicsItem* currentItem = getItemFromCombatant(combatant);
+    if((selected.count() == 0) || ((currentItem) && (!selected.contains(currentItem))))
+    {
+        combatant->setShown(true);
+    }
+    else
+    {
+        foreach(QGraphicsItem* graphicsItem, selected)
+        {
+            BattleDialogModelCombatant* c = getCombatantFromItem(graphicsItem);
+            if(c)
+                c->setShown(true);
+        }
+    }
+    updateCombatantVisibility();
+}
+
+void BattleFrame::handleCombatantKnowSelected(BattleDialogModelCombatant* combatant)
+{
+    if(!combatant)
+        return;
+
+    // if there is no selection or the mouse click was on a different icon than the selection, ignore the selection
+    QList<QGraphicsItem*> selected = _scene->selectedItems();
+    QGraphicsItem* currentItem = getItemFromCombatant(combatant);
+    if((selected.count() == 0) || ((currentItem) && (!selected.contains(currentItem))))
+    {
+        combatant->setKnown(true);
+    }
+    else
+    {
+        foreach(QGraphicsItem* graphicsItem, selected)
+        {
+            BattleDialogModelCombatant* c = getCombatantFromItem(graphicsItem);
+            if(c)
+                c->setKnown(true);
+        }
+    }
+    updateCombatantVisibility();
+}
+
+void BattleFrame::handleCombatantUnknowSelected(BattleDialogModelCombatant* combatant)
+{
+    if(!combatant)
+        return;
+
+    // if there is no selection or the mouse click was on a different icon than the selection, ignore the selection
+    QList<QGraphicsItem*> selected = _scene->selectedItems();
+    QGraphicsItem* currentItem = getItemFromCombatant(combatant);
+    if((selected.count() == 0) || ((currentItem) && (!selected.contains(currentItem))))
+    {
+        combatant->setKnown(false);
+    }
+    else
+    {
+        foreach(QGraphicsItem* graphicsItem, selected)
+        {
+            BattleDialogModelCombatant* c = getCombatantFromItem(graphicsItem);
+            if(c)
+                c->setKnown(false);
+        }
+    }
+    updateCombatantVisibility();
 }
 
 void BattleFrame::handleChangeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex)
@@ -2867,6 +2985,26 @@ void BattleFrame::damageCombatant()
 void BattleFrame::healCombatant()
 {
     handleCombatantHeal(_contextMenuCombatant);
+}
+
+void BattleFrame::hideSelectedCombatant()
+{
+    handleCombatantHideSelected(_contextMenuCombatant);
+}
+
+void BattleFrame::unhideSelectedCombatant()
+{
+    handleCombatantUnhideSelected(_contextMenuCombatant);
+}
+
+void BattleFrame::knowSelectedCombatant()
+{
+    handleCombatantKnowSelected(_contextMenuCombatant);
+}
+
+void BattleFrame::unknowSelectedCombatant()
+{
+    handleCombatantUnknowSelected(_contextMenuCombatant);
 }
 
 void BattleFrame::applyCombatantHPChange(BattleDialogModelCombatant* combatant, int hpChange)
