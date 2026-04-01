@@ -10,6 +10,7 @@ class BattleDialogModelObject;
 class BattleDialogModelEffect;
 class BattleDialogModelCombatant;
 class BattleDialogModelMonsterClass;
+class BattleDialogModelCharacter;
 class QAbstractGraphicsShapeItem;
 class QMimeData;
 
@@ -107,6 +108,8 @@ signals:
     void combatantHeal(BattleDialogModelCombatant* combatant);
     void monsterChangeToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void monsterChangeTokenCustom(BattleDialogModelMonsterClass* monster);
+    void characterChangeToken(BattleDialogModelCharacter* character, int iconIndex);
+    void characterChangeTokenCustom(BattleDialogModelCharacter* character);
 
     void combatantHover(BattleDialogModelCombatant* combatant, bool hover);
 
@@ -125,6 +128,8 @@ protected slots:
     void healCombatant();
     void changeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void changeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
+    void changeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
+    void changeCharacterTokenCustom(BattleDialogModelCharacter* character);
 
     void changeEffectLayer();
     void handleSelectionChanged();
