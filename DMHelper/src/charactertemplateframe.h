@@ -56,10 +56,16 @@ private slots:
     void syncDndBeyond();
     void importHeroForge();
     void updateCharacterName();
+    void handlePreviousToken();
+    void handleNextToken();
+    void handleAddToken();
+    void handleReloadImage();
+    void handleClearImage();
 
 private:
     void loadCharacterImage();
     void enableDndBeyondSync(bool enabled);
+    void setTokenIndex(int index);
 
     Ui::CharacterTemplateFrame *ui;
     QWidget *_uiWidget;
@@ -69,6 +75,7 @@ private:
     bool _mouseDown;
     bool _reading;
     int _rotation;
+    int _currentToken;
     QString _heroForgeToken;
 };
 

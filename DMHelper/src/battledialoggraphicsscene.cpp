@@ -4,6 +4,8 @@
 #include "battledialogmodeleffect.h"
 #include "battledialogmodeleffectfactory.h"
 #include "battledialogmodelmonsterclass.h"
+#include "battledialogmodelcharacter.h"
+#include "characterv2.h"
 #include "monsterclassv2.h"
 #include "unselectedpixmap.h"
 #include "layertokens.h"
@@ -627,6 +629,34 @@ bool BattleDialogGraphicsScene::handleMouseReleaseEvent(QGraphicsSceneMouseEvent
                         }
                     }
                 }
+
+                BattleDialogModelCharacter* characterCombatant = dynamic_cast<BattleDialogModelCharacter*>(object);
+                if(characterCombatant)
+                {
+                    Characterv2* character = characterCombatant->getCharacter();
+                    if(character)
+                    {
+                        QStringList iconList = character->getIconList();
+                        if(iconList.count() > 0)
+                        {
+                            QMenu* tokenMenu = new QMenu(QString("Select Token..."));
+                            for(int i = 0; i < iconList.count(); ++i)
+                            {
+                                QFileInfo fi(iconList.at(i));
+                                QAction* tokenAction = new QAction(fi.fileName(), tokenMenu);
+                                connect(tokenAction, &QAction::triggered, [this, i, characterCombatant](){this->changeCharacterToken(characterCombatant, i);});
+                                tokenMenu->addAction(tokenAction);
+                            }
+
+                            QAction* customAction = new QAction(QString("Custom..."), tokenMenu);
+                            connect(customAction, &QAction::triggered, [this, characterCombatant](){this->changeCharacterTokenCustom(characterCombatant);});
+                            tokenMenu->addAction(customAction);
+
+                            menu.addMenu(tokenMenu);
+                            menu.addSeparator();
+                        }
+                    }
+                }
             }
         }
         else
@@ -978,6 +1008,18 @@ void BattleDialogGraphicsScene::changeMonsterTokenCustom(BattleDialogModelMonste
 {
     if(monster)
         emit monsterChangeTokenCustom(monster);
+}
+
+void BattleDialogGraphicsScene::changeCharacterToken(BattleDialogModelCharacter* character, int iconIndex)
+{
+    if(character)
+        emit characterChangeToken(character, iconIndex);
+}
+
+void BattleDialogGraphicsScene::changeCharacterTokenCustom(BattleDialogModelCharacter* character)
+{
+    if(character)
+        emit characterChangeTokenCustom(character);
 }
 
 void BattleDialogGraphicsScene::changeEffectLayer()

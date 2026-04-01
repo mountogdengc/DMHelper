@@ -3,6 +3,7 @@
 
 #include "battledialogmodelcombatant.h"
 #include "combatant.h"
+#include "scaledpixmap.h"
 #include <QString>
 #include <QPoint>
 
@@ -47,6 +48,13 @@ public:
     Characterv2* getCharacter() const;
     void setCharacter(Characterv2* character);
 
+    int getIconIndex() const;
+    void setIconIndex(int index);
+    void setIconFile(const QString& iconFile);
+
+signals:
+    void imageChanged(BattleDialogModelCharacter* character);
+
 public slots:
     virtual void setConditions(int conditions) override;
     virtual void applyConditions(int conditions) override;
@@ -54,6 +62,11 @@ public slots:
     virtual void clearConditions() override;
 
 protected:
+    virtual void internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
 
+private:
+    int _iconIndex;
+    QString _iconFile;
+    ScaledPixmap* _iconPixmap;
 };
 #endif // BATTLEDIALOGMODELCHARACTER_H
