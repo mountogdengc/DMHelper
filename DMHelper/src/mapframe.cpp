@@ -8,6 +8,7 @@
 #include "undofowshape.h"
 #include "undomarker.h"
 #include "layerscene.h"
+#include "layerimage.h"
 #include "layervideo.h"
 #include "layergrid.h"
 #include "mapmarkerdialog.h"
@@ -466,14 +467,44 @@ void MapFrame::editMapFile()
     if(!_mapSource)
         return;
 
-    QString filename = QFileDialog::getOpenFileName(this, QString("Select Map Image..."));
-    if(!filename.isEmpty())
+    // Find the best media layer to update: selected layer takes priority if it's image or video
+    LayerScene& layerScene = _mapSource->getLayerScene();
+    Layer* selectedLayer = layerScene.getSelectedLayer();
+
+    LayerImage* imageLayer = nullptr;
+    LayerVideo* videoLayer = nullptr;
+
+    if(selectedLayer)
     {
-        uninitializeMap();
-        _mapSource->uninitialize();
-        _mapSource->setFileName(filename);
-        initializeMap();
+        if(selectedLayer->getFinalType() == DMHelper::LayerType_Image)
+            imageLayer = dynamic_cast<LayerImage*>(selectedLayer->getFinalLayer());
+        else if(selectedLayer->getFinalType() == DMHelper::LayerType_Video)
+            videoLayer = dynamic_cast<LayerVideo*>(selectedLayer->getFinalLayer());
     }
+
+    if(!imageLayer && !videoLayer)
+    {
+        imageLayer = dynamic_cast<LayerImage*>(layerScene.getPriority(DMHelper::LayerType_Image));
+        if(!imageLayer)
+            videoLayer = dynamic_cast<LayerVideo*>(layerScene.getPriority(DMHelper::LayerType_Video));
+    }
+
+    if(!imageLayer && !videoLayer)
+        return;
+
+    QString filename = QFileDialog::getOpenFileName(this, QString("Select Map File..."));
+    if(filename.isEmpty())
+        return;
+
+    uninitializeMap();
+    _mapSource->uninitialize();
+
+    if(imageLayer)
+        imageLayer->setFileName(filename);
+    else
+        videoLayer->setVideoFile(filename);
+
+    initializeMap();
 }
 
 void MapFrame::zoomIn()
