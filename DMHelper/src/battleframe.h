@@ -125,6 +125,7 @@ public slots:
     void zoomSelect(bool enabled);
     void zoomDelta(int delta);
     void cancelSelect();
+    void ribbonTabChanged();
 
     // Public for connection to battle ribbon
     bool createNewBattle();

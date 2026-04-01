@@ -4,6 +4,7 @@
 #include "dmconstants.h"
 #include <QObject>
 #include <QPointF>
+#include <QCursor>
 
 class LayerDraw;
 class LayerDrawToolDialog;
@@ -28,6 +29,7 @@ public slots:
     bool handleKeyPress(QKeyEvent* event);
 
 signals:
+    void cursorChanged(const QCursor& cursor);
 
 private:
     void handlePathMouseDown(const QPointF& pos);
@@ -40,6 +42,7 @@ private:
     void handleEllipseMouseMoved(const QPointF& pos);
     void handleTextMouseDown(const QPointF& pos);
     void handleEraserMouseDown(const QPointF& pos);
+    void handleToolTypeChanged(DMHelper::DrawToolType toolType);
     void commitActiveObject();
     void discardActiveObject();
 

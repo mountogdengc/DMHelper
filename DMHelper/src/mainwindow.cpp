@@ -604,6 +604,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ribbonTabBattleMap, SIGNAL(brushModeChanged(int)), mapDrawer, SLOT(setBrushMode(int)));
 
     connect(this, SIGNAL(cancelSelect()), _battleFrame, SLOT(cancelSelect()));
+    connect(_ribbon, &QTabWidget::currentChanged, _battleFrame, &BattleFrame::ribbonTabChanged);
 
     ui->stackedWidgetEncounter->addFrames(QList<int>({DMHelper::CampaignType_Battle,
                                                       DMHelper::CampaignType_BattleContent}), _battleFrame);
@@ -672,6 +673,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_options, SIGNAL(pointerFileNameChanged(const QString&)), _mapFrame, SLOT(setPointerFile(const QString&)));
 
     connect(this, SIGNAL(cancelSelect()), _mapFrame, SLOT(cancelSelect()));
+    connect(_ribbon, &QTabWidget::currentChanged, _mapFrame, &MapFrame::ribbonTabChanged);
 
     connect(_pubWindow, SIGNAL(labelResized(QSize)), _mapFrame, SLOT(setTargetLabelSize(QSize)));
     connect(_pubWindow, SIGNAL(publishMouseDown(const QPointF&)), _mapFrame, SLOT(publishWindowMouseDown(const QPointF&)));
@@ -1650,8 +1652,6 @@ void MainWindow::setupRibbonBar()
     connect(_ribbon->getPublishRibbon(), SIGNAL(playersWindowClicked(bool)), this, SLOT(showPublishWindow(bool)));
     QShortcut* publishShortcut = new QShortcut(QKeySequence(tr("Ctrl+P", "Publish")), this);
     connect(publishShortcut, SIGNAL(activated()), _ribbon, SLOT(clickPublish()));
-
-    connect(_ribbon, &QTabWidget::currentChanged, this, &MainWindow::cancelSelect);
 
     _ribbon->setCurrentIndex(0);
     setMenuWidget(_ribbon);

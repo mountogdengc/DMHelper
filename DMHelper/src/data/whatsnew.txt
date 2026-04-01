@@ -13,7 +13,8 @@
 
 <h3>New v3.8 Features:</h3>
 <ul>
-<li>
+<li> <b>Drawing Layer</b> so that you can doodle on top of your beautiful maps to your heart's content... or draw a quick'n'dirty map of your own!
+<li> <b>Particles Layer</b> to let little colored dots fly across your maps, great for rain, snow or hyperspace travel simulations!
 </ul>
 
 <p>
@@ -21,7 +22,15 @@
 <h3>Fixes:</h3>
 <ul>
 <li>Add character based on a monster works again
-Edit FOW doesn't make the FOW darker on the DM View
+<li>Edit FOW doesn't make the FOW darker on the DM View
+<li>More info when a file can’t be found
+<li>Remember last added monster type added to combat
+<li>Edit File added to the map/media context menu
+<li>Fixed scaling on the pointer and the distance texts
+<li>Fixed grid sizing to always show no matter what the current window zoom
+<li>Fixed the New Entry dialog to tell you what is missing if you can't yet create an entry (e.g. name of the entry, file link, etc)
+<li>Smoothed out the parchment background rendering across the app (large behavior change between Qt5 and Qt6)
+<li>Fixed some rendering issues
 </ul>
 
 <!-- Commenting this section out for now

@@ -123,6 +123,7 @@ public slots:
     void zoomDelta(int delta);
     void centerWindow(const QPointF& position);
     void cancelSelect();
+    void ribbonTabChanged();
 
     void setErase(bool enabled);
     void setSmooth(bool enabled);
