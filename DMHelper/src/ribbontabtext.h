@@ -3,9 +3,6 @@
 
 #include "ribbonframe.h"
 
-class QLabel;
-class QPushButton;
-
 namespace Ui {
 class RibbonTabText;
 }
@@ -72,8 +69,6 @@ protected:
 
 private:
     Ui::RibbonTabText *ui;
-    QPushButton* _btnCheckbox;
-    QLabel* _lblCheckbox;
 };
 
 #endif // RIBBONTABTEXT_H
