@@ -3,6 +3,9 @@
 
 #include "ribbonframe.h"
 
+class QLabel;
+class QPushButton;
+
 namespace Ui {
 class RibbonTabText;
 }
@@ -58,6 +61,7 @@ signals:
     void alignmentChanged(Qt::Alignment alignment);
     void pasteRichChanged(bool pasteRich);
     void hyperlinkClicked();
+    void checkboxClicked();
 
     // Tools
     void translateTextClicked(bool checked);
@@ -68,6 +72,8 @@ protected:
 
 private:
     Ui::RibbonTabText *ui;
+    QPushButton* _btnCheckbox;
+    QLabel* _lblCheckbox;
 };
 
 #endif // RIBBONTABTEXT_H

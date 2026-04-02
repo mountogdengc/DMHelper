@@ -500,6 +500,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ribbonTabText, SIGNAL(pasteRichChanged(bool)), _options, SLOT(setPasteRich(bool)));
     _ribbonTabText->setPasteRich(_options->getPasteRich());
     connect(_ribbonTabText, SIGNAL(hyperlinkClicked()), _encounterTextEdit, SLOT(hyperlinkClicked()));
+    connect(_ribbonTabText, SIGNAL(checkboxClicked()), _encounterTextEdit, SLOT(toggleCheckbox()));
     connect(_ribbonTabText, SIGNAL(translateTextClicked(bool)), _encounterTextEdit, SLOT(setTranslated(bool)));
     connect(_ribbonTabText, SIGNAL(codeViewClicked(bool)), _encounterTextEdit, SLOT(setCodeView(bool)));
     //translate - both directions, get rid of previous button & link, make dialog bigger, better, apply, clear
