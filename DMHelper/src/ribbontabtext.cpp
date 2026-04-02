@@ -1,10 +1,15 @@
 #include "ribbontabtext.h"
 #include "ui_ribbontabtext.h"
 #include <QFontDatabase>
+#include <QPushButton>
+#include <QLabel>
+#include <QVBoxLayout>
 
 RibbonTabText::RibbonTabText(QWidget *parent) :
     RibbonFrame(parent),
-    ui(new Ui::RibbonTabText)
+    ui(new Ui::RibbonTabText),
+    _btnCheckbox(nullptr),
+    _lblCheckbox(nullptr)
 {
     ui->setupUi(this);
 
@@ -18,6 +23,51 @@ RibbonTabText::RibbonTabText(QWidget *parent) :
     connect(ui->btnPasteRich, &QAbstractButton::toggled, this, &RibbonTabText::pasteRichChanged);
 
     connect(ui->btnHyperlink, &QAbstractButton::clicked, this, &RibbonTabText::hyperlinkClicked);
+
+    // Programmatic checkbox toggle button
+    _btnCheckbox = new QPushButton(this);
+    _btnCheckbox->setText(QString(QChar(0x2611)));
+    _btnCheckbox->setToolTip(QString("Toggle checkbox on current line"));
+    _btnCheckbox->setMinimumSize(50, 50);
+    _btnCheckbox->setMaximumSize(50, 50);
+    _btnCheckbox->setFlat(true);
+    QFont checkFont = _btnCheckbox->font();
+    checkFont.setPointSize(20);
+    _btnCheckbox->setFont(checkFont);
+
+    _lblCheckbox = new QLabel(QString("Checkbox"), this);
+    _lblCheckbox->setMinimumSize(0, 15);
+    _lblCheckbox->setMaximumSize(16777215, 15);
+    _lblCheckbox->setAlignment(Qt::AlignBottom | Qt::AlignHCenter);
+
+    QVBoxLayout* checkboxLayout = new QVBoxLayout();
+    checkboxLayout->setSpacing(0);
+    checkboxLayout->addWidget(_btnCheckbox);
+    checkboxLayout->addWidget(_lblCheckbox);
+
+    // Insert after the hyperlink button (find its position in the horizontal layout)
+    QHBoxLayout* hLayout = qobject_cast<QHBoxLayout*>(layout());
+    if(hLayout)
+    {
+        // Find index of line_2 separator and insert before it
+        int insertIndex = -1;
+        for(int i = 0; i < hLayout->count(); ++i)
+        {
+            QLayoutItem* item = hLayout->itemAt(i);
+            if(item && item->widget() == ui->line_2)
+            {
+                insertIndex = i;
+                break;
+            }
+        }
+        if(insertIndex >= 0)
+            hLayout->insertLayout(insertIndex, checkboxLayout);
+        else
+            hLayout->addLayout(checkboxLayout);
+    }
+
+    connect(_btnCheckbox, &QAbstractButton::clicked, this, &RibbonTabText::checkboxClicked);
+
     connect(ui->btnTranslateText, &QAbstractButton::clicked, this, &RibbonTabText::translateTextClicked);
     connect(ui->btnCode, &QAbstractButton::clicked, this, &RibbonTabText::codeViewClicked);
 
@@ -147,6 +197,7 @@ void RibbonTabText::showEvent(QShowEvent *event)
     setLineHeight(*ui->line_1, frameHeight);
     setStandardButtonSize(*ui->lblPasteRich, *ui->btnPasteRich, frameHeight);
     setStandardButtonSize(*ui->lblHyperlink, *ui->btnHyperlink, frameHeight);
+    setStandardButtonSize(*_lblCheckbox, *_btnCheckbox, frameHeight);
     setLineHeight(*ui->line_2, frameHeight);
     setStandardButtonSize(*ui->lblAnimation, *ui->btnAnimation, frameHeight);
     setStandardButtonSize(*ui->lblPlayPause, *ui->btnPlayPause, frameHeight);
