@@ -73,7 +73,7 @@
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+          <enum>QSizePolicy::Policy::Preferred</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -335,7 +335,7 @@
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+          <enum>QSizePolicy::Policy::Preferred</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -538,7 +538,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>247</width>
+        <width>249</width>
         <height>497</height>
        </rect>
       </property>
