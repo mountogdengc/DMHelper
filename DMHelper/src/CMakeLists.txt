@@ -308,6 +308,7 @@ set(DMHELPER_SOURCES
     selectitemdialog.cpp
     selectstringdialog.cpp
     selectzoom.cpp
+    smoketestrunner.cpp
     soundboardframe.cpp
     soundboardgroup.cpp
     soundboardgroupframe.cpp
@@ -632,6 +633,7 @@ set(DMHELPER_HEADERS
     selectitemdialog.h
     selectstringdialog.h
     selectzoom.h
+    smoketestrunner.h
     soundboardframe.h
     soundboardgroup.h
     soundboardgroupframe.h

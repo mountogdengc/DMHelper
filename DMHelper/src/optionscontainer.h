@@ -187,6 +187,10 @@ public slots:
     void backupFile(const QString& filename, const QString& overrideFilename = QString());
     void resetFileSettings();
 
+    static QString getAppFile(const QString& filename);
+    static QStringList getExpectedAppResources();
+    static QStringList getExpectedAppDirectories();
+
     void setLastSpell(const QString& lastSpell);
     void setLastRuleset(const QString& lastRuleset);
     void setShowAnimations(bool showAnimations);
@@ -258,7 +262,6 @@ private:
     void copy(OptionsContainer* other);
     QMainWindow* getMainWindow();
     void cleanupLegacy(OptionsAccessor& settings);
-    QString getAppFile(const QString& filename);
 
     bool _loading;
 

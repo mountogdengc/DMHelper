@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "dmhlogger.h"
 #include "optionsaccessor.h"
+#include "smoketestrunner.h"
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QStyleHints>
@@ -39,6 +40,14 @@ int main(int argc, char *argv[]) {
             qInfo() << "[Main] WARNING: CLEARING ALL REGISTRY SETTINGS";
             OptionsAccessor settings;
             settings.remove("");
+        }
+
+        if(arguments.contains("--smoke-test"))
+        {
+            qInfo() << "[Main] Running smoke test...";
+            bool skipOpenGL = arguments.contains("--skip-opengl");
+            SmokeTestRunner smokeTest(skipOpenGL);
+            return smokeTest.run();
         }
 
         MainWindow* w = new MainWindow;
