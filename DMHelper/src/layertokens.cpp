@@ -19,6 +19,7 @@
 #include "battledialogmodeleffectobjectvideo.h"
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsColorizeEffect>
 #include <QImage>
 #include <QPainter>
 #include <QtGlobal>
@@ -219,10 +220,18 @@ void LayerTokens::applyOpacity(qreal opacity)
 {
     _opacityReference = opacity;
 
-    foreach(QGraphicsPixmapItem* pixmapItem, _combatantIconHash)
+    QHashIterator<BattleDialogModelCombatant*, QGraphicsPixmapItem*> i(_combatantIconHash);
+    while(i.hasNext())
     {
-        if(pixmapItem)
-            pixmapItem->setOpacity(opacity);
+        i.next();
+        if(i.value())
+        {
+            // Unknown tokens use a colorize effect instead of opacity reduction
+            if(!i.key()->getKnown())
+                i.value()->setOpacity(opacity);
+            else
+                i.value()->setOpacity(i.key()->getShown() ? opacity : opacity * 0.5);
+        }
     }
 
     foreach(QGraphicsItem* graphicsItem, _effectIconHash)
@@ -580,7 +589,7 @@ void LayerTokens::addCombatant(BattleDialogModelCombatant* combatant)
 
         combatantItem->setZValue(getIconOrder(DMHelper::CampaignType_BattleContentCombatant, getOrder()));
         combatantItem->setVisible(getLayerVisibleDM());
-        combatantItem->setOpacity(_opacityReference);
+        combatantItem->setOpacity(combatant->getKnown() ? (combatant->getShown() ? _opacityReference : _opacityReference * 0.5) : _opacityReference);
     }
 }
 
@@ -995,43 +1004,25 @@ void LayerTokens::internalOutputXML(QDomDocument &doc, QDomElement &element, QDi
 
 void LayerTokens::cleanupDM()
 {
-    if(!_combatantIconHash.isEmpty())
+    QList<QGraphicsPixmapItem*> combatantItems = _combatantIconHash.values();
+    for(QGraphicsPixmapItem* pixmapItem : std::as_const(combatantItems))
     {
-        foreach(QGraphicsPixmapItem* pixmapItem, _combatantIconHash)
-        {
-            if(pixmapItem)
-                pixmapItem->setParentItem(nullptr);
-        }
-    }
+        if((pixmapItem) && (pixmapItem->scene()))
+            pixmapItem->scene()->removeItem(pixmapItem);
 
-    if(!_effectIconHash.isEmpty())
+        delete pixmapItem;
+    }
+    _combatantIconHash.clear();
+
+    QList<QGraphicsItem*> effectItems = _effectIconHash.values();
+    for(QGraphicsItem* graphicsItem : std::as_const(effectItems))
     {
-        foreach(QGraphicsItem* graphicsItem, _effectIconHash)
-        {
-            if(graphicsItem)
-                graphicsItem->setParentItem(nullptr);
-        }
+        if((graphicsItem) && (graphicsItem->scene()))
+            graphicsItem->scene()->removeItem(graphicsItem);
+
+        delete graphicsItem;
     }
-
-    if(!_combatantIconHash.isEmpty())
-    {
-        foreach(QGraphicsPixmapItem* pixmapItem, _combatantIconHash)
-        {
-            delete pixmapItem;
-        }
-
-        _combatantIconHash.clear();
-    }
-
-    if(!_effectIconHash.isEmpty())
-    {
-        foreach(QGraphicsItem* graphicsItem, _effectIconHash)
-        {
-            delete graphicsItem;
-        }
-
-        _effectIconHash.clear();
-    }
+    _effectIconHash.clear();
 }
 
 QGraphicsPixmapItem* LayerTokens::createCombatantIcon(QGraphicsScene* scene, BattleDialogModelCombatant* combatant)
@@ -1058,6 +1049,18 @@ QGraphicsPixmapItem* LayerTokens::createCombatantIcon(QGraphicsScene* scene, Bat
     qreal sizeFactor = combatant->getSizeFactor();
     qreal scaleFactor = (static_cast<qreal>(_scale-2)) * sizeFactor / static_cast<qreal>(qMax(pix.width(), pix.height()));
     pixmapItem->setScale(scaleFactor);
+    if(!combatant->getKnown())
+    {
+        pixmapItem->setOpacity(1.0);
+        QGraphicsColorizeEffect* effect = new QGraphicsColorizeEffect();
+        effect->setColor(Qt::black);
+        effect->setStrength(0.8);
+        pixmapItem->setGraphicsEffect(effect);
+    }
+    else
+    {
+        pixmapItem->setOpacity(combatant->getShown() ? 1.0 : 0.5);
+    }
     applyCombatantTooltip(pixmapItem, combatant);
 
     // qDebug() << "[LayerTokens] combatant icon added " << combatant->getName() << ", scale " << scaleFactor;
