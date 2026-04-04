@@ -30,7 +30,8 @@ LayerFow::LayerFow(const QString& name, const QSize& imageSize, int order, QObje
     _fowTextureFile(),
     _fowTextureScale(),
     _undoStack(nullptr),
-    _undoItems()
+    _undoItems(),
+    _batchProcessing(false)
 {
     _undoStack = new QUndoStack(); // TODO: why does not leaking this avoid a crash at shutdown?
     setSize(imageSize);
@@ -247,7 +248,7 @@ void LayerFow::applyPaintTo(int index, int startIndex)
     if(startIndex == 0)
         fillFoWImage();
 
-    // Need to add some batch processing to avoid updating every step
+    _batchProcessing = true;
     for(int i = startIndex; i < index; ++i)
     {
         const UndoFowBase* constAction = dynamic_cast<const UndoFowBase*>(_undoStack->command(i));
@@ -258,6 +259,7 @@ void LayerFow::applyPaintTo(int index, int startIndex)
                 action->apply();
         }
     }
+    _batchProcessing = false;
 
     updateFowInternal();
     emit dirty();
@@ -333,8 +335,102 @@ void LayerFow::paintFoWPoint(QPoint point, const MapDraw& mapDraw)
     }
 
     p.end();
-    updateFowInternal();
-    emit dirty();
+    if(!_batchProcessing)
+    {
+        updateFowInternal();
+        emit dirty();
+    }
+}
+
+void LayerFow::paintFoWPoints(const QList<QPoint>& points, const MapDraw& mapDraw)
+{
+    if(points.isEmpty())
+        return;
+
+    QPainter p(&_imageFow);
+    p.setPen(Qt::NoPen);
+
+    if(mapDraw.brushType() == DMHelper::BrushType_Circle)
+    {
+        if(mapDraw.erase())
+        {
+            p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+            if(mapDraw.smooth())
+            {
+                for(const QPoint& point : points)
+                {
+                    QRadialGradient grad(point, mapDraw.radius());
+                    grad.setColorAt(0, QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+                    grad.setColorAt(1.0 - (5.0/static_cast<qreal>(mapDraw.radius())), QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+                    grad.setColorAt(1, _fowColor.rgb());
+                    p.setBrush(grad);
+                    p.drawEllipse(point, mapDraw.radius(), mapDraw.radius());
+                }
+            }
+            else
+            {
+                p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+                for(const QPoint& point : points)
+                    p.drawEllipse(point, mapDraw.radius(), mapDraw.radius());
+            }
+        }
+        else
+        {
+            p.setBrush(_fowColor);
+            p.setCompositionMode(QPainter::CompositionMode_Source);
+            for(const QPoint& point : points)
+                p.drawEllipse(point, mapDraw.radius(), mapDraw.radius());
+        }
+    }
+    else
+    {
+        if(mapDraw.erase())
+        {
+            p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+            if(mapDraw.smooth())
+            {
+                qreal border = static_cast<qreal>(mapDraw.radius()) / 20.0;
+                for(const QPoint& point : points)
+                {
+                    qreal radius = static_cast<qreal>(mapDraw.radius()) - (border * 4);
+                    p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+                    p.drawRect(QRectF(point.x() - radius, point.y() - radius, radius * 2, radius * 2));
+                    radius += border;
+                    p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 50));
+                    p.drawRect(QRectF(point.x() - radius, point.y() - radius, radius * 2, radius * 2));
+                    radius += border;
+                    p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 100));
+                    p.drawRect(QRectF(point.x() - radius, point.y() - radius, radius * 2, radius * 2));
+                    radius += border;
+                    p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 150));
+                    p.drawRect(QRectF(point.x() - radius, point.y() - radius, radius * 2, radius * 2));
+                    radius += border;
+                    p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 200));
+                    p.drawRect(QRectF(point.x() - radius, point.y() - radius, radius * 2, radius * 2));
+                }
+            }
+            else
+            {
+                p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+                for(const QPoint& point : points)
+                    p.drawRect(point.x() - mapDraw.radius(), point.y() - mapDraw.radius(), mapDraw.radius() * 2, mapDraw.radius() * 2);
+            }
+        }
+        else
+        {
+            p.setBrush(_fowColor);
+            p.setCompositionMode(QPainter::CompositionMode_Source);
+            for(const QPoint& point : points)
+                p.drawRect(point.x() - mapDraw.radius(), point.y() - mapDraw.radius(), mapDraw.radius() * 2, mapDraw.radius() * 2);
+        }
+    }
+
+    p.end();
+    if(!_batchProcessing)
+    {
+        updateFowInternal();
+        emit dirty();
+    }
 }
 
 void LayerFow::paintFoWRect(QRect rect, const MapEditShape& mapEditShape)
@@ -390,8 +486,11 @@ void LayerFow::paintFoWRect(QRect rect, const MapEditShape& mapEditShape)
     }
 
     p.end();
-    updateFowInternal();
-    emit dirty();
+    if(!_batchProcessing)
+    {
+        updateFowInternal();
+        emit dirty();
+    }
 }
 
 void LayerFow::fillFoW(const QColor& color)
@@ -400,8 +499,11 @@ void LayerFow::fillFoW(const QColor& color)
     p.setCompositionMode(QPainter::CompositionMode_Source);
     p.fillRect(0, 0, _imageFow.width(), _imageFow.height(), QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), color.alpha()));
     p.end();
-    updateFowInternal();
-    emit dirty();
+    if(!_batchProcessing)
+    {
+        updateFowInternal();
+        emit dirty();
+    }
 }
 
 QRect LayerFow::getFoWVisibleRect() const
@@ -491,6 +593,7 @@ void LayerFow::dmInitialize(QGraphicsScene* scene)
     _graphicsItem = scene->addPixmap(QPixmap::fromImage(getImage()));
     if(_graphicsItem)
     {
+        _graphicsItem->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
         _graphicsItem->setPos(_position);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsMovable, false);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
@@ -758,6 +861,7 @@ void LayerFow::initializeUndoStack()
 {
     if(_undoItems.count() > 0)
     {
+        _batchProcessing = true;
         while(_undoItems.count() > 0)
         {
             UndoFowBase* undoItem = _undoItems.takeFirst();
@@ -767,6 +871,8 @@ void LayerFow::initializeUndoStack()
                 _undoStack->push(undoItem);
             }
         }
+        _batchProcessing = false;
+        updateFowInternal();
     }
     else
     {

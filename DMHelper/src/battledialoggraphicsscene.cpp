@@ -108,6 +108,7 @@ void BattleDialogGraphicsScene::createBattleContents()
         if(_pointerPixmap.isNull())
             _pointerPixmap.load(":/img/data/arrow.png");
         _pointerPixmapItem = addPixmap(_pointerPixmap.scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        _pointerPixmapItem->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
         _pointerPixmapItem->setTransformationMode(Qt::SmoothTransformation);
         QRectF sizeInScene = view->mapToScene(0, 0, DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE).boundingRect();
         _pointerPixmapItem->setScale(sizeInScene.width() / static_cast<qreal>(DMHelper::CURSOR_SIZE));
@@ -201,7 +202,7 @@ QGraphicsItem* BattleDialogGraphicsScene::findTopObject(const QPointF &pos)
     if(!localView)
         return nullptr;
 
-    QList<QGraphicsItem *> itemList = items(pos, Qt::IntersectsItemShape, Qt::DescendingOrder, localView->transform());
+    QList<QGraphicsItem *> itemList = items(pos, Qt::IntersectsItemBoundingRect, Qt::DescendingOrder, localView->transform());
     if(itemList.count() <= 0)
         return nullptr;
 
@@ -601,21 +602,68 @@ bool BattleDialogGraphicsScene::handleMouseReleaseEvent(QGraphicsSceneMouseEvent
 
             menu.addSeparator();
 
-            QAction* hideSelectedItem = new QAction(QString("Hide Selected"), &menu);
-            connect(hideSelectedItem, SIGNAL(triggered()), this, SLOT(hideSelectedCombatants()));
-            menu.addAction(hideSelectedItem);
+            // Determine visibility/known state of relevant combatants for conditional menu items
+            {
+                bool anyVisible = false;
+                bool anyHidden = false;
+                bool anyKnown = false;
+                bool anyUnknown = false;
 
-            QAction* unhideSelectedItem = new QAction(QString("Unhide Selected"), &menu);
-            connect(unhideSelectedItem, SIGNAL(triggered()), this, SLOT(unhideSelectedCombatants()));
-            menu.addAction(unhideSelectedItem);
+                QList<QGraphicsItem*> selected = selectedItems();
+                if((selected.count() > 0) && (selected.contains(item)))
+                {
+                    foreach(QGraphicsItem* selItem, selected)
+                    {
+                        UnselectedPixmap* selPix = dynamic_cast<UnselectedPixmap*>(selItem);
+                        if(selPix)
+                        {
+                            BattleDialogModelCombatant* c = dynamic_cast<BattleDialogModelCombatant*>(selPix->getObject());
+                            if(c)
+                            {
+                                if(c->getShown()) anyVisible = true; else anyHidden = true;
+                                if(c->getKnown()) anyKnown = true; else anyUnknown = true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    BattleDialogModelCombatant* c = dynamic_cast<BattleDialogModelCombatant*>(object);
+                    if(c)
+                    {
+                        if(c->getShown()) anyVisible = true; else anyHidden = true;
+                        if(c->getKnown()) anyKnown = true; else anyUnknown = true;
+                    }
+                }
 
-            QAction* knowSelectedItem = new QAction(QString("Know Selected"), &menu);
-            connect(knowSelectedItem, SIGNAL(triggered()), this, SLOT(knowSelectedCombatants()));
-            menu.addAction(knowSelectedItem);
+                if(anyVisible)
+                {
+                    QAction* hideSelectedItem = new QAction(QString("Mark Invisible"), &menu);
+                    connect(hideSelectedItem, SIGNAL(triggered()), this, SLOT(hideSelectedCombatants()));
+                    menu.addAction(hideSelectedItem);
+                }
 
-            QAction* unknowSelectedItem = new QAction(QString("Unknow Selected"), &menu);
-            connect(unknowSelectedItem, SIGNAL(triggered()), this, SLOT(unknowSelectedCombatants()));
-            menu.addAction(unknowSelectedItem);
+                if(anyHidden)
+                {
+                    QAction* unhideSelectedItem = new QAction(QString("Mark Visible"), &menu);
+                    connect(unhideSelectedItem, SIGNAL(triggered()), this, SLOT(unhideSelectedCombatants()));
+                    menu.addAction(unhideSelectedItem);
+                }
+
+                if(anyKnown)
+                {
+                    QAction* unknowSelectedItem = new QAction(QString("Mark Unknown"), &menu);
+                    connect(unknowSelectedItem, SIGNAL(triggered()), this, SLOT(unknowSelectedCombatants()));
+                    menu.addAction(unknowSelectedItem);
+                }
+
+                if(anyUnknown)
+                {
+                    QAction* knowSelectedItem = new QAction(QString("Mark Known"), &menu);
+                    connect(knowSelectedItem, SIGNAL(triggered()), this, SLOT(knowSelectedCombatants()));
+                    menu.addAction(knowSelectedItem);
+                }
+            }
 
             menu.addSeparator();
 

@@ -239,6 +239,7 @@ private slots:
     void handleCombatantRemove(BattleDialogModelCombatant* combatant);
     void handleCombatantAdded(BattleDialogModelCombatant* combatant);
     void handleCombatantRemoved(BattleDialogModelCombatant* combatant);
+    void handleCombatantVisibilityChanged(BattleDialogModelCombatant* combatant);
     void handleCombatantDamage(BattleDialogModelCombatant* combatant);
     void handleCombatantHeal(BattleDialogModelCombatant* combatant);
     void handleCombatantHideSelected(BattleDialogModelCombatant* combatant);
