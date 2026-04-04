@@ -1536,3 +1536,37 @@ QString OptionsContainer::getAppFile(const QString& filename)
     return fileDirPath.path() + QString("/resources/") + filename;
 #endif
 }
+
+QStringList OptionsContainer::getExpectedAppResources()
+{
+    return QStringList{
+        getAppFile(QString("DMHelperBestiary.xml")),
+        getAppFile(QString("spellbook.xml")),
+        getAppFile(QString("quickref_data.xml")),
+        getAppFile(QString("calendar.xml")),
+        getAppFile(QString("equipment.xml")),
+        getAppFile(QString("shops.xml")),
+        getAppFile(QString("ruleset.xml")),
+        getAppFile(QString("dmh_default_frame.png")),
+        getAppFile(QString("dmh_default_mask.png"))
+    };
+}
+
+QStringList OptionsContainer::getExpectedAppDirectories()
+{
+    QString applicationPath = QCoreApplication::applicationDirPath();
+    QDir appDir(applicationPath);
+
+#ifdef Q_OS_MAC
+    appDir.cdUp();
+    QString base = appDir.path() + QString("/Resources/");
+#else
+    QString base = appDir.path() + QString("/resources/");
+#endif
+
+    return QStringList{
+        base + QString("tables"),
+        base + QString("ui"),
+        base + QString("Images")
+    };
+}

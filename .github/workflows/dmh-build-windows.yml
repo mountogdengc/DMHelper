@@ -72,6 +72,19 @@ jobs:
           Get-ChildItem -Recurse -File
 
       # -------------------------
+      # Smoke-test the built application
+      # -------------------------
+      - name: Smoke-test built application
+        working-directory: ${{ github.workspace }}/DMHelper
+        run: |
+          $exe = "bin64\packages\com.dmhelper.app\data\DMHelper.exe"
+          if (-not (Test-Path $exe)) { throw "DMHelper.exe not found at $exe" }
+          & $exe --smoke-test --skip-opengl
+          if ($LASTEXITCODE -ne 0) { throw "Smoke test failed with exit code $LASTEXITCODE" }
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      # -------------------------
       # Upload artifacts
       # -------------------------
       - name: Upload Installer
