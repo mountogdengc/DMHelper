@@ -21,7 +21,8 @@ BattleFrameMapDrawer::BattleFrameMapDrawer(QObject *parent) :
     _size(10),
     _erase(true),
     _smooth(true),
-    _brushMode(DMHelper::BrushType_Circle)
+    _brushMode(DMHelper::BrushType_Circle),
+    _selectActive(false)
 
 {
     createCursor();
@@ -63,6 +64,16 @@ void BattleFrameMapDrawer::handleMouseDown(const QPointF& pos, const Qt::MouseBu
         return;
     }
 
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(buttons & Qt::LeftButton)
+        {
+            _mouseDownPos = pos;
+            _selectActive = true;
+        }
+        return;
+    }
+
     _mouseDownPos = pos;
     _mouseDown = true;
 
@@ -84,6 +95,13 @@ void BattleFrameMapDrawer::handleMouseMoved(const QPointF& pos, const Qt::MouseB
     if(_brushMode == DMHelper::BrushType_Polygon)
         return;
 
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(_selectActive)
+            emit selectRectChanged(QRectF(_mouseDownPos, pos).normalized());
+        return;
+    }
+
     if((!_undoPath) || (!_undoPath->getLayer()))
         return;
 
@@ -99,6 +117,18 @@ void BattleFrameMapDrawer::handleMouseUp(const QPointF& pos, const Qt::MouseButt
 
     if(_brushMode == DMHelper::BrushType_Polygon)
         return;
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(_selectActive)
+        {
+            QRect selectRect = QRectF(_mouseDownPos, pos).normalized().toRect();
+            drawRect(selectRect);
+            _selectActive = false;
+            emit selectRectCancelled();
+        }
+        return;
+    }
 
     endPath();
     emit dirty();
@@ -205,6 +235,8 @@ void BattleFrameMapDrawer::setBrushMode(int brushMode)
 
     if(_brushMode == DMHelper::BrushType_Polygon && !_polygonPoints.isEmpty())
         cancelPolygon();
+    if(_brushMode == DMHelper::BrushType_Select && _selectActive)
+        cancelSelect();
 
     _brushMode = brushMode;
     endPath();
@@ -241,11 +273,24 @@ void BattleFrameMapDrawer::cancelPolygon()
     emit polygonCancelled();
 }
 
+void BattleFrameMapDrawer::cancelSelect()
+{
+    _selectActive = false;
+    emit selectRectCancelled();
+}
+
 void BattleFrameMapDrawer::createCursor()
 {
     if(_brushMode == DMHelper::BrushType_Polygon)
     {
         _cursor = QCursor(QPixmap(":/img/data/crosshair.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        emit cursorChanged(_cursor);
+        return;
+    }
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        _cursor = QCursor(QPixmap(":/img/data/icon_selectcursor.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
         emit cursorChanged(_cursor);
         return;
     }

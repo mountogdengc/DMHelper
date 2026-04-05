@@ -23,6 +23,8 @@ signals:
     void cursorChanged(const QCursor& cursor);
     void polygonChanged(const QPolygonF& polygon);
     void polygonCancelled();
+    void selectRectChanged(const QRectF& rect);
+    void selectRectCancelled();
 
 public slots:
     void handleMouseDown(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers);
@@ -40,6 +42,7 @@ public slots:
     void setSmooth(bool smooth);
     void setBrushMode(int brushMode);
     void cancelPolygon();
+    void cancelSelect();
 
 private:
 
@@ -51,6 +54,7 @@ private:
     QPointF _mouseDownPos;
     UndoFowPath* _undoPath;
     QPolygon _polygonPoints;
+    bool _selectActive;
     LayerScene* _scene;
     QCursor _cursor;
 
