@@ -88,7 +88,16 @@ jobs:
           APP="bin-macos/packages/com.dmhelper.app/data/DMHelper.app"
           EXE="$APP/Contents/MacOS/DMHelper"
           if [ ! -f "$EXE" ]; then echo "DMHelper not found at $EXE"; exit 1; fi
-          "$EXE" --smoke-test --skip-opengl
+          output=$("$EXE" --smoke-test --skip-opengl 2>&1) || true
+          echo "$output"
+          if echo "$output" | grep -q '"passed"\s*:\s*false'; then
+            echo "Smoke test reported failures"
+            exit 1
+          fi
+          if ! echo "$output" | grep -q '"passed"\s*:\s*true'; then
+            echo "Smoke test did not produce expected JSON output"
+            exit 1
+          fi
         env:
           QT_QPA_PLATFORM: offscreen
 
