@@ -52,12 +52,12 @@ RibbonTabBattleMap::RibbonTabBattleMap(QWidget *parent) :
     connect(ui->btnBrushCircle, SIGNAL(clicked(bool)), this, SIGNAL(brushCircleClicked()));
     connect(ui->btnBrushSquare, SIGNAL(clicked(bool)), this, SIGNAL(brushSquareClicked()));
     connect(ui->spinSize, SIGNAL(valueChanged(int)), this, SIGNAL(brushSizeChanged(int)));
-    connect(ui->btnBrushSelect, SIGNAL(clicked(bool)), this, SIGNAL(selectFoWClicked(bool)));
     connect(ui->btnFillFoW, SIGNAL(clicked(bool)), this, SIGNAL(fillFoWClicked()));
 
     // Set up the brush mode button group
     ui->btnGrpBrush->setId(ui->btnBrushCircle, DMHelper::BrushType_Circle);
     ui->btnGrpBrush->setId(ui->btnBrushSquare, DMHelper::BrushType_Square);
+    ui->btnGrpBrush->setId(ui->btnBrushSelect, DMHelper::BrushType_Select);
     ui->btnGrpBrush->setId(ui->btnBrushPolygon, DMHelper::BrushType_Polygon);
     connect(ui->btnGrpBrush, SIGNAL(idClicked(int)), this, SIGNAL(brushModeChanged(int)));
 
@@ -189,8 +189,6 @@ void RibbonTabBattleMap::showEvent(QShowEvent *event)
     setStandardButtonSize(*ui->lblFoWErase, *ui->btnFoWErase, frameHeight);
     setStandardButtonSize(*ui->lblSmooth, *ui->btnSmooth, frameHeight);
 
-    setStandardButtonSize(*ui->lblBrushSelect, *ui->btnBrushSelect, frameHeight);
-    setStandardButtonSize(*ui->lblBrushPolygon, *ui->btnBrushPolygon, frameHeight);
     setStandardButtonSize(*ui->lblFillFoW, *ui->btnFillFoW, frameHeight);
 
     setLineHeight(*ui->line_4, frameHeight);
