@@ -33,7 +33,7 @@ LayerFow::LayerFow(const QString& name, const QSize& imageSize, int order, QObje
     _undoItems(),
     _batchProcessing(false)
 {
-    _undoStack = new QUndoStack(); // TODO: why does not leaking this avoid a crash at shutdown?
+    _undoStack = new QUndoStack(this);
     setSize(imageSize);
 }
 
@@ -41,6 +41,15 @@ LayerFow::~LayerFow()
 {
     cleanupDM();
     cleanupPlayer();
+}
+
+void LayerFow::aboutToDelete()
+{
+    if(_undoStack)
+        _undoStack->clear();
+    qDeleteAll(_undoItems);
+    _undoItems.clear();
+    Layer::aboutToDelete();
 }
 
 void LayerFow::inputXML(const QDomElement &element, bool isImport)
