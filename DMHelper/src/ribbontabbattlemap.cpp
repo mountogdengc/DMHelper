@@ -226,6 +226,8 @@ void RibbonTabBattleMap::showEvent(QShowEvent *event)
     // Brush cluster
     setButtonSize(*ui->btnBrushCircle, iconDim / 2, iconDim / 2);
     setButtonSize(*ui->btnBrushSquare, iconDim / 2, iconDim / 2);
+    setButtonSize(*ui->btnBrushSelect, iconDim / 2, iconDim / 2);
+    setButtonSize(*ui->btnBrushPolygon, iconDim / 2, iconDim / 2);
     int sizeWidth = metrics.horizontalAdvance(ui->lblSize->text());
     setWidgetSize(*ui->lblSize, sizeWidth, iconDim / 2);
     setWidgetSize(*ui->spinSize, sizeWidth*3, iconDim / 2);

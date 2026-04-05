@@ -447,7 +447,7 @@
           </size>
          </property>
          <property name="toolTip">
-          <string>Remove a selected area of Fog of War</string>
+          <string>Remove a rectangular area of Fog of War</string>
          </property>
          <property name="text">
           <string/>
@@ -464,9 +464,6 @@
          </property>
          <property name="checkable">
           <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
@@ -497,7 +494,7 @@
           </size>
          </property>
          <property name="toolTip">
-          <string>Remove a selected area of Fog of War</string>
+          <string>Remove a polygonal area of Fog of War</string>
          </property>
          <property name="text">
           <string/>
@@ -514,9 +511,6 @@
          </property>
          <property name="checkable">
           <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
          </property>
          <property name="flat">
           <bool>true</bool>
