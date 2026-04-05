@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QCursor>
+#include <QPolygon>
 
 class UndoFowPath;
 class LayerScene;
@@ -20,6 +21,8 @@ public:
 signals:
     void dirty();
     void cursorChanged(const QCursor& cursor);
+    void polygonChanged(const QPolygonF& polygon);
+    void polygonCancelled();
 
 public slots:
     void handleMouseDown(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers);
@@ -36,15 +39,18 @@ public slots:
     void setErase(bool erase);
     void setSmooth(bool smooth);
     void setBrushMode(int brushMode);
+    void cancelPolygon();
 
 private:
 
     void endPath();
+    void applyPolygon();
     void createCursor();
 
     bool _mouseDown;
     QPointF _mouseDownPos;
     UndoFowPath* _undoPath;
+    QPolygon _polygonPoints;
     LayerScene* _scene;
     QCursor _cursor;
 

@@ -551,9 +551,9 @@ QString Characterv2::getAttributeSpecialAsString(const QString& attribute) const
 void Characterv2::setAttributeSpecial(const QString& key, const QString& value)
 {
     if(key == QString("expanded"))
-        return; //qDebug() << "[Characterv2] Unexpected Request to set " << key << " to " << value;
+        return;
     else if(key == QString("row"))
-        return; //qDebug() << "[Characterv2] Unexpected Request to set " << key << " to " << value;
+        return;
     else if(key == QString("name"))
         setName(value);
     else if(key == QString("base-icon"))

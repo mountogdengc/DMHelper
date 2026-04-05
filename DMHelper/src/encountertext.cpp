@@ -273,7 +273,6 @@ void EncounterText::setImageFile(const QString& imageFile)
         _layerScene.appendLayer(new LayerImage(QString("Background Image: ") + fileInfo.fileName(), imageFile));
 
     _imageFile = imageFile;
-//    emit imageFileChanged(_imageFile);
     emit dirty();
 }
 

@@ -28,7 +28,6 @@ class QStandardItem;
 class CampaignTreeModel;
 class QVBoxLayout;
 class QItemSelection;
-class AudioPlayer;
 class AudioTrack;
 class PublishFrame;
 class QuickRefFrame;

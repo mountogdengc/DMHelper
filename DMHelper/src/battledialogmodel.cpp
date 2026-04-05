@@ -556,12 +556,6 @@ LayerTokens* BattleDialogModel::getLayerFromEffect(QList<Layer*> tokenLayers, Ba
 
 int BattleDialogModel::getGridScale() const
 {
-    // TODO: Layers - need to make this complete
-    //if(!_map)
-    //    return 1;
-
-//    LayerGrid* layer = dynamic_cast<LayerGrid*>(_map->getLayerScene().getPriority(DMHelper::LayerType_Grid));
-//    return layer ? layer->getConfig().getGridScale() : DMHelper::STARTING_GRID_SCALE;
     return _layerScene.getScale();
 }
 
@@ -690,7 +684,6 @@ void BattleDialogModel::setMapRect(const QRect& mapRect)
     {
         _mapRect = mapRect;
         emit mapRectChanged(_mapRect);
-        //emit dirty();
     }
 }
 
@@ -791,9 +784,6 @@ void BattleDialogModel::setBackgroundImage(QImage backgroundImage)
 
 void BattleDialogModel::sortCombatants()
 {
-    //std::sort(_combatants.begin(), _combatants.end(), CompareCombatants);
-    //resetCombatantSortValues();
-
     Campaign* campaign = dynamic_cast<Campaign*>(getParentByType(DMHelper::CampaignType_Campaign));
     if(!campaign)
         return;

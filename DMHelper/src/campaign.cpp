@@ -136,20 +136,8 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
     // Load the overlays
     loadOverlayXML(element.firstChildElement(QString("overlays")));
 
-    // TODO: add back in some kind of object counting
-    // Sum up all the elements loaded. The +2 is for the campaign object itself and the notes object
-    //int totalElements = characters.count() + settings.count() + npcs.count() + adventures.count() + tracks.count() + encounterCount + mapCount + 2;
-
     qDebug() << "[Campaign] Loaded campaign """ << getName();
-    //qDebug() << "[Campaign] Loaded campaign """ << _name << """ containing " << totalElements << " elements";
-    //qDebug() << "           Date: " << _date.toStringDDMMYYYY() << ", Time: " << _time;
-    //qDebug() << "           Party: " << characters.count() << " characters";
-    //qDebug() << "           Settings: " << settings.count();
-    //qDebug() << "           NPCs: " << npcs.count();
-    //qDebug() << "           Adventures: " << adventures.count();
-    //qDebug() << "               Encounters: " << encounterCount;
-    //qDebug() << "               Maps: " << mapCount;
-    //qDebug() << "           Audio Tracks: " << tracks.count();
+
 
     validateCampaignIds();
 

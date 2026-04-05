@@ -5,6 +5,7 @@
 #include "undofowpath.h"
 #include "undofowpoint.h"
 #include "undofowshape.h"
+#include "undofowpolygon.h"
 #include "undomarker.h"
 #include "dmh_opengl.h"
 #include "layerfowsettings.h"
@@ -82,6 +83,9 @@ void LayerFow::inputXML(const QDomElement &element, bool isImport)
                     break;
                 case DMHelper::ActionType_Rect:
                     newAction = new UndoFowShape(nullptr, MapEditShape(QRect(), true, true));
+                    break;
+                case DMHelper::ActionType_Polygon:
+                    newAction = new UndoFowPolygon(nullptr, MapEditPolygon(QPolygon(), true, false));
                     break;
                 case DMHelper::ActionType_SetMarker: // Don't do anything with these in an FOW layer
                 case DMHelper::ActionType_Base:
@@ -502,6 +506,32 @@ void LayerFow::paintFoWRect(QRect rect, const MapEditShape& mapEditShape)
     }
 }
 
+void LayerFow::paintFoWPolygon(const MapEditPolygon& mapEditPolygon)
+{
+    QPainter p(&_imageFow);
+    p.setPen(Qt::NoPen);
+
+    if(mapEditPolygon.erase())
+    {
+        p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+        p.setBrush(QColor(_fowColor.red(), _fowColor.green(), _fowColor.blue(), 0));
+        p.drawPolygon(mapEditPolygon.polygon());
+    }
+    else
+    {
+        p.setBrush(_fowColor);
+        p.setCompositionMode(QPainter::CompositionMode_Source);
+        p.drawPolygon(mapEditPolygon.polygon());
+    }
+
+    p.end();
+    if(!_batchProcessing)
+    {
+        updateFowInternal();
+        emit dirty();
+    }
+}
+
 void LayerFow::fillFoW(const QColor& color)
 {
     QPainter p(&_imageFow);
@@ -800,7 +830,8 @@ void LayerFow::challengeUndoStack()
                 if((constAction->getType() == DMHelper::ActionType_Fill) ||
                    (constAction->getType() == DMHelper::ActionType_Path) ||
                    (constAction->getType() == DMHelper::ActionType_Point) ||
-                   (constAction->getType() == DMHelper::ActionType_Rect))
+                   (constAction->getType() == DMHelper::ActionType_Rect) ||
+                   (constAction->getType() == DMHelper::ActionType_Polygon))
                 {
                     UndoFowBase* action = const_cast<UndoFowBase*>(constAction);
                     action->setRemoved(true);

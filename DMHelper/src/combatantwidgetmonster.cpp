@@ -61,7 +61,6 @@ void CombatantWidgetMonster::setInternals(CombatantWidgetInternalsMonster* inter
         connect(ui->chkKnown, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setKnown(bool)));
         connect(ui->chkVisible, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setShown(bool)));
         connect(ui->chkDone, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setDone(bool)));
-        //connect(monsterCombatant, SIGNAL(combatantDoneChanged()), this, SLOT(updateData()));
         connect(monsterCombatant, &BattleDialogModelMonsterBase::combatantDoneChanged, this, &CombatantWidgetMonster::updateData);
 
         if(monsterCombatant->getCombatant())
