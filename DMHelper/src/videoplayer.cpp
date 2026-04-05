@@ -75,7 +75,30 @@ VideoPlayer::~VideoPlayer()
 #endif
 
     _selfRestart = false;
-    VideoPlayer::stopPlayer();
+    _deleteOnStop = false;
+
+    if(_vlcPlayer)
+    {
+        // Detach all event callbacks before stopping to prevent use-after-free
+        libvlc_event_manager_t* eventManager = libvlc_media_player_event_manager(_vlcPlayer);
+        if(eventManager)
+        {
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerOpening, playerEventCallback, static_cast<void*>(this));
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerBuffering, playerEventCallback, static_cast<void*>(this));
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerPlaying, playerEventCallback, static_cast<void*>(this));
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerPaused, playerEventCallback, static_cast<void*>(this));
+            libvlc_event_detach(eventManager, libvlc_MediaPlayerStopped, playerEventCallback, static_cast<void*>(this));
+        }
+
+        // Stop playback and null out video callbacks so VLC thread stops calling into this object
+        libvlc_media_player_stop_async(_vlcPlayer);
+        libvlc_video_set_callbacks(_vlcPlayer, nullptr, nullptr, nullptr, nullptr);
+
+        // Release blocks until internal VLC threads finish
+        libvlc_media_player_release(_vlcPlayer);
+        _vlcPlayer = nullptr;
+    }
+
     VideoPlayer::cleanupBuffers();
 
     QMutex* deleteMutex = _mutex;
