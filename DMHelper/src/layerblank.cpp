@@ -367,5 +367,19 @@ void LayerBlank::cleanupPlayer()
     delete _publishRect;
     _publishRect = nullptr;
 
+    if((_shaderProgramRGBColorBlank != 0) && (QOpenGLContext::currentContext()))
+    {
+        QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+        if(f)
+        {
+            DMH_DEBUG_OPENGL_glDeleteProgram(_shaderProgramRGBColorBlank);
+            f->glDeleteProgram(_shaderProgramRGBColorBlank);
+        }
+        _shaderProgramRGBColorBlank = 0;
+        _shaderModelMatrixRGBColorBlank = -1;
+        _shaderProjectionMatrixRGBColorBlank = -1;
+        _shaderRGBColorBlank = -1;
+    }
+
     _scene = nullptr;
 }

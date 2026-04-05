@@ -928,7 +928,8 @@ void BattleDialogGraphicsScene::editItem()
             {
                 settings->copyValuesFromSettings(*selectedEffect);
                 LayerTokens* tokenLayer = dynamic_cast<LayerTokens*>(_model->getLayerFromEffect(tokenLayers, selectedEffect));
-                selectedEffect->applyEffectValues(*effectItem, tokenLayer->getScale());
+                if(tokenLayer)
+                    selectedEffect->applyEffectValues(*effectItem, tokenLayer->getScale());
                 emit effectChanged(effectItem);
             }
         }
