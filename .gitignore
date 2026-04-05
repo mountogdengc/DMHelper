@@ -2,6 +2,7 @@
 DMHelper/bin32
 DMHelper/bin64
 DMHelper/build
+.vlc_cache_sentinel
 DMHelper/build-32_bit-debug
 DMHelper/build-32_bit-profile
 DMHelper/build-32_bit-release
