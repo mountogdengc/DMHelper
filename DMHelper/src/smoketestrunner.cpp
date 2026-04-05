@@ -162,11 +162,21 @@ void SmokeTestRunner::checkVlcFiles()
 
 void SmokeTestRunner::checkVlcInit()
 {
-    DMH_VLC::Initialize();
-    libvlc_instance_t* instance = DMH_VLC::vlcInstance();
+    // Create a standalone VLC instance with --reset-plugins-cache to avoid
+    // stale cache errors that produce massive stderr noise on CI.
+    const char *args[] = {
+        "--reset-plugins-cache",
+        "--no-audio",
+        "--no-video",
+        "--verbose=0",
+        ""
+    };
+
+    libvlc_instance_t* instance = libvlc_new(sizeof(args) / sizeof(*args), args);
     bool ok = (instance != nullptr);
     addResult(QString("vlc_init"), ok, ok ? QString() : QString("libvlc_new returned null"));
-    DMH_VLC::Shutdown();
+    if(instance)
+        libvlc_release(instance);
 }
 
 void SmokeTestRunner::checkOpenGL()

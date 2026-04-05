@@ -79,8 +79,11 @@ jobs:
         run: |
           $exe = "bin64\packages\com.dmhelper.app\data\DMHelper.exe"
           if (-not (Test-Path $exe)) { throw "DMHelper.exe not found at $exe" }
-          & $exe --smoke-test --skip-opengl
-          if ($LASTEXITCODE -ne 0) { throw "Smoke test failed with exit code $LASTEXITCODE" }
+          $output = & $exe --smoke-test --skip-opengl 2>&1 | Out-String
+          $exitCode = $LASTEXITCODE
+          Write-Host $output
+          if ($null -ne $exitCode -and $exitCode -ne 0) { throw "Smoke test failed with exit code $exitCode" }
+          if ($output -match '"passed"\s*:\s*false') { throw "Smoke test reported failures" }
         env:
           QT_QPA_PLATFORM: offscreen
 
