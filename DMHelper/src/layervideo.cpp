@@ -519,7 +519,7 @@ void LayerVideo::createPlayerObjectGL(PublishGLRenderer* renderer)
                                              renderer->getTargetWidget()->format(),
                                              true,
                                              false);
-    connect(_videoGLPlayer, &VideoPlayerGLPlayer::frameAvailable, renderer, &PublishGLRenderer::updateWidget);
+    connect(_videoGLPlayer, &VideoPlayerGLPlayer::frameAvailable, renderer, &PublishGLRenderer::updateWidget, Qt::QueuedConnection);
     connect(_videoGLPlayer, &VideoPlayerGLPlayer::vbObjectsCreated, renderer, &PublishGLRenderer::updateProjectionMatrix);
     _videoGLPlayer->restartPlayer();
 #else

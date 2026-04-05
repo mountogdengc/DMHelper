@@ -2398,8 +2398,7 @@ void BattleFrame::handleCombatantRemoved(BattleDialogModelCombatant* combatant)
     if(!combatant)
         return;
 
-    disconnect(combatant, &BattleDialogModelCombatant::combatantSelected, this, &BattleFrame::handleCombatantSelected);
-    disconnect(combatant, &BattleDialogModelCombatant::visibilityChanged, this, nullptr);
+    combatant->disconnect(this);
 }
 
 void BattleFrame::handleCombatantVisibilityChanged(BattleDialogModelCombatant* combatant)
@@ -3584,10 +3583,7 @@ void BattleFrame::setModel(BattleDialogModel* model)
         foreach(BattleDialogModelCombatant* combatant, combatants)
         {
             if(combatant)
-            {
-                disconnect(combatant, &BattleDialogModelCombatant::combatantSelected, this, &BattleFrame::handleCombatantSelected);
-                disconnect(combatant, &BattleDialogModelCombatant::visibilityChanged, this, nullptr);
-            }
+                combatant->disconnect(this);
         }
 
         emit setLayers(QList<Layer*>(), 0);

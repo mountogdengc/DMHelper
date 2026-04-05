@@ -300,6 +300,12 @@ bool BattleDialogGraphicsScene::handleMouseMoveEvent(QGraphicsSceneMouseEvent *m
     }
     else
     {
+        if(!_mouseDownItem)
+        {
+            _mouseDown = false;
+            return true;
+        }
+
         QGraphicsItem* abstractShape = _mouseDownItem;
         QUuid effectId = BattleDialogModelEffect::getEffectIdFromItem(_mouseDownItem);
 
