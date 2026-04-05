@@ -1063,28 +1063,14 @@ QGraphicsPixmapItem* LayerTokens::createCombatantIcon(QGraphicsScene* scene, Bat
     }
     applyCombatantTooltip(pixmapItem, combatant);
 
-    // qDebug() << "[LayerTokens] combatant icon added " << combatant->getName() << ", scale " << scaleFactor;
-
     qreal gridSize = (static_cast<qreal>(_scale)) / scaleFactor;
     qreal gridOffset = gridSize * static_cast<qreal>(sizeFactor) / 2.0;
     QGraphicsRectItem* rect = new QGraphicsRectItem(0, 0, gridSize * sizeFactor, gridSize * static_cast<qreal>(sizeFactor));
     rect->setPos(-gridOffset, -gridOffset);
-    // TODO: Layers
-    //rect->setData(BattleDialogItemChild_Index, BattleDialogItemChild_Area);
     rect->setParentItem(pixmapItem);
     rect->setVisible(false);
-    //qDebug() << "[LayerTokens] created " << pixmapItem << " with area child " << rect;
-
-    // TODO: Layers
-    // applyPersonalEffectToItem(pixmapItem);
 
     _combatantIconHash.insert(combatant, pixmapItem);
-    //linkedObjectChanged(combatant, nullptr);
-
-    // TODO: Layers
-    //connect(combatant, SIGNAL(combatantMoved(BattleDialogModelCombatant*)), this, SLOT(handleCombatantMoved(BattleDialogModelCombatant*)), static_cast<Qt::ConnectionType>(Qt::AutoConnection | Qt::UniqueConnection));
-    //connect(combatant, SIGNAL(combatantMoved(BattleDialogModelCombatant*)), this, SLOT(updateHighlights()), static_cast<Qt::ConnectionType>(Qt::AutoConnection | Qt::UniqueConnection));
-    //connect(combatant, SIGNAL(combatantSelected(BattleDialogModelCombatant*)), this, SLOT(handleCombatantSelected(BattleDialogModelCombatant*)));
     connect(combatant, &BattleDialogModelCombatant::combatantSelected, this, &LayerTokens::handleCombatantSelected);
 
     return pixmapItem;

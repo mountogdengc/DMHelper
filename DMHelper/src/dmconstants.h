@@ -134,6 +134,7 @@ namespace DMHelper
         BrushType_Circle = 0,
         BrushType_Square,
         BrushType_Select,
+        BrushType_Polygon,
 
         BrushType_Count
     };

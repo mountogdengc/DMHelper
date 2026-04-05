@@ -59,7 +59,6 @@ void CombatantWidgetCharacter::setInternals(CombatantWidgetInternalsCharacter* i
         connect(ui->chkKnown, SIGNAL(clicked(bool)), characterCombatant, SLOT(setKnown(bool)));
         connect(ui->chkVisible, SIGNAL(clicked(bool)), characterCombatant, SLOT(setShown(bool)));
         connect(ui->chkDone, SIGNAL(clicked(bool)), characterCombatant, SLOT(setDone(bool)));
-        //connect(characterCombatant, SIGNAL(combatantDoneChanged()), this, SLOT(updateData()));
         connect(characterCombatant, &BattleDialogModelCharacter::combatantDoneChanged, this, &CombatantWidgetCharacter::updateData);
 
         if(characterCombatant->getCombatant())

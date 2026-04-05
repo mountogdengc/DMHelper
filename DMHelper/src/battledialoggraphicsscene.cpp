@@ -982,7 +982,9 @@ void BattleDialogGraphicsScene::deleteItem()
     QMessageBox::StandardButton result = QMessageBox::critical(nullptr, QString("Confirm Delete Effect"), QString("Are you sure you wish to delete this effect?"), QMessageBox::Yes | QMessageBox::No);
     if(result == QMessageBox::Yes)
     {
+#ifdef BATTLE_DIALOG_GRAPHICS_SCENE_LOG_MOUSEEVENTS
         qDebug() << "[Battle Dialog Scene] confirmed deleting effect " << deleteEffect;
+#endif
         if(_mouseDownItem == _contextMenuItem)
         {
             _mouseDown = false;

@@ -58,6 +58,7 @@ RibbonTabBattleMap::RibbonTabBattleMap(QWidget *parent) :
     // Set up the brush mode button group
     ui->btnGrpBrush->setId(ui->btnBrushCircle, DMHelper::BrushType_Circle);
     ui->btnGrpBrush->setId(ui->btnBrushSquare, DMHelper::BrushType_Square);
+    ui->btnGrpBrush->setId(ui->btnBrushPolygon, DMHelper::BrushType_Polygon);
     connect(ui->btnGrpBrush, SIGNAL(idClicked(int)), this, SIGNAL(brushModeChanged(int)));
 
     // Set up the extra slot to configure the erase button
@@ -189,6 +190,7 @@ void RibbonTabBattleMap::showEvent(QShowEvent *event)
     setStandardButtonSize(*ui->lblSmooth, *ui->btnSmooth, frameHeight);
 
     setStandardButtonSize(*ui->lblBrushSelect, *ui->btnBrushSelect, frameHeight);
+    setStandardButtonSize(*ui->lblBrushPolygon, *ui->btnBrushPolygon, frameHeight);
     setStandardButtonSize(*ui->lblFillFoW, *ui->btnFillFoW, frameHeight);
 
     setLineHeight(*ui->line_4, frameHeight);

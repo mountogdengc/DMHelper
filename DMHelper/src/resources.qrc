@@ -171,6 +171,7 @@
         <file>data/icon_newparty.png</file>
         <file>data/icon_remove.png</file>
         <file>data/icon_party.png</file>
+        <file>data/icon_brushpolygon.png</file>
         <file>data/character_name.png</file>
         <file>data/character_frame_bottom.png</file>
         <file>data/character_frame_bottomleft.png</file>

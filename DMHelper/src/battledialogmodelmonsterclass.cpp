@@ -198,8 +198,6 @@ int BattleDialogModelMonsterClass::getSpeed() const
 
     QRegularExpressionMatch match = QRegularExpression(R"(^\s*(\d+))").match(_monsterClass->getStringValue("speed"));
     return match.hasMatch() ? match.captured(1).toInt() : 0;
-
-    //return _monsterClass->getStringValue("speed").toInt();
 }
 
 int BattleDialogModelMonsterClass::getArmorClass() const

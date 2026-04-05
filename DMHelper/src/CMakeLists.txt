@@ -53,7 +53,6 @@ set(DMHELPER_SOURCES
     attack.cpp
     audiofactory.cpp
     audioplaybackframe.cpp
-    audioplayer.cpp
     audiotrack.cpp
     audiotrackedit.cpp
     audiotrackfile.cpp
@@ -336,6 +335,7 @@ set(DMHELPER_SOURCES
     undofowfill.cpp
     undofowpath.cpp
     undofowpoint.cpp
+    undofowpolygon.cpp
     undofowshape.cpp
     undomarker.cpp
     unselectedellipse.cpp
@@ -376,7 +376,6 @@ set(DMHELPER_HEADERS
     attack.h
     audiofactory.h
     audioplaybackframe.h
-    audioplayer.h
     audiotrack.h
     audiotrackedit.h
     audiotrackfile.h
@@ -661,6 +660,7 @@ set(DMHELPER_HEADERS
     undofowfill.h
     undofowpath.h
     undofowpoint.h
+    undofowpolygon.h
     undofowshape.h
     undomarker.h
     unselectedellipse.h

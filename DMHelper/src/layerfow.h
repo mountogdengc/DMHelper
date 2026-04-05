@@ -42,6 +42,7 @@ public:
     void paintFoWPoint(QPoint point, const MapDraw& mapDraw);
     void paintFoWPoints(const QList<QPoint>& points, const MapDraw& mapDraw);
     void paintFoWRect(QRect rect, const MapEditShape& mapEditShape);
+    void paintFoWPolygon(const MapEditPolygon& mapEditPolygon);
     void fillFoW(const QColor& color);
 
     QRect getFoWVisibleRect() const;

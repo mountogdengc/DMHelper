@@ -56,6 +56,7 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QGraphicsPixmapItem>
+#include <QGraphicsPolygonItem>
 #include <QGraphicsColorizeEffect>
 #include <QMessageBox>
 #include <QtGlobal>
@@ -162,6 +163,7 @@ BattleFrame::BattleFrame(QWidget *parent) :
     _isGridLocked(false),
     _gridLockScale(0.0),
     _mapDrawer(nullptr),
+    _polygonPreview(nullptr),
     _renderer(nullptr),
     _initiativeType(DMHelper::InitiativeType_ImageName),
     _initiativeScale(1.0),
@@ -200,6 +202,8 @@ BattleFrame::BattleFrame(QWidget *parent) :
     connect(_countdownTimer, SIGNAL(timeout()), this, SLOT(countdownTimerExpired()));
 
     _mapDrawer = new BattleFrameMapDrawer(this);
+    connect(_mapDrawer, &BattleFrameMapDrawer::polygonChanged, this, &BattleFrame::handlePolygonChanged);
+    connect(_mapDrawer, &BattleFrameMapDrawer::polygonCancelled, this, &BattleFrame::handlePolygonCancelled);
 
     connect(ui->graphicsView, SIGNAL(rubberBandChanged(QRect, QPointF, QPointF)), this, SLOT(handleRubberBandChanged(QRect, QPointF, QPointF)));
 
@@ -226,7 +230,6 @@ BattleFrame::BattleFrame(QWidget *parent) :
     connect(_scene, &BattleDialogGraphicsScene::addEffectObjectFile, this, &BattleFrame::addEffectObjectFile);
     connect(_scene, &BattleDialogGraphicsScene::addLayerImageFile, this, &BattleFrame::addLayerImageFile);
     connect(_scene, &BattleDialogGraphicsScene::castSpell, this, &BattleFrame::castSpell);
-    //connect(_scene, SIGNAL(effectChanged(QGraphicsItem*)), this, SLOT(handleEffectChanged(QGraphicsItem*)));
     connect(_scene, &BattleDialogGraphicsScene::itemChangeLayer, this, &BattleFrame::handleItemChangeLayer);
     connect(_scene, SIGNAL(applyEffect(QGraphicsItem*)), this, SLOT(handleApplyEffect(QGraphicsItem*)));
     connect(_scene, SIGNAL(distanceChanged(const QString&)), this, SIGNAL(distanceChanged(const QString&)));
@@ -3746,6 +3749,10 @@ void BattleFrame::setEditMode()
         disconnect(_scene, &BattleDialogGraphicsScene::battleMouseMove, _mapDrawer, &BattleFrameMapDrawer::handleMouseMoved);
         disconnect(_scene, &BattleDialogGraphicsScene::battleMouseRelease, _mapDrawer, &BattleFrameMapDrawer::handleMouseUp);
 
+        if(_mapDrawer)
+            _mapDrawer->cancelPolygon();
+        handlePolygonCancelled();
+
         connect(_scene, SIGNAL(itemMouseDown(QGraphicsPixmapItem*, bool)), this, SLOT(handleItemMouseDown(QGraphicsPixmapItem*, bool)));
         connect(_scene, SIGNAL(itemMouseUp(QGraphicsPixmapItem*)), this, SLOT(handleItemMouseUp(QGraphicsPixmapItem*)));
         connect(_scene, SIGNAL(itemMouseDoubleClick(QGraphicsPixmapItem*)), this, SLOT(handleItemMouseDoubleClick(QGraphicsPixmapItem*)));
@@ -3770,6 +3777,36 @@ void BattleFrame::updateFowImage(const QPixmap& fow)
     Q_UNUSED(fow);
 }
 */
+
+void BattleFrame::handlePolygonChanged(const QPolygonF& polygon)
+{
+    if(!_scene)
+        return;
+
+    if(!_polygonPreview)
+    {
+        _polygonPreview = new QGraphicsPolygonItem();
+        QPen pen(Qt::white, 2.0, Qt::DashLine);
+        pen.setCosmetic(true);
+        _polygonPreview->setPen(pen);
+        _polygonPreview->setBrush(QBrush(QColor(255, 255, 255, 64)));
+        _polygonPreview->setZValue(DMHelper::BattleDialog_Z_FrontHighlight);
+        _scene->addItem(_polygonPreview);
+    }
+
+    _polygonPreview->setPolygon(polygon);
+}
+
+void BattleFrame::handlePolygonCancelled()
+{
+    if(_polygonPreview)
+    {
+        if(_polygonPreview->scene())
+            _polygonPreview->scene()->removeItem(_polygonPreview);
+        delete _polygonPreview;
+        _polygonPreview = nullptr;
+    }
+}
 
 void BattleFrame::setItemsInert(bool inert)
 {

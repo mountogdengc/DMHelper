@@ -26,6 +26,7 @@ class Map;
 class QTimer;
 class CameraRect;
 class BattleCombatantFrame;
+class QGraphicsPolygonItem;
 class UnselectedPixmap;
 class CombatantRolloverFrame;
 class PublishGLBattleRenderer;
@@ -318,6 +319,9 @@ private slots:
     void setEditMode();
     void setItemsInert(bool inert);
 
+    void handlePolygonChanged(const QPolygonF& polygon);
+    void handlePolygonCancelled();
+
     void removeRollover();
     void clearDoneFlags();
 
@@ -439,6 +443,7 @@ private:
     qreal _gridLockScale;
 
     BattleFrameMapDrawer* _mapDrawer;
+    QGraphicsPolygonItem* _polygonPreview;
 
     PublishGLBattleRenderer* _renderer;
 

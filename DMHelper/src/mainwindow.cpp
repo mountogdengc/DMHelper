@@ -146,7 +146,6 @@ MainWindow::MainWindow(QWidget *parent) :
     _options(nullptr),
     _bestiaryDlg(),
     _spellDlg(),
-    //_audioPlayer(nullptr),
 #ifdef INCLUDE_NETWORK_SUPPORT
     _networkController(nullptr),
 #endif
@@ -242,7 +241,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "[MainWindow] Recovery Mode: " << _recoveryMode;
     _options->setLoading(true);
 
-    //connect(_options, SIGNAL(bestiaryFileNameChanged()), this, SLOT(readBestiary())); --> moved this to the campaign ruleset
     connect(_options, SIGNAL(spellbookFileNameChanged()), this, SLOT(readSpellbook()));
     qDebug() << "[MainWindow] Settings Read";
 
@@ -612,17 +610,13 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "[MainWindow]     Adding Battle Frame widget as page #" << ui->stackedWidgetEncounter->count() - 1;
 
     // EncounterType_Character
-    //CharacterFrame* charFrame = new CharacterFrame(_options);
     _characterFrame = new CharacterTemplateFrame(_options);
     _characterFrame->setHeroForgeToken(_options->getHeroForgeToken());
-    //connect(_options, &OptionsContainer::heroForgeTokenChanged, charFrame, &CharacterFrame::setHeroForgeToken);
-    //connect(charFrame, &CharacterFrame::heroForgeTokenChanged, _options, &OptionsContainer::setHeroForgeToken);
     connect(_options, &OptionsContainer::heroForgeTokenChanged, _characterFrame, &CharacterTemplateFrame::setHeroForgeToken);
     connect(_characterFrame, &CharacterTemplateFrame::heroForgeTokenChanged, _options, &OptionsContainer::setHeroForgeToken);
     ui->stackedWidgetEncounter->addFrame(DMHelper::CampaignType_Combatant, _characterFrame);
     qDebug() << "[MainWindow]     Adding Character Frame widget as page #" << ui->stackedWidgetEncounter->count() - 1;
     connect(_characterFrame, SIGNAL(publishCharacterImage(QImage)), this, SIGNAL(dispatchPublishImage(QImage)));
-    //connect(charFrame, SIGNAL(spellSelected(QString)), this, SLOT(openSpell(QString)));
 
     PartyFrame* partyFrame = new PartyFrame;
     ui->stackedWidgetEncounter->addFrame(DMHelper::CampaignType_Party, partyFrame);
@@ -636,14 +630,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->stackedWidgetEncounter->addFrame(DMHelper::CampaignType_Map, _mapFrame);
     qDebug() << "[MainWindow]     Adding Map Frame widget as page #" << ui->stackedWidgetEncounter->count() - 1;
     _mapFrame->setPointerFile(_options->getPointerFile());
-    //connect(mapFrame, SIGNAL(publishImage(QImage)), this, SIGNAL(dispatchPublishImage(QImage)));
     connect(_mapFrame, SIGNAL(showPublishWindow()), this, SLOT(showPublishWindow()));
     connect(_mapFrame, SIGNAL(registerRenderer(PublishGLRenderer*)), _pubWindow, SLOT(setRenderer(PublishGLRenderer*)));
     connect(_pubWindow, SIGNAL(frameResized(QSize)), _mapFrame, SLOT(targetResized(QSize)));
     connect(_mapFrame, SIGNAL(encounterSelected(QUuid)), this, SLOT(openEncounter(QUuid)));
 
     connect(_ribbonTabMap, SIGNAL(editFileClicked()), _mapFrame, SLOT(editMapFile()));
-    // connect(_ribbonTabMap, SIGNAL(zoomOneClicked()), mapFrame, SLOT(zoomOne()));
 
     connect(_ribbonTabMap, SIGNAL(mapEditClicked(bool)), _mapFrame, SLOT(setMapEdit(bool)));
     connect(_mapFrame, SIGNAL(mapEditChanged(bool)), _ribbonTabMap, SLOT(setMapEdit(bool)));
@@ -686,8 +678,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // EncounterType_AudioTrack
     AudioTrackEdit* audioTrackEdit = new AudioTrackEdit;
-    //TODO: can this edit frame be completely removed?
-    //connect(this, SIGNAL(campaignLoaded(Campaign*)), audioTrackEdit, SLOT(setCampaign(Campaign*)));
     ui->stackedWidgetEncounter->addFrame(DMHelper::CampaignType_AudioTrack, audioTrackEdit);
     qDebug() << "[MainWindow]     Adding Audio Track widget as page #" << ui->stackedWidgetEncounter->count() - 1;
     connect(audioTrackEdit, &AudioTrackEdit::trackTypeChanged, _ribbonTabAudio, &RibbonTabAudio::setTrackType);
@@ -776,9 +766,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(CampaignObjectFactory::Instance(), &CampaignObjectFactory::objectCreated, ui->framePopups, &PopupsPreviewFrame::trackAdded);
     connect(this, &MainWindow::audioTrackAdded, ui->framePopups, &PopupsPreviewFrame::trackAdded);
-    //_audioPlayer = new AudioPlayer(this);
-    //_audioPlayer->setVolume(_options->getAudioVolume());
-    //connect(mapFrame, SIGNAL(startTrack(AudioTrack*)), _audioPlayer, SLOT(playTrack(AudioTrack*)));
 
 #ifdef INCLUDE_NETWORK_SUPPORT
     /*
@@ -786,10 +773,8 @@ MainWindow::MainWindow(QWidget *parent) :
     _networkController->setNetworkLogin(_options->getURLString(), _options->getUserName(), _options->getPassword(), _options->getSessionID(), QString());
     _networkController->enableNetworkController(_options->getNetworkEnabled());
     connect(this, SIGNAL(dispatchPublishImage(QImage)), _networkController, SLOT(uploadImage(QImage)));
-    //connect(_audioPlayer, SIGNAL(trackChanged(AudioTrack*)), _networkController, SLOT(uploadTrack(AudioTrack*)));
     connect(_options, SIGNAL(networkEnabledChanged(bool)), _networkController, SLOT(enableNetworkController(bool)));
     connect(_options, SIGNAL(networkSettingsChanged(QString, QString, QString, QString, QString)), _networkController, SLOT(setNetworkLogin(QString, QString, QString, QString, QString)));
-    // TODO: _battleDlgMgr->setNetworkManager(_networkController);
     */
 #endif
 
@@ -1688,16 +1673,12 @@ void MainWindow::connectBattleView(bool toBattle)
         connect(_battleFrame, &BattleFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _battleFrame, &BattleFrame::setDistance);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _battleFrame, &BattleFrame::setFreeDistance);
-        //connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _battleFrame, &BattleFrame::setDistanceScale);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineColorChanged, _battleFrame, &BattleFrame::setDistanceLineColor);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineTypeChanged, _battleFrame, &BattleFrame::setDistanceLineType);
         connect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineWidthChanged, _battleFrame, &BattleFrame::setDistanceLineWidth);
         connect(_battleFrame, &BattleFrame::distanceToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceOn);
         connect(_battleFrame, &BattleFrame::freeDistanceToggled, _ribbonTabBattleView, &RibbonTabBattleView::setFreeDistanceOn);
         connect(_battleFrame, &BattleFrame::distanceChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistance);
-        //connect(_battleFrame, &BattleFrame::distanceLineColorChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineColor);
-        //connect(_battleFrame, &BattleFrame::distanceLineTypeChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineType);
-        //connect(_battleFrame, &BattleFrame::distanceLineWidthChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineWidth);
 
         // Map
         disconnect(_ribbonTabBattleView, SIGNAL(zoomInClicked()), _mapFrame, SLOT(zoomIn()));
@@ -1752,16 +1733,12 @@ void MainWindow::connectBattleView(bool toBattle)
         disconnect(_battleFrame, &BattleFrame::drawToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDrawOn);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceClicked, _battleFrame, &BattleFrame::setDistance);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::freeDistanceClicked, _battleFrame, &BattleFrame::setFreeDistance);
-        //disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceScaleChanged, _battleFrame, &BattleFrame::setDistanceScale);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineColorChanged, _battleFrame, &BattleFrame::setDistanceLineColor);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineTypeChanged, _battleFrame, &BattleFrame::setDistanceLineType);
         disconnect(_ribbonTabBattleView, &RibbonTabBattleView::distanceLineWidthChanged, _battleFrame, &BattleFrame::setDistanceLineWidth);
         disconnect(_battleFrame, &BattleFrame::distanceToggled, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceOn);
         disconnect(_battleFrame, &BattleFrame::freeDistanceToggled, _ribbonTabBattleView, &RibbonTabBattleView::setFreeDistanceOn);
         disconnect(_battleFrame, &BattleFrame::distanceChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistance);
-        //disconnect(_battleFrame, &BattleFrame::distanceLineColorChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineColor);
-        //disconnect(_battleFrame, &BattleFrame::distanceLineTypeChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineType);
-        //disconnect(_battleFrame, &BattleFrame::distanceLineWidthChanged, _ribbonTabBattleView, &RibbonTabBattleView::setDistanceLineWidth);
 
         // Map
         connect(_ribbonTabBattleView, SIGNAL(zoomInClicked()), _mapFrame, SLOT(zoomIn()));

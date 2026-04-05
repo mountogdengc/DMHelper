@@ -467,7 +467,6 @@ void CharacterFrame::readCharacterData()
 
     QVBoxLayout* actionsLayout = new QVBoxLayout;
     QList<MonsterAction> actionList = _character->getActions();
-    //actionsLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     for(int i = 0; i < actionList.count(); ++i)
     {
         MonsterActionFrame* newFrame = new MonsterActionFrame(actionList.at(i));
@@ -758,7 +757,6 @@ void CharacterFrame::clearConditionGrid()
 
     qDebug() << "[CharacterFrame] Clearing the condition grid";
 
-    // Delete the grid entries
     QLayoutItem *child = nullptr;
     while((child = _conditionGrid->takeAt(0)) != nullptr)
     {

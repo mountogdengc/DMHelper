@@ -43,8 +43,6 @@ PublishGLBattleToken::~PublishGLBattleToken()
 
 void PublishGLBattleToken::cleanup()
 {
-//    qDebug() << "[PublishGLBattleToken] Cleaning up image object. VAO: " << _VAO << ", VBO: " << _VBO << ", EBO: " << _EBO << ", texture: " << _textureID;
-
     if(QOpenGLContext::currentContext())
     {
         QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
