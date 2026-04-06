@@ -114,7 +114,6 @@ set(DMHELPER_SOURCES
     campaigntreeitem.cpp
     campaigntreemodel.cpp
     character.cpp
-    characterframe.cpp
     characterimportdialog.cpp
     characterimporter.cpp
     characterimportheroforge.cpp
@@ -438,7 +437,6 @@ set(DMHELPER_HEADERS
     campaigntreeitem.h
     campaigntreemodel.h
     character.h
-    characterframe.h
     characterimportdialog.h
     characterimporter.h
     characterimportheroforge.h
@@ -696,7 +694,6 @@ set(DMHELPER_FORMS
     bestiarypopulatetokensdialog.ui
     bestiarytemplatedialog.ui
     campaignnotesdialog.ui
-    characterframe.ui
     characterimportdialog.ui
     characterimportheroforgedialog.ui
     charactertemplateframe.ui
