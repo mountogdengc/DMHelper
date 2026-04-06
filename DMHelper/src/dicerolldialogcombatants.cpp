@@ -182,7 +182,7 @@ void DiceRollDialogCombatants::modifierTypeChanged()
 
 void DiceRollDialogCombatants::editConditions()
 {
-    ConditionsEditDialog dlg;
+    ConditionsEditDialog dlg(this);
     dlg.setConditionList(_conditions);
     int result = dlg.exec();    
     if(result == QDialog::Accepted)

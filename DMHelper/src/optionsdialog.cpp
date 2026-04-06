@@ -622,7 +622,7 @@ void OptionsDialog::populateTokens()
     if(!_options)
         return;
 
-    BestiaryPopulateTokensDialog* dlg = new BestiaryPopulateTokensDialog(*_options);
+    BestiaryPopulateTokensDialog* dlg = new BestiaryPopulateTokensDialog(*_options, this);
     dlg->exec();
     dlg->deleteLater();
 }

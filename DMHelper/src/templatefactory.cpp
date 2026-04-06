@@ -209,6 +209,7 @@ void TemplateFactory::readObjectData(QWidget* widget, TemplateObject* source, Te
         if((!keyString.isEmpty()) && (!widgetString.isEmpty()))
         {
             scrollArea->setWidgetResizable(true);
+            scrollArea->setStyleSheet(QStringLiteral("QScrollArea { background: transparent; } QScrollArea > QWidget > QWidget { background: transparent; }"));
             QFrame* scrollWidget = new QFrame;
             QVBoxLayout* scrollLayout = new QVBoxLayout;
             scrollLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);

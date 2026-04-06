@@ -1201,7 +1201,7 @@ void BattleFrame::addMonsters()
 
     qDebug() << "[Battle Frame] Adding monsters ...";
 
-    CombatantDialog* combatantDlg = new CombatantDialog(_model->getLayerScene(), QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    CombatantDialog* combatantDlg = new CombatantDialog(_model->getLayerScene(), QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(combatantDlg, SIGNAL(openMonster(QString)), this, SIGNAL(monsterSelected(QString)));
     connect(combatantDlg, &CombatantDialog::finished, this, [this, combatantDlg](int result) {this->addMonsterFinished(combatantDlg, result);});
     combatantDlg->open();
@@ -3678,7 +3678,7 @@ void BattleFrame::selectAddCharacter(QList<Characterv2*> characters, const QStri
     if(characters.isEmpty())
         return;
 
-    ItemSelectDialog characterSelectDlg;
+    ItemSelectDialog characterSelectDlg(this);
     characterSelectDlg.setWindowTitle(title);
     characterSelectDlg.setLabel(label);
 

@@ -353,7 +353,7 @@ void SpellbookDialog::editConditions()
     if(!_spell)
         return;
 
-    ConditionsEditDialog dlg;
+    ConditionsEditDialog dlg(this);
     dlg.setConditionList(_spell->getEffectConditionList());
     int result = dlg.exec();
     if(result == QDialog::Accepted)

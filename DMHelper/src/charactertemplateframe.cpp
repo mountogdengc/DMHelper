@@ -281,7 +281,8 @@ void CharacterTemplateFrame::editCharacterIcon()
                                                *_options,
                                                1.0,
                                                QPoint(),
-                                               false);
+                                               false,
+                                               this);
     if(dlg->exec() == QDialog::Accepted)
     {
         QImage newToken = dlg->getFinalImage();

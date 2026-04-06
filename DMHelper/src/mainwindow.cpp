@@ -11,7 +11,6 @@
 #include "characterv2converter.h"
 #include "objectimportdialog.h"
 #include "partyframe.h"
-#include "characterframe.h"
 #include "charactertemplateframe.h"
 #include "campaign.h"
 #include "combatantfactory.h"
@@ -1418,7 +1417,7 @@ void MainWindow::showEvent(QShowEvent * event)
                 firstStartDlg->move((frameGeometry().center() - firstStartDlg->rect().center()) / 2);
                 firstStartDlg->exec(); // Note: delete's itself "later"
 
-                LegalDialog* legalDlg = new LegalDialog();
+                LegalDialog* legalDlg = new LegalDialog(this);
                 legalDlg->exec();
                 _options->setUpdatesEnabled(legalDlg->isUpdatesEnabled());
                 _options->setStatisticsAccepted(legalDlg->isStatisticsAccepted());
@@ -2738,7 +2737,7 @@ void MainWindow::exportBestiary()
     if(!Bestiary::Instance())
         return;
 
-    BestiaryExportDialog dlg;
+    BestiaryExportDialog dlg(this);
     dlg.exec();
 }
 
@@ -2876,7 +2875,7 @@ void MainWindow::openMapManager()
 
     qDebug() << "[MainWindow] Opening Map Manager";
 
-    MapManagerDialog* dlg = new MapManagerDialog(*_options);
+    MapManagerDialog* dlg = new MapManagerDialog(*_options, this);
     connect(dlg, &MapManagerDialog::createEntryImage, this, &MainWindow::handleCreateMap);
     dlg->resize(qMax(dlg->width(), width() * 3 / 4), qMax(dlg->height(), height() * 3 / 4));
     dlg->setAttribute(Qt::WA_DeleteOnClose);
@@ -2899,7 +2898,7 @@ void MainWindow::openAboutDialog()
 {
     qDebug() << "[MainWindow] Opening About Box";
 
-    AboutDialog dlg;
+    AboutDialog dlg(this);
     dlg.resize(qMax(dlg.width(), width() * 3 / 4), qMax(dlg.height(), height() * 3 / 4));
     dlg.exec();
 }
@@ -2908,7 +2907,7 @@ void MainWindow::openHelpDialog()
 {
     qDebug() << "[MainWindow] Opening Help Dialog";
 
-    HelpDialog dlg;
+    HelpDialog dlg(this);
     connect(&dlg, &HelpDialog::openGettingStarted, this, &MainWindow::openGettingStarted);
     connect(&dlg, &HelpDialog::openUsersGuide, this, &MainWindow::openUsersGuide);
     connect(&dlg, &HelpDialog::openBackupDirectory, this, &MainWindow::openBackupDirectory);
@@ -2938,7 +2937,7 @@ void MainWindow::openRandomMarkets()
 
 void MainWindow::configureGridLock()
 {
-    ConfigureLockedGridDialog dlg;
+    ConfigureLockedGridDialog dlg(this);
     QScreen* primary = QGuiApplication::primaryScreen();
     if(primary)
         dlg.resize(primary->availableSize().width() * 3 / 4, primary->availableSize().height() * 2 / 3);
@@ -2951,7 +2950,7 @@ void MainWindow::configureGridLock()
 
 QDialog* MainWindow::createDialog(QWidget* contents, const QSize& dlgSize)
 {
-    QDialog* resultDlg = new QDialog();
+    QDialog* resultDlg = new QDialog(this);
     if(!dlgSize.isNull())
         resultDlg->resize(dlgSize);
 
