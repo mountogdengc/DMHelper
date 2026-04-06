@@ -5,6 +5,9 @@
 #include "tokeneditdialog.h"
 #include "optionscontainer.h"
 #include "combatantfactory.h"
+#include "conditions.h"
+#include "conditionseditdialog.h"
+#include "quickref.h"
 #include <QFile>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -12,6 +15,8 @@
 #include <QTextEdit>
 #include <QMenu>
 #include <QMessageBox>
+#include <QLabel>
+#include <QGridLayout>
 #include <QDebug>
 
 CharacterTemplateFrame::CharacterTemplateFrame(OptionsContainer* options, QWidget *parent) :
@@ -24,10 +29,13 @@ CharacterTemplateFrame::CharacterTemplateFrame(OptionsContainer* options, QWidge
     _reading(false),
     _rotation(0),
     _currentToken(0),
-    _heroForgeToken()
+    _heroForgeToken(),
+    _conditionGrid(nullptr)
 {
     ui->setupUi(this);
 
+    connect(ui->btnEditConditions, &QAbstractButton::clicked, this, &CharacterTemplateFrame::editConditions);
+    connect(ui->btnRemoveConditions, &QAbstractButton::clicked, this, &CharacterTemplateFrame::clearConditions);
     connect(ui->btnEditIcon, &QAbstractButton::clicked, this, &CharacterTemplateFrame::editCharacterIcon);
     connect(ui->btnSync_2, &QAbstractButton::clicked, this, &CharacterTemplateFrame::syncDndBeyond);
     enableDndBeyondSync(false);
@@ -239,6 +247,7 @@ void CharacterTemplateFrame::readCharacterData()
     _currentToken = 0;
     setTokenIndex(0);
     enableDndBeyondSync(_character->getDndBeyondID() != -1);
+    updateConditionLayout();
 
     _reading = false;
 }
@@ -484,4 +493,108 @@ void CharacterTemplateFrame::setTokenIndex(int index)
     ui->btnEditIcon->setEnabled(true);
 
     loadCharacterImage();
+}
+
+void CharacterTemplateFrame::editConditions()
+{
+    if(!_character)
+        return;
+
+    ConditionsEditDialog dlg(this);
+    dlg.setConditionList(_character->getConditionList());
+    int result = dlg.exec();
+    if(result == QDialog::Accepted)
+    {
+        if(dlg.getConditionList() != _character->getConditionList())
+        {
+            _character->setConditionList(dlg.getConditionList());
+            updateConditionLayout();
+        }
+    }
+}
+
+void CharacterTemplateFrame::clearConditions()
+{
+    if(!_character)
+        return;
+
+    _character->clearConditions();
+    updateConditionLayout();
+}
+
+void CharacterTemplateFrame::updateConditionLayout()
+{
+    clearConditionGrid();
+
+    if(!_character)
+        return;
+
+    _conditionGrid = new QGridLayout;
+    _conditionGrid->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+    _conditionGrid->setContentsMargins(2, 2, 2, 2);
+    _conditionGrid->setSpacing(2);
+    ui->scrollAreaWidgetContents_2->setLayout(_conditionGrid);
+
+    QStringList conditionList = _character->getConditionList();
+    for(const QString& condId : conditionList)
+        addCondition(condId);
+
+    int spacingColumn = _conditionGrid->columnCount();
+    _conditionGrid->addItem(new QSpacerItem(20, 40, QSizePolicy::Expanding), 0, spacingColumn);
+
+    for(int i = 0; i < spacingColumn; ++i)
+        _conditionGrid->setColumnStretch(i, 1);
+    _conditionGrid->setColumnStretch(spacingColumn, 10);
+
+    update();
+}
+
+void CharacterTemplateFrame::clearConditionGrid()
+{
+    if(!_conditionGrid)
+        return;
+
+    QLayoutItem* child = nullptr;
+    while((child = _conditionGrid->takeAt(0)) != nullptr)
+    {
+        delete child->widget();
+        delete child;
+    }
+
+    delete _conditionGrid;
+    _conditionGrid = nullptr;
+
+    ui->scrollAreaWidgetContents_2->update();
+}
+
+void CharacterTemplateFrame::addCondition(const QString& conditionId)
+{
+    if(!_conditionGrid)
+        return;
+
+    Conditions* conds = Conditions::activeConditions();
+    if(!conds)
+        return;
+
+    QString iconPath = conds->getConditionIconPath(conditionId);
+    QLabel* conditionLabel = new QLabel(this);
+    if(!iconPath.isEmpty())
+        conditionLabel->setPixmap(QPixmap(iconPath).scaled(40, 40));
+
+    QString conditionText = QString("<b>") + conds->getConditionDescription(conditionId) + QString("</b>");
+    if(QuickRef::Instance())
+    {
+        QuickRefData* conditionData = QuickRef::Instance()->getData(QString("Condition"), 0, conds->getConditionTitle(conditionId));
+        if(conditionData)
+            conditionText += QString("<p>") + conditionData->getOverview();
+    }
+    conditionLabel->setToolTip(conditionText);
+
+    int columnCount = (ui->scrollAreaWidgetContents_2->width() - 2) / (40 + 2);
+    if(columnCount < 1)
+        columnCount = 1;
+    int row = _conditionGrid->count() / columnCount;
+    int column = _conditionGrid->count() % columnCount;
+
+    _conditionGrid->addWidget(conditionLabel, row, column);
 }
