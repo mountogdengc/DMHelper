@@ -191,6 +191,7 @@ void RuleFactory::readRuleset(const QString& rulesetFile)
             newRuleset._monsterData = rulesetElement.attribute(QString("monsterdata"));
             newRuleset._monsterUI = rulesetElement.attribute(QString("monsterui"));
             newRuleset._bestiary = rulesetElement.attribute(QString("bestiary"));
+            newRuleset._conditionsFile = rulesetElement.attribute(QString("conditions"));
             newRuleset._rulesetDir = QFileInfo(rulesetFile).absolutePath();
             newRuleset._combatantDone = static_cast<bool>(rulesetElement.attribute(QString("combatantdone")).toInt());
             newRuleset._hitPointsCountDown = rulesetElement.hasAttribute("hitPointsCountDown") ? static_cast<bool>(rulesetElement.attribute("hitPointsCountDown").toInt()) : true;

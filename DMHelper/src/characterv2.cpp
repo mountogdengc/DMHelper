@@ -511,7 +511,7 @@ QVariant Characterv2::getAttributeSpecial(const QString& attribute) const
     else if(attribute == QString("hitDice"))
         value.setValue(getHitDice());
     else if(attribute == QString("conditions"))
-        value = QVariant(getConditions());
+        value = QVariant(getConditionList().join(QStringLiteral(",")));
     else if(attribute == QString("initiative"))
         value = QVariant(getInitiative());
     else if(attribute == QString("icon"))
@@ -539,7 +539,7 @@ QString Characterv2::getAttributeSpecialAsString(const QString& attribute) const
     else if(attribute == QString("hitDice"))
         return getHitDice().toString();
     else if(attribute == QString("conditions"))
-        return QString::number(getConditions());
+        return getConditionList().join(QStringLiteral(","));
     else if(attribute == QString("initiative"))
         return QString::number(getInitiative());
     else if(attribute == QString("icon"))
@@ -565,7 +565,9 @@ void Characterv2::setAttributeSpecial(const QString& key, const QString& value)
     else if(key == QString("hitDice"))
         setHitDice(Dice(value));
     else if(key == QString("conditions"))
-        setConditions(value.toInt()); // TODO: conditions are not well-solved
+    {
+        setConditionList(value.split(QStringLiteral(","), Qt::SkipEmptyParts));
+    }
     else if(key == QString("initiative"))
         setInitiative(value.toInt());
     else if(key == QString("icon"))

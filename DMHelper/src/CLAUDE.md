@@ -94,6 +94,15 @@ Legacy classes remain only for XML file compatibility. New code uses v2 exclusiv
 - `INCLUDE_NETWORK_SUPPORT` — network stack incomplete, gated in `dmconstants.h`
 - `LAYERVIDEO_USE_OPENGL` — GPU video path exists but not production-ready
 
+## UI creation — prefer .ui files
+
+Minimise programmatic UI creation. Dialogs and frames should always derive
+from a `.ui` file designed by the user in Qt Designer. The only exception
+is truly dynamic content whose structure depends on runtime data (e.g.
+populating a grid of condition buttons from the active ruleset). Even then,
+the **shell** (scroll areas, button boxes, static labels, layout structure)
+must come from the `.ui` file — only the data-driven widgets are added in code.
+
 ## Files never to modify
 - `*.ui` — edit in Qt Designer only, never hand-edit XML
 - `*.qrc` — edit manually only with care, never restructure paths

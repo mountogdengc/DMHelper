@@ -1,7 +1,6 @@
 #ifndef SPELLBOOKDIALOG_H
 #define SPELLBOOKDIALOG_H
 
-#include "combatant.h"
 #include <QDialog>
 
 namespace Ui {
@@ -49,7 +48,7 @@ protected slots:
     void selectToken();
     void updateLayout();
     void clearGrid();
-    void addCondition(Combatant::Condition condition);
+    void addCondition(const QString& conditionId);
 
 protected:
     // From QWidget

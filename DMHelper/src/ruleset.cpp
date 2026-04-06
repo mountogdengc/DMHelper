@@ -1,4 +1,5 @@
 #include "ruleset.h"
+#include "conditions.h"
 #include "dmconstants.h"
 #include "ruleinitiative.h"
 #include "rulefactory.h"
@@ -8,6 +9,9 @@
 Ruleset::Ruleset(const QString& name, QObject *parent) :
     CampaignObjectBase(name, parent),
     _ruleInitiative(nullptr),
+    _conditions(nullptr),
+    _rulesetDefaultConditions(nullptr),
+    _conditionsFile(),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -25,6 +29,9 @@ Ruleset::Ruleset(const QString& name, QObject *parent) :
 Ruleset::Ruleset(const RuleFactory::RulesetTemplate& rulesetTemplate, QObject *parent) :
     CampaignObjectBase(rulesetTemplate._name, parent),
     _ruleInitiative(nullptr),
+    _conditions(nullptr),
+    _rulesetDefaultConditions(nullptr),
+    _conditionsFile(),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -42,6 +49,8 @@ Ruleset::Ruleset(const RuleFactory::RulesetTemplate& rulesetTemplate, QObject *p
 
 Ruleset::~Ruleset()
 {
+    delete _conditions;
+    delete _rulesetDefaultConditions;
 }
 
 void Ruleset::inputXML(const QDomElement &element, bool isImport)
@@ -93,6 +102,29 @@ void Ruleset::inputXML(const QDomElement &element, bool isImport)
     _hitPointsCountDown = element.hasAttribute("hitPointsCountDown") ? static_cast<bool>(element.attribute("hitPointsCountDown").toInt()) : rulesetTemplate._hitPointsCountDown;
 
     setMovementString(element.attribute("movementType"));
+
+    // Load conditions from ruleset template
+    delete _conditions;
+    _conditions = new Conditions(this);
+    delete _rulesetDefaultConditions;
+    _rulesetDefaultConditions = new Conditions(this);
+    if(!rulesetTemplate._conditionsFile.isEmpty())
+    {
+        _conditionsFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._conditionsFile);
+        _conditions->loadFromFile(_conditionsFile);
+        _rulesetDefaultConditions->loadFromFile(_conditionsFile);
+    }
+
+    // Apply campaign condition deltas if present
+    QDomElement conditionDeltasElement = element.firstChildElement(QStringLiteral("conditionDeltas"));
+    if(!conditionDeltasElement.isNull())
+    {
+        // Resolve custom icon paths relative to the campaign file directory
+        // Note: the campaign directory is not directly available here, but the element's
+        // ownerDocument was loaded from the campaign file. We use the rulesetDir as fallback
+        // since the actual campaign dir will be set by the caller.
+        _conditions->applyDeltas(conditionDeltasElement, rulesetTemplate._rulesetDir);
+    }
 }
 
 int Ruleset::getObjectType() const
@@ -126,6 +158,18 @@ void Ruleset::setValues(const RuleFactory::RulesetTemplate& rulesetTemplate)
 
     _combatantDoneCheckbox = rulesetTemplate._combatantDone;
     _hitPointsCountDown = rulesetTemplate._hitPointsCountDown;
+
+    // Load conditions from ruleset template
+    delete _conditions;
+    _conditions = new Conditions(this);
+    delete _rulesetDefaultConditions;
+    _rulesetDefaultConditions = new Conditions(this);
+    if(!rulesetTemplate._conditionsFile.isEmpty())
+    {
+        _conditionsFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._conditionsFile);
+        _conditions->loadFromFile(_conditionsFile);
+        _rulesetDefaultConditions->loadFromFile(_conditionsFile);
+    }
 
     qDebug() << "[Ruleset] Values for the ruleset set to the default values for the template: " << rulesetTemplate._name;
 }
@@ -165,6 +209,25 @@ QString Ruleset::getRuleInitiativeType()
         _ruleInitiative = RuleFactory::createRuleInitiative(RuleFactory::getRuleInitiativeDefault(), this);
 
     return _ruleInitiative ? _ruleInitiative->getInitiativeType() : QString();
+}
+
+Conditions* Ruleset::getConditions()
+{
+    if(!_conditions)
+    {
+        _conditions = new Conditions(const_cast<Ruleset*>(this));
+    }
+    return _conditions;
+}
+
+Conditions* Ruleset::getRulesetDefaultConditions() const
+{
+    return _rulesetDefaultConditions;
+}
+
+QString Ruleset::getConditionsFile() const
+{
+    return _conditionsFile;
 }
 
 QString Ruleset::getCharacterDataFile() const
@@ -278,6 +341,27 @@ void Ruleset::setRuleInitiative(const QString& initiativeType)
     delete _ruleInitiative;
 
     _ruleInitiative = RuleFactory::createRuleInitiative(initiativeType, this);
+    emit dirty();
+    registerChange();
+}
+
+void Ruleset::setConditionsFile(const QString& conditionsFile)
+{
+    if(_conditionsFile == conditionsFile)
+        return;
+
+    _conditionsFile = conditionsFile;
+
+    delete _conditions;
+    _conditions = new Conditions(this);
+    delete _rulesetDefaultConditions;
+    _rulesetDefaultConditions = new Conditions(this);
+    if(!_conditionsFile.isEmpty())
+    {
+        _conditions->loadFromFile(_conditionsFile);
+        _rulesetDefaultConditions->loadFromFile(_conditionsFile);
+    }
+
     emit dirty();
     registerChange();
 }
@@ -425,6 +509,10 @@ void Ruleset::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& t
 
     if(_movementType != DMHelper::MovementType_Distance)
         element.setAttribute("movementType", movementStringFromType(_movementType, &_movementRanges));
+
+    // Output condition deltas (only differences from ruleset defaults)
+    if(_conditions && _rulesetDefaultConditions && _conditions->hasDeltasFrom(*_rulesetDefaultConditions))
+        _conditions->outputDeltas(doc, element, *_rulesetDefaultConditions, targetDirectory);
 }
 
 bool Ruleset::areSameFile(const QString &file1, const QString &file2) const
