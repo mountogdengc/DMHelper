@@ -1,6 +1,7 @@
 #include "characterframe.h"
 #include "ui_characterframe.h"
 #include "characterimporter.h"
+#include "conditions.h"
 #include "scaledpixmap.h"
 #include "expertisedialog.h"
 #include "conditionseditdialog.h"
@@ -697,14 +698,14 @@ void CharacterFrame::editConditions()
     if(!_character)
         return;
 
-    ConditionsEditDialog dlg;
-    dlg.setConditions(_character->getConditions());
+    ConditionsEditDialog dlg(this);
+    dlg.setConditionList(_character->getConditionList());
     int result = dlg.exec();
     if(result == QDialog::Accepted)
     {
-        if(dlg.getConditions() != _character->getConditions())
+        if(dlg.getConditionList() != _character->getConditionList())
         {
-            _character->setConditions(dlg.getConditions());
+            _character->setConditionList(dlg.getConditionList());
             updateConditionLayout();
         }
     }
@@ -729,14 +730,9 @@ void CharacterFrame::updateConditionLayout()
     _conditionGrid->setSpacing(CONDITION_FRAME_SPACING);
     ui->scrollAreaWidgetContents->setLayout(_conditionGrid);
 
-    int conditions = _character->getConditions();
-
-    for(int i = 0; i < Combatant::getConditionCount(); ++i)
-    {
-        Combatant::Condition condition = Combatant::getConditionByIndex(i);
-        if(conditions & condition)
-            addCondition(condition);
-    }
+    QStringList conditionList = _character->getConditionList();
+    for(const QString& condId : conditionList)
+        addCondition(condId);
 
     int spacingColumn = _conditionGrid->columnCount();
 
@@ -770,19 +766,24 @@ void CharacterFrame::clearConditionGrid()
     ui->scrollAreaWidgetContents->update();
 }
 
-void CharacterFrame::addCondition(Combatant::Condition condition)
+void CharacterFrame::addCondition(const QString& conditionId)
 {
     if(!_conditionGrid)
         return;
 
-    QString resourceIcon = QString(":/img/data/img/") + Combatant::getConditionIcon(condition) + QString(".png");
-    QLabel* conditionLabel = new QLabel(this);
-    conditionLabel->setPixmap(QPixmap(resourceIcon).scaled(40, 40));
+    Conditions* conds = Conditions::activeConditions();
+    if(!conds)
+        return;
 
-    QString conditionText = QString("<b>") + Combatant::getConditionDescription(condition) + QString("</b>");
+    QString iconPath = conds->getConditionIconPath(conditionId);
+    QLabel* conditionLabel = new QLabel(this);
+    if(!iconPath.isEmpty())
+        conditionLabel->setPixmap(QPixmap(iconPath).scaled(40, 40));
+
+    QString conditionText = QString("<b>") + conds->getConditionDescription(conditionId) + QString("</b>");
     if(QuickRef::Instance())
     {
-        QuickRefData* conditionData = QuickRef::Instance()->getData(QString("Condition"), 0, Combatant::getConditionTitle(condition));
+        QuickRefData* conditionData = QuickRef::Instance()->getData(QString("Condition"), 0, conds->getConditionTitle(conditionId));
         if(conditionData)
             conditionText += QString("<p>") + conditionData->getOverview();
     }

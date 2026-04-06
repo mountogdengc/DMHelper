@@ -60,7 +60,7 @@ private slots:
     void clearConditions();
     void updateConditionLayout();
     void clearConditionGrid();
-    void addCondition(Combatant::Condition condition);
+    void addCondition(const QString& conditionId);
     void addAction();
     void deleteAction(const MonsterAction& action);
     void spellSlotChanged(int level, int slot, bool checked);

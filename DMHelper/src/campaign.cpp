@@ -1,5 +1,6 @@
 #include "campaign.h"
 #include "characterv2.h"
+#include "conditions.h"
 #include "encounterfactory.h"
 #include "map.h"
 #include "party.h"
@@ -107,6 +108,9 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
     // Load the ruleset; without this we can't load the rest of the campaign
     if(!_ruleset.isInitialized())
         preloadRulesetXML(element, isImport);
+
+    // Set the active conditions from the ruleset
+    Conditions::setActiveConditions(_ruleset.getConditions());
 
     // Configure the campaign object factories based on the ruleset
     CampaignObjectFactory::configureFactories(_ruleset, majorVersion, minorVersion);

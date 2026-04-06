@@ -219,29 +219,29 @@ int BattleDialogModelCharacter::getSkillModifier(Combatant::Skills skill) const
     }
 }
 
-int BattleDialogModelCharacter::getConditions() const
+QStringList BattleDialogModelCharacter::getConditionList() const
 {
     // TODO: should this just be impossible?
     if(_combatant)
     {
-        return _combatant->getConditions();
+        return _combatant->getConditionList();
     }
     else
     {
-        qDebug() << "[BattleDialogModelCharacter] WARNING: No valid character in getConditions!";
-        return 0;
+        qDebug() << "[BattleDialogModelCharacter] WARNING: No valid character in getConditionList!";
+        return QStringList();
     }
 }
 
-bool BattleDialogModelCharacter::hasCondition(Combatant::Condition condition) const
+bool BattleDialogModelCharacter::hasConditionId(const QString& conditionId) const
 {
     if(_combatant)
     {
-        return _combatant->hasCondition(condition);
+        return _combatant->hasConditionId(conditionId);
     }
     else
     {
-        qDebug() << "[BattleDialogModelCharacter] WARNING: No valid character in hasCondition!";
+        qDebug() << "[BattleDialogModelCharacter] WARNING: No valid character in hasConditionId!";
         return false;
     }
 }
@@ -344,29 +344,29 @@ void BattleDialogModelCharacter::setCharacter(Characterv2* character)
     setCombatant(character);
 }
 
-void BattleDialogModelCharacter::setConditions(int conditions)
+void BattleDialogModelCharacter::setConditionList(const QStringList& conditions)
 {
     if(_combatant)
     {
-        _combatant->setConditions(conditions);
+        _combatant->setConditionList(conditions);
         emit conditionsChanged(this);
     }
 }
 
-void BattleDialogModelCharacter::applyConditions(int conditions)
+void BattleDialogModelCharacter::addConditionId(const QString& conditionId)
 {
     if(_combatant)
     {
-        _combatant->applyConditions(conditions);
+        _combatant->addConditionId(conditionId);
         emit conditionsChanged(this);
     }
 }
 
-void BattleDialogModelCharacter::removeConditions(int conditions)
+void BattleDialogModelCharacter::removeConditionId(const QString& conditionId)
 {
     if(_combatant)
     {
-        _combatant->removeConditions(conditions);
+        _combatant->removeConditionId(conditionId);
         emit conditionsChanged(this);
     }
 }

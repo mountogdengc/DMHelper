@@ -241,7 +241,7 @@ void CombatantWidgetMonster::loadImage()
     {
         ui->lblIcon->resize(DMHelper::CHARACTER_ICON_WIDTH, DMHelper::CHARACTER_ICON_HEIGHT);
         QPixmap iconPixmap = _internals->getCombatant()->getIconPixmap(DMHelper::PixmapSize_Thumb);
-        if(_internals->getCombatant()->hasCondition(Combatant::Condition_Unconscious))
+        if(_internals->getCombatant()->hasConditionId(QStringLiteral("unconscious")))
         {
             QImage originalImage = iconPixmap.toImage();
             QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);

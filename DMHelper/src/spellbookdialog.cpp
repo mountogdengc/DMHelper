@@ -1,6 +1,7 @@
 #include "spellbookdialog.h"
 #include "spell.h"
 #include "spellbook.h"
+#include "conditions.h"
 #include "battledialogmodeleffect.h"
 #include "conditionseditdialog.h"
 #include "ui_spellbookdialog.h"
@@ -353,11 +354,11 @@ void SpellbookDialog::editConditions()
         return;
 
     ConditionsEditDialog dlg;
-    dlg.setConditions(_spell->getEffectConditions());
+    dlg.setConditionList(_spell->getEffectConditionList());
     int result = dlg.exec();
     if(result == QDialog::Accepted)
     {
-        _spell->setEffectConditions(dlg.getConditions());
+        _spell->setEffectConditionList(dlg.getConditionList());
         emit spellDataEdit();
         updateLayout();
     }
@@ -404,16 +405,12 @@ void SpellbookDialog::updateLayout()
     _conditionLayout->setSpacing(CONDITION_FRAME_SPACING);
     ui->frameConditions->setLayout(_conditionLayout);
 
-    int conditions = _spell->getEffectConditions();
+    QStringList conditionList = _spell->getEffectConditionList();
 
-    qDebug() << "[SpellbookDialog] Adding conditions: " << conditions;
+    qDebug() << "[SpellbookDialog] Adding conditions: " << conditionList;
 
-    for(int i = 0; i < Combatant::getConditionCount(); ++i)
-    {
-        Combatant::Condition condition = Combatant::getConditionByIndex(i);
-        if(conditions & condition)
-            addCondition(condition);
-    }
+    for(const QString& condId : conditionList)
+        addCondition(condId);
 
     _conditionLayout->addStretch();
 
@@ -441,18 +438,23 @@ void SpellbookDialog::clearGrid()
     ui->frameConditions->update();
 }
 
-void SpellbookDialog::addCondition(Combatant::Condition condition)
+void SpellbookDialog::addCondition(const QString& conditionId)
 {
     if(!_conditionLayout)
         return;
 
-    QString resourceIcon = QString(":/img/data/img/") + Combatant::getConditionIcon(condition) + QString(".png");
+    Conditions* conds = Conditions::activeConditions();
+    if(!conds)
+        return;
+
+    QString iconPath = conds->getConditionIconPath(conditionId);
     QLabel* conditionLabel = new QLabel(this);
     int frameHeight = ui->frameConditions->height();
     int iconSize = frameHeight - (2 * conditionLabel->margin());
 
-    conditionLabel->setPixmap(QPixmap(resourceIcon).scaled(iconSize, iconSize));
-    conditionLabel->setToolTip(Combatant::getConditionDescription(condition));
+    if(!iconPath.isEmpty())
+        conditionLabel->setPixmap(QPixmap(iconPath).scaled(iconSize, iconSize));
+    conditionLabel->setToolTip(conds->getConditionDescription(conditionId));
     conditionLabel->setMinimumWidth(frameHeight);
     conditionLabel->setMaximumWidth(frameHeight);
     conditionLabel->setMinimumHeight(frameHeight);

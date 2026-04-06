@@ -1,11 +1,12 @@
 #include "battledialogmodelmonsterbase.h"
+#include "conditions.h"
 #include "monsterclassv2.h"
 #include <QDomElement>
 
 BattleDialogModelMonsterBase::BattleDialogModelMonsterBase(const QString& name, QObject *parent) :
     BattleDialogModelCombatant(name, parent),
     _legendaryCount(-1),
-    _conditions(0)
+    _conditionList()
 {
     connect(this, &BattleDialogModelMonsterBase::dataChanged, this, &BattleDialogModelMonsterBase::dirty);
     connect(this, &BattleDialogModelMonsterBase::imageChanged, this, &BattleDialogModelMonsterBase::dirty);
@@ -14,7 +15,7 @@ BattleDialogModelMonsterBase::BattleDialogModelMonsterBase(const QString& name, 
 BattleDialogModelMonsterBase::BattleDialogModelMonsterBase(Combatant* combatant) :
     BattleDialogModelCombatant(combatant),
     _legendaryCount(-1),
-    _conditions(0)
+    _conditionList()
 {
     connect(this, &BattleDialogModelMonsterBase::dataChanged, this, &BattleDialogModelMonsterBase::dirty);
     connect(this, &BattleDialogModelMonsterBase::imageChanged, this, &BattleDialogModelMonsterBase::dirty);
@@ -23,7 +24,7 @@ BattleDialogModelMonsterBase::BattleDialogModelMonsterBase(Combatant* combatant)
 BattleDialogModelMonsterBase::BattleDialogModelMonsterBase(Combatant* combatant, int initiative, const QPointF& position) :
     BattleDialogModelCombatant(combatant, initiative, position),
     _legendaryCount(-1),
-    _conditions(0)
+    _conditionList()
 {
     connect(this, &BattleDialogModelMonsterBase::dataChanged, this, &BattleDialogModelMonsterBase::dirty);
     connect(this, &BattleDialogModelMonsterBase::imageChanged, this, &BattleDialogModelMonsterBase::dirty);
@@ -38,7 +39,18 @@ void BattleDialogModelMonsterBase::inputXML(const QDomElement &element, bool isI
     BattleDialogModelCombatant::inputXML(element, isImport);
 
     _legendaryCount = element.attribute("legendaryCount", QString::number(-1)).toInt();
-    _conditions = element.attribute("conditions", QString::number(0)).toInt();
+
+    // Condition migration: detect old int bitmask format vs new comma-separated string IDs
+    QString condStr = element.attribute("conditions", QString());
+    if(!condStr.isEmpty())
+    {
+        bool ok = false;
+        int condInt = condStr.toInt(&ok);
+        if(ok)
+            _conditionList = Conditions::migrateFromBitmask(condInt);
+        else
+            _conditionList = condStr.split(QStringLiteral(","), Qt::SkipEmptyParts);
+    }
 }
 
 void BattleDialogModelMonsterBase::copyValues(const CampaignObjectBase* other)
@@ -48,7 +60,7 @@ void BattleDialogModelMonsterBase::copyValues(const CampaignObjectBase* other)
         return;
 
     _legendaryCount = otherMonsterBase->_legendaryCount;
-    _conditions = otherMonsterBase->_conditions;
+    _conditionList = otherMonsterBase->_conditionList;
 
     BattleDialogModelCombatant::copyValues(other);
 }
@@ -120,14 +132,14 @@ int BattleDialogModelMonsterBase::getSkillModifier(Combatant::Skills skill) cons
     }
 }
 
-int BattleDialogModelMonsterBase::getConditions() const
+QStringList BattleDialogModelMonsterBase::getConditionList() const
 {
-    return _conditions;
+    return _conditionList;
 }
 
-bool BattleDialogModelMonsterBase::hasCondition(Combatant::Condition condition) const
+bool BattleDialogModelMonsterBase::hasConditionId(const QString& conditionId) const
 {
-    return ((_conditions & condition) != 0);
+    return _conditionList.contains(conditionId);
 }
 
 int BattleDialogModelMonsterBase::getLegendaryCount() const
@@ -135,31 +147,30 @@ int BattleDialogModelMonsterBase::getLegendaryCount() const
     return _legendaryCount;
 }
 
-void BattleDialogModelMonsterBase::setConditions(int conditions)
+void BattleDialogModelMonsterBase::setConditionList(const QStringList& conditions)
 {
-    if(_conditions != conditions)
+    if(_conditionList != conditions)
     {
-        _conditions = conditions;
+        _conditionList = conditions;
         emit dataChanged(this);
         emit conditionsChanged(this);
     }
 }
 
-void BattleDialogModelMonsterBase::applyConditions(int conditions)
+void BattleDialogModelMonsterBase::addConditionId(const QString& conditionId)
 {
-    if((_conditions & conditions) != conditions)
+    if(!conditionId.isEmpty() && !_conditionList.contains(conditionId))
     {
-        _conditions |= conditions;
+        _conditionList.append(conditionId);
         emit dataChanged(this);
         emit conditionsChanged(this);
     }
 }
 
-void BattleDialogModelMonsterBase::removeConditions(int conditions)
+void BattleDialogModelMonsterBase::removeConditionId(const QString& conditionId)
 {
-    if((_conditions & conditions) != 0)
+    if(_conditionList.removeOne(conditionId))
     {
-        _conditions &= ~conditions;
         emit dataChanged(this);
         emit conditionsChanged(this);
     }
@@ -167,9 +178,9 @@ void BattleDialogModelMonsterBase::removeConditions(int conditions)
 
 void BattleDialogModelMonsterBase::clearConditions()
 {
-    if(_conditions != 0)
+    if(!_conditionList.isEmpty())
     {
-        _conditions = 0;
+        _conditionList.clear();
         emit dataChanged(this);
         emit conditionsChanged(this);
     }
@@ -188,7 +199,7 @@ void BattleDialogModelMonsterBase::internalOutputXML(QDomDocument &doc, QDomElem
 {
     element.setAttribute("monsterType", getMonsterType());
     element.setAttribute("legendaryCount", _legendaryCount);
-    element.setAttribute("conditions", _conditions);
+    element.setAttribute("conditions", _conditionList.join(QStringLiteral(",")));
 
     BattleDialogModelCombatant::internalOutputXML(doc, element, targetDirectory, isExport);
 }

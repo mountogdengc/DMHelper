@@ -138,6 +138,7 @@ set(DMHELPER_SOURCES
     combatantwidgetinternalsmonster.cpp
     combatantwidgetmonster.cpp
     complicationdata.cpp
+    conditions.cpp
     conditionseditdialog.cpp
     configurelockedgriddialog.cpp
     countdownframe.cpp
@@ -461,6 +462,7 @@ set(DMHELPER_HEADERS
     combatantwidgetinternalsmonster.h
     combatantwidgetmonster.h
     complicationdata.h
+    conditions.h
     conditionseditdialog.h
     configurelockedgriddialog.h
     countdownframe.h
@@ -704,7 +706,6 @@ set(DMHELPER_FORMS
     combatantselectdialog.ui
     combatantwidgetcharacter.ui
     combatantwidgetmonster.ui
-    conditionseditdialog.ui
     configurelockedgriddialog.ui
     countdownframe.ui
     countdownsubframe.ui

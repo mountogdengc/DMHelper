@@ -48,6 +48,7 @@
 #include "spellbook.h"
 #include "gridsizer.h"
 #include "layerdrawengine.h"
+#include "conditions.h"
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QKeyEvent>
@@ -2707,7 +2708,7 @@ void BattleFrame::handleApplyEffect(QGraphicsItem* effect)
         Spell* spell = Spellbook::Instance()->getSpell(finalEffect->objectName());
         if(spell)
         {
-            dlg->setConditions(spell->getEffectConditions());
+            dlg->setConditions(spell->getEffectConditionList());
         }
     }
 
@@ -3205,19 +3206,20 @@ void BattleFrame::updateCombatantIcon(BattleDialogModelCombatant* combatant)
         return;
 
     QPixmap pix = combatant->getIconPixmap(DMHelper::PixmapSize_Battle);
-    if(combatant->hasCondition(Combatant::Condition_Unconscious))
+    if(combatant->hasConditionId(QStringLiteral("unconscious")))
     {
         QImage originalImage = pix.toImage();
         QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);
         pix = QPixmap::fromImage(grayscaleImage);
     }
 
-    Combatant::drawConditions(&pix, combatant->getConditions());
+    if(Conditions::activeConditions())
+        Conditions::activeConditions()->drawConditions(&pix, combatant->getConditionList());
     item->setPixmap(pix);
     item->setOffset(-static_cast<qreal>(pix.width())/2.0, -static_cast<qreal>(pix.height())/2.0);
 
     QString itemTooltip = QString("<b>") + combatant->getName() + QString("</b>");
-    QStringList conditionString = Combatant::getConditionString(combatant->getConditions());
+    QStringList conditionString = Conditions::getConditionStrings(combatant->getConditionList());
     if(conditionString.count() > 0)
         itemTooltip += QString("<p>") + conditionString.join(QString("<br/>"));
     item->setToolTip(itemTooltip);
@@ -3234,14 +3236,14 @@ void BattleFrame::registerCombatantDamage(BattleDialogModelCombatant* combatant,
     if((!combatant) || (!_model->getActiveCombatant()))
         return;
 
-    if((combatant->getHitPoints() <= 0) && (!combatant->hasCondition(Combatant::Condition_Unconscious)))
+    if((combatant->getHitPoints() <= 0) && (!combatant->hasConditionId(QStringLiteral("unconscious"))))
     {
-        combatant->applyConditions(Combatant::Condition_Unconscious);
+        combatant->addConditionId(QStringLiteral("unconscious"));
         updateCombatantIcon(combatant);
     }
-    else if((combatant->getHitPoints() > 0) && (combatant->hasCondition(Combatant::Condition_Unconscious)))
+    else if((combatant->getHitPoints() > 0) && (combatant->hasConditionId(QStringLiteral("unconscious"))))
     {
-        combatant->removeConditions(Combatant::Condition_Unconscious);
+        combatant->removeConditionId(QStringLiteral("unconscious"));
         updateCombatantIcon(combatant);
     }
 

@@ -75,12 +75,13 @@ void BattleCombatantWidget::applyDamage(int damage)
     emit hitPointsChanged(_combatant, damage);
 }
 
-void BattleCombatantWidget::applyConditions(int conditions)
+void BattleCombatantWidget::applyConditions(const QStringList& conditions)
 {
-    if((!_combatant) || (conditions == 0))
+    if((!_combatant) || (conditions.isEmpty()))
         return;
 
-    _combatant->applyConditions(conditions);
+    for(const QString& condId : conditions)
+        _combatant->addConditionId(condId);
     emit combatantChanged(_combatant);
 }
 

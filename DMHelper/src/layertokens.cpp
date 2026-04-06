@@ -17,6 +17,7 @@
 #include "battledialogmodeleffectfactory.h"
 #include "battledialogmodeleffectobject.h"
 #include "battledialogmodeleffectobjectvideo.h"
+#include "conditions.h"
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsColorizeEffect>
@@ -1340,7 +1341,7 @@ QPixmap LayerTokens::generateCombatantPixmap(BattleDialogModelCombatant* combata
         return QPixmap();
 
     QPixmap result = combatant->getIconPixmap(DMHelper::PixmapSize_Battle);
-    if(combatant->hasCondition(Combatant::Condition_Unconscious))
+    if(combatant->hasConditionId(QStringLiteral("unconscious")))
     {
         QImage originalImage = result.toImage();
         QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);
@@ -1349,7 +1350,8 @@ QPixmap LayerTokens::generateCombatantPixmap(BattleDialogModelCombatant* combata
 
     applySingleCombatantVisibility(combatant, getLayerVisibleDM(), _model->getShowAlive(), _model->getShowDead());
 
-    Combatant::drawConditions(&result, combatant->getConditions());
+    if(Conditions::activeConditions())
+        Conditions::activeConditions()->drawConditions(&result, combatant->getConditionList());
 
     return result;
 }
@@ -1360,7 +1362,7 @@ void LayerTokens::applyCombatantTooltip(QGraphicsItem* item, BattleDialogModelCo
         return;
 
     QString itemTooltip = QString("<b>") + combatant->getName() + QString("</b> (") + getName() + QString(")");
-    QStringList conditionString = Combatant::getConditionString(combatant->getConditions());
+    QStringList conditionString = Conditions::getConditionStrings(combatant->getConditionList());
     if(conditionString.count() > 0)
         itemTooltip += QString("<p>") + conditionString.join(QString("<br/>"));
 

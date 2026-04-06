@@ -5,6 +5,7 @@
 #include "rulefactory.h"
 #include "dmconstants.h"
 
+class Conditions;
 class RuleInitiative;
 
 class Ruleset : public CampaignObjectBase
@@ -29,6 +30,9 @@ public:
     bool isInitialized() const;
     RuleInitiative* getRuleInitiative();
     QString getRuleInitiativeType();
+    Conditions* getConditions();
+    Conditions* getRulesetDefaultConditions() const;
+    QString getConditionsFile() const;
     QString getCharacterDataFile() const;
     QString getCharacterUIFile() const;
     QString getBestiaryFile() const;
@@ -48,6 +52,7 @@ signals:
 
 public slots:
     void setRuleInitiative(const QString& initiativeType);
+    void setConditionsFile(const QString& conditionsFile);
     void setCharacterDataFile(const QString& characterDataFile);
     void setCharacterUIFile(const QString& characterUIFile);
     void setBestiaryFile(const QString& bestiaryFile);
@@ -71,6 +76,9 @@ protected:
     void registerChange();
 
     RuleInitiative* _ruleInitiative;
+    Conditions* _conditions;
+    Conditions* _rulesetDefaultConditions;
+    QString _conditionsFile;
     QString _characterDataFile;
     QString _characterUIFile;
     QString _bestiaryFile;

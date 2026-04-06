@@ -474,6 +474,7 @@ void OptionsContainer::readSettings()
     copyCoreData(QString("DMHelperBestiary"));
     copyCoreData(QString("monster"));
     copyCoreData(QString("character"));
+    copyCoreData(QString("conditions"));
 
     setShowAnimations(settings.value("showAnimations", QVariant(false)).toBool());
     setAutoSave(settings.value("autoSave", QVariant(true)).toBool());
@@ -1018,6 +1019,7 @@ void OptionsContainer::resetFileSettings()
     copyCoreData(QString("DMHelperBestiary"), true);
     copyCoreData(QString("monster"), true);
     copyCoreData(QString("character"), true);
+    copyCoreData(QString("conditions"), true);
 }
 
 void OptionsContainer::setLastSpell(const QString& lastSpell)
