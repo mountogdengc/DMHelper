@@ -123,7 +123,10 @@ void ConditionsEditDialog::populateConditions()
         groupBtn->setChecked(false);
         groupBtn->setFlat(true);
         groupBtn->setAutoDefault(false);
-
+        groupBtn->setStyleSheet(QStringLiteral(
+            "QPushButton { border: 1px solid transparent; background: transparent; }"
+            "QPushButton:checked { border: 2px solid rgb(115, 18, 0); background-color: rgba(50, 50, 50, 50); border-radius: 4px; }"
+        ));
         QString iconPath = conditions->getConditionIconPath(defs.first().id);
         if(!iconPath.isEmpty())
             groupBtn->setIcon(QIcon(iconPath));
@@ -152,6 +155,11 @@ void ConditionsEditDialog::populateConditions()
             btn->setChecked(false);
             btn->setAutoDefault(false);
             btn->setEnabled(false);
+            btn->setStyleSheet(QStringLiteral(
+                "QPushButton { border: 1px solid transparent; background: transparent; }"
+                "QPushButton:checked { border: 1px solid rgb(115, 18, 0); background-color: rgba(50, 50, 50, 50); border-radius: 2px; }"
+                ));
+
             setConditionTooltip(*btn, def.id);
             frameLayout->addWidget(btn);
 
