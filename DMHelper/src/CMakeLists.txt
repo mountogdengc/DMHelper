@@ -78,6 +78,7 @@ set(DMHELPER_SOURCES
     battledialogmodel.cpp
     battledialogmodelcharacter.cpp
     battledialogmodelcombatant.cpp
+    battledialogmodelcombatantgroup.cpp
     battledialogmodeleffect.cpp
     battledialogmodeleffectcone.cpp
     battledialogmodeleffectcube.cpp
@@ -130,6 +131,7 @@ set(DMHELPER_SOURCES
     combatantreference.cpp
     combatantrolloverframe.cpp
     combatantselectdialog.cpp
+    combatantgroupwidget.cpp
     combatantwidget.cpp
     combatantwidgetcharacter.cpp
     combatantwidgetinternals.cpp
@@ -401,6 +403,7 @@ set(DMHELPER_HEADERS
     battledialogmodel.h
     battledialogmodelcharacter.h
     battledialogmodelcombatant.h
+    battledialogmodelcombatantgroup.h
     battledialogmodeleffect.h
     battledialogmodeleffectcone.h
     battledialogmodeleffectcube.h
@@ -453,6 +456,7 @@ set(DMHELPER_HEADERS
     combatantreference.h
     combatantrolloverframe.h
     combatantselectdialog.h
+    combatantgroupwidget.h
     combatantwidget.h
     combatantwidgetcharacter.h
     combatantwidgetinternals.h
@@ -524,6 +528,7 @@ set(DMHELPER_HEADERS
     layerreference.h
     layerscene.h
     layertokens.h
+    layertokensdarkeneffect.h
     layervideo.h
     layervideoeffect.h
     layervideoeffectsettings.h
@@ -701,6 +706,7 @@ set(DMHELPER_FORMS
     combatantdialog.ui
     combatantrolloverframe.ui
     combatantselectdialog.ui
+    combatantgroupwidget.ui
     combatantwidgetcharacter.ui
     combatantwidgetmonster.ui
     configurelockedgriddialog.ui

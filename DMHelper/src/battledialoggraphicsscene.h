@@ -110,6 +110,9 @@ signals:
     void combatantUnhideSelected(BattleDialogModelCombatant* combatant);
     void combatantKnowSelected(BattleDialogModelCombatant* combatant);
     void combatantUnknowSelected(BattleDialogModelCombatant* combatant);
+    void combatantGroupSelected();
+    void combatantUngroupSelected(BattleDialogModelCombatant* combatant);
+    void combatantRemoveFromGroup(BattleDialogModelCombatant* combatant);
     void monsterChangeToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void monsterChangeTokenCustom(BattleDialogModelMonsterClass* monster);
     void characterChangeToken(BattleDialogModelCharacter* character, int iconIndex);
@@ -134,6 +137,9 @@ protected slots:
     void unhideSelectedCombatants();
     void knowSelectedCombatants();
     void unknowSelectedCombatants();
+    void groupSelectedCombatants();
+    void ungroupSelectedCombatants();
+    void removeFromGroupCombatant();
     void changeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void changeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
     void changeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
