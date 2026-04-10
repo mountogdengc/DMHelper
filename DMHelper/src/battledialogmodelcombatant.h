@@ -5,6 +5,7 @@
 #include "scaledpixmap.h"
 #include "combatant.h"
 #include <QPoint>
+#include <QUuid>
 
 
 class BattleDialogModelCombatant : public BattleDialogModelObject
@@ -36,6 +37,9 @@ public:
 
     int getSortPosition() const;
     void setSortPosition(int sortPosition);
+
+    QUuid getGroupId() const;
+    void setGroupId(const QUuid& groupId);
 
     virtual qreal getSizeFactor() const = 0;
     virtual int getSizeCategory() const = 0;    
@@ -94,6 +98,7 @@ protected:
     Combatant* _combatant;
     int _initiative;
     int _sortPosition;
+    QUuid _groupId;
     qreal _moved;
     bool _isShown;
     bool _isKnown;

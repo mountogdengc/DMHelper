@@ -5,6 +5,7 @@
 #include "battledialogmodeleffectfactory.h"
 #include "battledialogmodelmonsterclass.h"
 #include "battledialogmodelcharacter.h"
+#include "battledialogmodelcombatant.h"
 #include "characterv2.h"
 #include "monsterclassv2.h"
 #include "unselectedpixmap.h"
@@ -730,6 +731,48 @@ bool BattleDialogGraphicsScene::handleMouseReleaseEvent(QGraphicsSceneMouseEvent
                     }
                 }
             }
+
+            // Group/Ungroup actions
+            {
+                BattleDialogModelCombatant* combatantObj = dynamic_cast<BattleDialogModelCombatant*>(object);
+
+                QList<QGraphicsItem*> selectedForGroup = selectedItems();
+                int selectedCombatantCount = 0;
+                if((selectedForGroup.count() > 0) && (selectedForGroup.contains(item)))
+                {
+                    foreach(QGraphicsItem* selItem, selectedForGroup)
+                    {
+                        UnselectedPixmap* selPix = dynamic_cast<UnselectedPixmap*>(selItem);
+                        if(selPix)
+                        {
+                            BattleDialogModelCombatant* c = dynamic_cast<BattleDialogModelCombatant*>(selPix->getObject());
+                            if(c)
+                                ++selectedCombatantCount;
+                        }
+                    }
+                }
+
+                if(selectedCombatantCount >= 2)
+                {
+                    QAction* groupItem = new QAction(QString("Group Selected..."), &menu);
+                    connect(groupItem, SIGNAL(triggered()), this, SLOT(groupSelectedCombatants()));
+                    menu.addAction(groupItem);
+                }
+
+                if((combatantObj) && (!combatantObj->getGroupId().isNull()))
+                {
+                    QAction* removeFromGroupItem = new QAction(QString("Remove from Group"), &menu);
+                    connect(removeFromGroupItem, SIGNAL(triggered()), this, SLOT(removeFromGroupCombatant()));
+                    menu.addAction(removeFromGroupItem);
+
+                    QAction* ungroupItem = new QAction(QString("Ungroup All"), &menu);
+                    connect(ungroupItem, SIGNAL(triggered()), this, SLOT(ungroupSelectedCombatants()));
+                    menu.addAction(ungroupItem);
+                }
+
+                if((selectedCombatantCount >= 2) || ((combatantObj) && (!combatantObj->getGroupId().isNull())))
+                    menu.addSeparator();
+            }
         }
         else
         {
@@ -1115,6 +1158,33 @@ void BattleDialogGraphicsScene::unknowSelectedCombatants()
     BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
     if(combatant)
         emit combatantUnknowSelected(combatant);
+}
+
+void BattleDialogGraphicsScene::groupSelectedCombatants()
+{
+    emit combatantGroupSelected();
+}
+
+void BattleDialogGraphicsScene::ungroupSelectedCombatants()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantUngroupSelected(combatant);
+}
+
+void BattleDialogGraphicsScene::removeFromGroupCombatant()
+{
+    UnselectedPixmap* pixmap = dynamic_cast<UnselectedPixmap*>(_contextMenuItem);
+    if(!pixmap)
+        return;
+
+    BattleDialogModelCombatant* combatant = dynamic_cast<BattleDialogModelCombatant*>(pixmap->getObject());
+    if(combatant)
+        emit combatantRemoveFromGroup(combatant);
 }
 
 void BattleDialogGraphicsScene::changeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex)

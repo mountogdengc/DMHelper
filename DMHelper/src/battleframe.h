@@ -9,7 +9,9 @@
 #include "battleframestatemachine.h"
 
 class BattleDialogModelCombatant;
+class BattleDialogModelCombatantGroup;
 class CombatantWidget;
+class CombatantGroupWidget;
 class CombatantDialog;
 class QVBoxLayout;
 class EncounterBattle;
@@ -234,6 +236,8 @@ private slots:
     void updateMap();
     void updateRounds();
     void handleContextMenu(BattleDialogModelCombatant* combatant, const QPoint& position);
+    void handleGroupContextMenu(BattleDialogModelCombatantGroup* group, const QPoint& position);
+    void handleGroupClicked(CombatantGroupWidget* groupWidget);
     void handleCombatantSelected(BattleDialogModelCombatant* combatant);
     void handleCombatantHover(BattleDialogModelCombatant* combatant, bool hover);
     void handleCombatantActivate(BattleDialogModelCombatant* combatant);
@@ -247,6 +251,9 @@ private slots:
     void handleCombatantUnhideSelected(BattleDialogModelCombatant* combatant);
     void handleCombatantKnowSelected(BattleDialogModelCombatant* combatant);
     void handleCombatantUnknowSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantGroupSelected();
+    void handleCombatantUngroupSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantRemoveFromGroup(BattleDialogModelCombatant* combatant);
     void handleChangeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void handleChangeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
     void handleChangeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
@@ -284,6 +291,9 @@ private slots:
     void unhideSelectedCombatant();
     void knowSelectedCombatant();
     void unknowSelectedCombatant();
+    void groupSelectedCombatants();
+    void ungroupSelectedCombatants();
+    void removeFromGroup();
     void applyCombatantHPChange(BattleDialogModelCombatant* combatant, int hpChange);
     void setSelectedCombatant(BattleDialogModelCombatant* selected);
     void setUniqueSelection(BattleDialogModelCombatant* selected);
@@ -405,6 +415,7 @@ private:
     LayerDrawEngine* _drawEngine;
     
     QMap<BattleDialogModelCombatant*, CombatantWidget*> _combatantWidgets;
+    QMap<QUuid, CombatantGroupWidget*> _groupWidgets;
 
     BattleFrameStateMachine _stateMachine;
 

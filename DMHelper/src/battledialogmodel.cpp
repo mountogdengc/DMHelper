@@ -1,5 +1,6 @@
 #include "battledialogmodel.h"
 #include "battledialogmodelmonsterbase.h"
+#include "battledialogmodelcombatantgroup.h"
 #include "dmconstants.h"
 #include "campaign.h"
 #include "map.h"
@@ -15,6 +16,7 @@ BattleDialogModel::BattleDialogModel(EncounterBattle* encounter, const QString& 
     _encounter(encounter),
     _combatants(),
     _effects(),
+    _groups(),
     _layerScene(this),
     _map(nullptr),
     _mapRect(),
@@ -42,6 +44,7 @@ BattleDialogModel::BattleDialogModel(EncounterBattle* encounter, const QString& 
 BattleDialogModel::~BattleDialogModel()
 {
     qDeleteAll(_effects);
+    qDeleteAll(_groups);
     _layerScene.clearLayers();
 }
 
@@ -67,6 +70,23 @@ void BattleDialogModel::inputXML(const QDomElement &element, bool isImport)
     _showLairActions = static_cast<bool>(element.attribute("showLairActions", QString::number(0)).toInt());
 
     _logger.inputXML(element.firstChildElement("battlelogger"), isImport);
+
+    // Read combatant groups
+    qDeleteAll(_groups);
+    _groups.clear();
+    QDomElement groupsElement = element.firstChildElement("combatantgroups");
+    if(!groupsElement.isNull())
+    {
+        QDomElement groupElement = groupsElement.firstChildElement("combatantgroup");
+        while(!groupElement.isNull())
+        {
+            BattleDialogModelCombatantGroup* group = new BattleDialogModelCombatantGroup(QString(), this);
+            group->inputXML(groupElement);
+            _groups.append(group);
+            connect(group, &BattleDialogModelCombatantGroup::dirty, this, &BattleDialogModel::dirty);
+            groupElement = groupElement.nextSiblingElement("combatantgroup");
+        }
+    }
 
     Campaign* campaign = dynamic_cast<Campaign*>(getParentByType(DMHelper::CampaignType_Campaign));
     if(campaign)
@@ -452,6 +472,125 @@ bool BattleDialogModel::isCombatantInList(Combatant* combatant) const
     return false;
 }
 
+QList<BattleDialogModelCombatantGroup*> BattleDialogModel::getGroups() const
+{
+    return _groups;
+}
+
+BattleDialogModelCombatantGroup* BattleDialogModel::getGroup(const QUuid& groupId) const
+{
+    for(BattleDialogModelCombatantGroup* group : _groups)
+    {
+        if(group && group->getId() == groupId)
+            return group;
+    }
+    return nullptr;
+}
+
+QList<BattleDialogModelCombatant*> BattleDialogModel::getGroupMembers(const QUuid& groupId) const
+{
+    QList<BattleDialogModelCombatant*> members;
+    if(groupId.isNull())
+        return members;
+
+    for(BattleDialogModelCombatant* combatant : _combatants)
+    {
+        if(combatant && combatant->getGroupId() == groupId)
+            members.append(combatant);
+    }
+    return members;
+}
+
+BattleDialogModelCombatantGroup* BattleDialogModel::createGroup(const QString& name, const QList<BattleDialogModelCombatant*>& members)
+{
+    if(members.count() < 2)
+        return nullptr;
+
+    BattleDialogModelCombatantGroup* group = new BattleDialogModelCombatantGroup(name, this);
+
+    for(BattleDialogModelCombatant* combatant : members)
+    {
+        if(combatant)
+            combatant->setGroupId(group->getId());
+    }
+
+    _groups.append(group);
+    connect(group, &BattleDialogModelCombatantGroup::dirty, this, &BattleDialogModel::dirty);
+
+    emit groupAdded(group->getId());
+    emit dirty();
+    return group;
+}
+
+void BattleDialogModel::addGroup(BattleDialogModelCombatantGroup* group)
+{
+    if(!group)
+        return;
+
+    group->setParent(this);
+    _groups.append(group);
+    connect(group, &BattleDialogModelCombatantGroup::dirty, this, &BattleDialogModel::dirty);
+
+    emit groupAdded(group->getId());
+    emit dirty();
+}
+
+void BattleDialogModel::removeGroup(const QUuid& groupId)
+{
+    for(int i = 0; i < _groups.count(); ++i)
+    {
+        if(_groups.at(i) && _groups.at(i)->getId() == groupId)
+        {
+            BattleDialogModelCombatantGroup* group = _groups.takeAt(i);
+            delete group;
+            emit groupRemoved(groupId);
+            emit dirty();
+            return;
+        }
+    }
+}
+
+void BattleDialogModel::ungroupCombatants(const QUuid& groupId)
+{
+    if(groupId.isNull())
+        return;
+
+    for(BattleDialogModelCombatant* combatant : _combatants)
+    {
+        if(combatant && combatant->getGroupId() == groupId)
+            combatant->setGroupId(QUuid());
+    }
+
+    removeGroup(groupId);
+}
+
+void BattleDialogModel::removeCombatantFromGroup(BattleDialogModelCombatant* combatant)
+{
+    if(!combatant)
+        return;
+
+    QUuid groupId = combatant->getGroupId();
+    if(groupId.isNull())
+        return;
+
+    combatant->setGroupId(QUuid());
+
+    // Remove group if it has fewer than 2 members remaining
+    QList<BattleDialogModelCombatant*> remaining = getGroupMembers(groupId);
+    if(remaining.count() < 2)
+    {
+        // Ungroup the last remaining member too
+        for(BattleDialogModelCombatant* member : remaining)
+            member->setGroupId(QUuid());
+        removeGroup(groupId);
+    }
+    else
+    {
+        emit groupChanged(groupId);
+        emit dirty();
+    }
+}
+
 QList<BattleDialogModelEffect*> BattleDialogModel::getEffectList() const
 {
     return _effects;
@@ -792,7 +931,81 @@ void BattleDialogModel::sortCombatants()
     if(!ruleInitiative)
         return;
 
+    // First, sort all combatants by individual initiative
     ruleInitiative->sortInitiative(_combatants);
+
+    // If there are groups, post-process to make grouped combatants contiguous
+    if(!_groups.isEmpty())
+    {
+        // Separate into ungrouped and per-group buckets
+        QList<BattleDialogModelCombatant*> ungrouped;
+        QMap<QUuid, QList<BattleDialogModelCombatant*>> groupBuckets;
+
+        for(BattleDialogModelCombatant* combatant : _combatants)
+        {
+            if(!combatant)
+                continue;
+
+            QUuid gid = combatant->getGroupId();
+            if(gid.isNull())
+                ungrouped.append(combatant);
+            else
+                groupBuckets[gid].append(combatant);
+        }
+
+        // Each group bucket is already in initiative-sorted order (from initial sort)
+        // Sort intra-group by individual initiative (already done by the sort above)
+
+        // Build a list of "entries" with their effective initiative for merging
+        // Each entry is either a single ungrouped combatant or an entire group bucket
+        struct SortEntry {
+            int initiative;
+            int dexterity;
+            QList<BattleDialogModelCombatant*> combatants;
+        };
+
+        QList<SortEntry> entries;
+
+        for(BattleDialogModelCombatant* c : ungrouped)
+        {
+            SortEntry entry;
+            entry.initiative = c->getInitiative();
+            entry.dexterity = c->getDexterity();
+            entry.combatants.append(c);
+            entries.append(entry);
+        }
+
+        for(auto it = groupBuckets.begin(); it != groupBuckets.end(); ++it)
+        {
+            BattleDialogModelCombatantGroup* group = getGroup(it.key());
+            if(!group || it.value().isEmpty())
+                continue;
+
+            SortEntry entry;
+            entry.initiative = group->getInitiative();
+            // Use the highest dexterity in the group for tiebreaking
+            entry.dexterity = 0;
+            for(BattleDialogModelCombatant* c : it.value())
+            {
+                if(c->getDexterity() > entry.dexterity)
+                    entry.dexterity = c->getDexterity();
+            }
+            entry.combatants = it.value();
+            entries.append(entry);
+        }
+
+        // Sort entries by initiative (descending), then dexterity (descending)
+        std::sort(entries.begin(), entries.end(), [](const SortEntry& a, const SortEntry& b) {
+            if(a.initiative == b.initiative)
+                return a.dexterity > b.dexterity;
+            return a.initiative > b.initiative;
+        });
+
+        // Rebuild the flat list
+        _combatants.clear();
+        for(const SortEntry& entry : entries)
+            _combatants.append(entry.combatants);
+    }
 
     emit initiativeOrderChanged();
     emit dirty();
@@ -884,6 +1097,17 @@ void BattleDialogModel::internalOutputXML(QDomDocument &doc, QDomElement &elemen
     element.setAttribute("activeId", _activeCombatant ? _activeCombatant->getID().toString() : QUuid().toString());
 
     _logger.outputXML(doc, element, targetDirectory, isExport);
+
+    if(!_groups.isEmpty())
+    {
+        QDomElement groupsElement = doc.createElement("combatantgroups");
+        for(BattleDialogModelCombatantGroup* group : _groups)
+        {
+            if(group)
+                groupsElement.appendChild(group->createOutputXML(doc));
+        }
+        element.appendChild(groupsElement);
+    }
 
     CampaignObjectBase::internalOutputXML(doc, element, targetDirectory, isExport);
 }

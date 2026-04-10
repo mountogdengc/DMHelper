@@ -103,6 +103,15 @@ populating a grid of condition buttons from the active ruleset). Even then,
 the **shell** (scroll areas, button boxes, static labels, layout structure)
 must come from the `.ui` file — only the data-driven widgets are added in code.
 
+**Never override .ui properties from code.** Layout margins, spacing, size
+policies, stylesheets, and other visual properties that can be set in
+Qt Designer must be set there — not overridden programmatically in the
+constructor or elsewhere. If a .ui property needs changing, tell the user
+which widget and property to adjust in Qt Designer and let them make the
+change. The only acceptable programmatic UI modifications are those driven
+by runtime state (e.g. showing/hiding widgets, updating text, populating
+dynamic lists).
+
 ## Files never to modify
 - `*.ui` — edit in Qt Designer only, never hand-edit XML
 - `*.qrc` — edit manually only with care, never restructure paths
