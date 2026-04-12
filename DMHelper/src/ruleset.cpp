@@ -362,6 +362,8 @@ void Ruleset::setConditionsFile(const QString& conditionsFile)
         _rulesetDefaultConditions->loadFromFile(_conditionsFile);
     }
 
+    Conditions::setActiveConditions(_conditions);
+
     emit dirty();
     registerChange();
 }
