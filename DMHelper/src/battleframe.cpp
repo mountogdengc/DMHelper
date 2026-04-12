@@ -3813,6 +3813,31 @@ void BattleFrame::setModel(BattleDialogModel* model)
         setBattleMap();
         recreateCombatantWidgets();
 
+        // Check for unrecognized conditions in any combatant
+        Conditions* activeConditions = Conditions::activeConditions();
+        if(activeConditions)
+        {
+            QStringList orphanedIds;
+            QList<BattleDialogModelCombatant*> allCombatants = _model->getCombatantList();
+            for(BattleDialogModelCombatant* modelCombatant : allCombatants)
+            {
+                if(!modelCombatant)
+                    continue;
+                const QStringList conditionIds = modelCombatant->getConditionList();
+                for(const QString& conditionId : conditionIds)
+                {
+                    if((!conditionId.isEmpty()) && (!activeConditions->hasConditionDef(conditionId)) && (!orphanedIds.contains(conditionId)))
+                        orphanedIds.append(conditionId);
+                }
+            }
+            if(!orphanedIds.isEmpty())
+            {
+                QMessageBox::information(this,
+                                         QString("Unrecognized Conditions"),
+                                         QString("The following conditions assigned to combatants in this battle are not recognized in the current conditions file and will be ignored:") + QChar::LineFeed + QChar::LineFeed + orphanedIds.join(QString(", ")));
+            }
+        }
+
         QList<BattleDialogModelCombatant*> combatants = _model->getCombatantList();
         foreach(BattleDialogModelCombatant* combatant, combatants)
         {
