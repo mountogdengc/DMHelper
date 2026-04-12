@@ -201,6 +201,7 @@ set(DMHELPER_SOURCES
     layerscene.cpp
     layerseditdialog.cpp
     layertokens.cpp
+    layertokensdarkeneffect.cpp
     layervideo.cpp
     layervideoeffect.cpp
     layervideoeffectsettings.cpp
