@@ -4423,11 +4423,11 @@ void BattleFrame::reorderCombatantWidgets()
     }
 
     // Ensure member widgets are visible after reparenting into groups
-    QMapIterator<QUuid, CombatantGroupWidget*> git2(_groupWidgets);
-    while(git2.hasNext())
+    QMapIterator<QUuid, CombatantGroupWidget*> groupIt(_groupWidgets);
+    while(groupIt.hasNext())
     {
-        git2.next();
-        CombatantGroupWidget* groupWidget = git2.value();
+        groupIt.next();
+        CombatantGroupWidget* groupWidget = groupIt.value();
         if(groupWidget)
         {
             groupWidget->show();
