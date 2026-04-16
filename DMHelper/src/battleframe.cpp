@@ -188,6 +188,7 @@ BattleFrame::BattleFrame(QWidget *parent) :
 
     _combatantLayout = new QVBoxLayout;
     _combatantLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    _combatantLayout->setSpacing(1);
     ui->scrollAreaWidgetContents->setLayout(_combatantLayout);
 
     ui->scrollArea->setAcceptDrops(true);
@@ -1765,14 +1766,24 @@ bool BattleFrame::eventFilter(QObject *obj, QEvent *event)
 
     if(_model)
     {
+        // Resolve child widgets (QLabel, QLineEdit, etc.) up to the parent CombatantWidget
         CombatantWidget* widget = dynamic_cast<CombatantWidget*>(obj);
+        if(!widget)
+        {
+            QWidget* w = qobject_cast<QWidget*>(obj);
+            while(w && !widget)
+            {
+                w = w->parentWidget();
+                widget = dynamic_cast<CombatantWidget*>(w);
+            }
+        }
 
         if(widget)
         {
             if(event->type() == QEvent::MouseButtonPress)
             {
                 QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-                _mouseDownPos = mouseEvent->pos();
+                _mouseDownPos = mouseEvent->globalPosition().toPoint();
                 _mouseDown = true;
                 qDebug() << "[Battle Frame] combatant widget mouse down " << _mouseDownPos.x() << ", " << _mouseDownPos.y();
             }
@@ -1782,7 +1793,7 @@ bool BattleFrame::eventFilter(QObject *obj, QEvent *event)
                 {
                     // Mouse moved with button down on a combatant widget --> drag the widget order
                     QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-                    if((mouseEvent->pos() - _mouseDownPos).manhattanLength() > QApplication::startDragDistance())
+                    if((mouseEvent->globalPosition().toPoint() - _mouseDownPos).manhattanLength() > QApplication::startDragDistance())
                     {
                         BattleDialogModelCombatant* combatant = _combatantWidgets.key(widget, nullptr);
                         if(combatant)
@@ -4239,7 +4250,7 @@ CombatantWidget* BattleFrame::createCombatantWidget(BattleDialogModelCombatant* 
 
     if(newWidget)
     {
-        newWidget->installEventFilter(this);
+        newWidget->installEventFilterRecursive(this);
         _combatantWidgets.insert(combatant, newWidget);
     }
 

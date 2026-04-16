@@ -19,12 +19,6 @@
   <property name="styleSheet">
    <string notr="true">background-image: url(:/img/data/parchment.jpg);</string>
   </property>
-  <property name="frameShape">
-   <enum>QFrame::Shape::Panel</enum>
-  </property>
-  <property name="frameShadow">
-   <enum>QFrame::Shadow::Raised</enum>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
     <number>0</number>
