@@ -28,6 +28,8 @@ public:
 
     virtual void disconnectInternals() = 0;
 
+    void installEventFilterRecursive(QObject* filterObj);
+
 signals:
 
     void contextMenu(BattleDialogModelCombatant* combatant, const QPoint& position);

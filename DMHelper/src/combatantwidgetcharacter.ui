@@ -6,15 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>276</width>
-    <height>58</height>
+    <width>341</width>
+    <height>51</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string/>
@@ -22,11 +16,8 @@
   <property name="styleSheet">
    <string notr="true">background-image: url(:/img/data/parchment.jpg);</string>
   </property>
-  <property name="frameShape">
-   <enum>QFrame::Panel</enum>
-  </property>
-  <property name="frameShadow">
-   <enum>QFrame::Raised</enum>
+  <property name="lineWidth">
+   <number>0</number>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_5">
    <property name="spacing">
@@ -36,13 +27,13 @@
     <number>2</number>
    </property>
    <property name="topMargin">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="rightMargin">
     <number>2</number>
    </property>
    <property name="bottomMargin">
-    <number>2</number>
+    <number>1</number>
    </property>
    <item>
     <widget class="QLabel" name="lblIcon">
@@ -55,23 +46,23 @@
      <property name="minimumSize">
       <size>
        <width>32</width>
-       <height>50</height>
+       <height>40</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>32</width>
-       <height>50</height>
+       <height>40</height>
       </size>
      </property>
      <property name="styleSheet">
       <string notr="true">background-image: url();</string>
      </property>
      <property name="frameShape">
-      <enum>QFrame::Panel</enum>
+      <enum>QFrame::Shape::Panel</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+      <enum>QFrame::Shadow::Raised</enum>
      </property>
      <property name="text">
       <string/>
@@ -80,7 +71,7 @@
       <bool>false</bool>
      </property>
      <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
    </item>
@@ -142,7 +133,7 @@
           <bool>false</bool>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -221,7 +212,7 @@ background-color: rgba(0, 0, 0, 0);</string>
           <bool>false</bool>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -297,7 +288,7 @@ background-color: rgba(0, 0, 0, 0);</string>
           <string>AC:</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -320,7 +311,7 @@ background-color: rgba(0, 0, 0, 0);</string>
           <string>0</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
          <property name="readOnly">
           <bool>true</bool>
@@ -396,17 +387,17 @@ background-color: rgba(0, 0, 0, 0);</string>
           <string>0</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::MinimumExpanding</enum>
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -478,17 +469,17 @@ background-color: rgba(0, 0, 0, 0);</string>
           <string>0</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::MinimumExpanding</enum>
+          <enum>QSizePolicy::Policy::MinimumExpanding</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -560,7 +551,7 @@ background-color: rgba(0, 0, 0, 0);</string>
           <string>0</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignCenter</set>
          </property>
         </widget>
        </item>
@@ -610,7 +601,7 @@ background-color: rgba(0, 0, 0, 0);</string>
       <bool>true</bool>
      </property>
      <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <set>Qt::AlignmentFlag::AlignCenter</set>
      </property>
     </widget>
    </item>
