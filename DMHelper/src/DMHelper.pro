@@ -885,6 +885,6 @@ unix:!macx {
     INCLUDEPATH += /usr/include
     INCLUDEPATH += /usr/include/vlc
     LIBS += -lvlc
-    QMAKE_RPATHDIR += $ORIGIN/lib
+    QMAKE_LFLAGS += -Wl,-rpath,\'\$$ORIGIN/lib\'
 }
 

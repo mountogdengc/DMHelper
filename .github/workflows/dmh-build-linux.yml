@@ -79,10 +79,6 @@ jobs:
         cp DMHelper/src/data/dmhelper.png AppDir/usr/share/icons/hicolor/256x256/apps/DMHelper.png
         cp DMHelper/src/data/dmhelper.png AppDir/DMHelper.png
 
-        # Copy AppRun
-        cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
-        chmod +x AppDir/AppRun
-
     - name: Download linuxdeploy
       run: |
         wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
@@ -93,13 +89,22 @@ jobs:
     - name: Create AppImage
       run: |
         export QMAKE=$(which qmake)
+        # Run linuxdeploy to bundle Qt libs and plugins (without producing final AppImage yet)
         ./linuxdeploy-x86_64.AppImage \
           --appdir AppDir \
           --plugin qt \
-          --output appimage \
           --desktop-file AppDir/DMHelper.desktop \
           --icon-file AppDir/DMHelper.png \
           --executable AppDir/usr/bin/DMHelper
+
+        # Replace linuxdeploy's AppRun with our custom one that sets VLC_PLUGIN_PATH
+        cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
+        chmod +x AppDir/AppRun
+
+        # Now produce the final AppImage
+        ./linuxdeploy-x86_64.AppImage \
+          --appdir AppDir \
+          --output appimage
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v4
