@@ -836,6 +836,17 @@ macx:CONFIG(release, debug|release) {
     DEFINES += NDEBUG       # ensure to turn off assert
 }
 
+unix:!macx:CONFIG(debug, debug|release) {
+    message("Linux Debug build detected")
+    QMAKE_CXXFLAGS += -g
+}
+
+unix:!macx:CONFIG(release, debug|release) {
+    message("Linux Release build detected")
+    QMAKE_CXXFLAGS += -O2
+    DEFINES += NDEBUG
+}
+
 # link to libvlc
 win32 {
     contains(QT_ARCH, i386) {
@@ -868,5 +879,12 @@ macx {
     MediaFiles.files += vlcMac/libvlccore.dylib
     MediaFiles.path = Contents/Frameworks
     QMAKE_BUNDLE_DATA += MediaFiles
+}
+unix:!macx {
+    message("Linux 64-bit VLC")
+    INCLUDEPATH += /usr/include
+    INCLUDEPATH += /usr/include/vlc
+    LIBS += -lvlc
+    QMAKE_RPATHDIR += $ORIGIN/lib
 }
 
