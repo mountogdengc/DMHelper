@@ -18,7 +18,7 @@ class BattleDialogLogger;
 class Grid;
 class GridConfig;
 class GridSizer;
-class Characterv2;
+#include "characterv2.h"
 class Map;
 class QTimer;
 class CameraRect;
