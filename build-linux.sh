@@ -30,5 +30,11 @@ cd build-release
 qmake6 "$REPO_ROOT/DMHelper/src/DMHelper.pro" CONFIG+=release
 make -j$(nproc)
 
+echo "=== Deploying resources ==="
+cp -r "$REPO_ROOT/DMHelper/src/resources" .
+cp -r "$REPO_ROOT/DMHelper/src/doc" .
+# Bestiary files go in resources/ where getAbsoluteTemplateFile() looks
+cp "$REPO_ROOT/DMHelper/src/bestiary/"*.xml resources/
+
 echo "=== Build complete! ==="
 echo "Run with: $(pwd)/DMHelper"

@@ -55,6 +55,7 @@ private slots:
 
 private:
     QMediaPlayer* _player;
+    QAudioOutput* _audioOutput;
     AudioTrack* _currentTrack;
 };
 

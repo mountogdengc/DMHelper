@@ -9,17 +9,18 @@
 AudioPlayer::AudioPlayer(QObject *parent) :
     QObject(parent),
     _player(nullptr),
+    _audioOutput(nullptr),
     _currentTrack(nullptr)
 {
     _player = new QMediaPlayer(this);
     _player->setLoops(QMediaPlayer::Infinite);
 
-    QAudioOutput audioOutput;
-    _player->setAudioOutput(&audioOutput);
+    _audioOutput = new QAudioOutput(this);
+    _player->setAudioOutput(_audioOutput);
 
     connect(_player, &QMediaPlayer::positionChanged, this, &AudioPlayer::handlePositionChanged);
     connect(_player, &QMediaPlayer::durationChanged, this, &AudioPlayer::handleDurationChanged);
-    connect(&audioOutput, &QAudioOutput::volumeChanged, this, &AudioPlayer::handleVolumeChanged);
+    connect(_audioOutput, &QAudioOutput::volumeChanged, this, &AudioPlayer::handleVolumeChanged);
     connect(_player, &QMediaPlayer::mediaStatusChanged, this, &AudioPlayer::playerStatusChanged);
     connect(_player, &QMediaPlayer::sourceChanged, this, &AudioPlayer::handleSourceChanged);
     connect(_player, &QMediaPlayer::playbackStateChanged, this, &AudioPlayer::handleStateChanged);
