@@ -46,9 +46,12 @@ protected slots:
     void handleAdvantageClicked(bool checked);
     void handleDisadvantageClicked(bool checked);
     void handleCombatantActive(bool active);
+    void handleEditConditions();
+    void handleConditionsChanged(BattleDialogModelCombatant* combatant);
 
 private:
     void setCombatantValues();
+    void updateConditionIcons();
 
     Ui::BattleCombatantWidget *ui;
 

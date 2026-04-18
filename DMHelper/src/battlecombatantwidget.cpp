@@ -1,8 +1,12 @@
 #include "battlecombatantwidget.h"
 #include "ui_battlecombatantwidget.h"
 #include "battledialogmodel.h"
+#include "conditionseditdialog.h"
 #include <QIntValidator>
+#include <QLabel>
 #include <QMouseEvent>
+#include <QPixmap>
+#include <QSpacerItem>
 
 BattleCombatantWidget::BattleCombatantWidget(BattleDialogModelCombatant* combatant, QWidget *parent) :
     QWidget(parent),
@@ -21,6 +25,10 @@ BattleCombatantWidget::BattleCombatantWidget(BattleDialogModelCombatant* combata
     connect(ui->btnAdvantage, SIGNAL(clicked(bool)), this, SLOT(handleAdvantageClicked(bool)));
     connect(ui->btnDisadvantage, SIGNAL(clicked(bool)), this, SLOT(handleDisadvantageClicked(bool)));
     connect(ui->chkActive, SIGNAL(toggled(bool)), this, SLOT(handleCombatantActive(bool)));
+    connect(ui->btnConditions, &QAbstractButton::clicked, this, &BattleCombatantWidget::handleEditConditions);
+
+    if(_combatant)
+        connect(_combatant, &BattleDialogModelCombatant::conditionsChanged, this, &BattleCombatantWidget::handleConditionsChanged);
 }
 
 BattleCombatantWidget::~BattleCombatantWidget()
@@ -156,6 +164,33 @@ void BattleCombatantWidget::handleCombatantActive(bool active)
     ui->edtResult->setEnabled(active);
     ui->btnAdvantage->setEnabled(active);
     ui->btnDisadvantage->setEnabled(active);
+    ui->btnConditions->setEnabled(active);
+    ui->frameConditions->setEnabled(active);
+}
+
+void BattleCombatantWidget::handleEditConditions()
+{
+    if(!_combatant)
+        return;
+
+    ConditionsEditDialog dlg(this);
+    dlg.setConditions(_combatant->getConditions());
+    if(dlg.exec() != QDialog::Accepted)
+        return;
+
+    if(dlg.getConditions() == _combatant->getConditions())
+        return;
+
+    _combatant->setConditions(dlg.getConditions());
+    emit combatantChanged(_combatant);
+}
+
+void BattleCombatantWidget::handleConditionsChanged(BattleDialogModelCombatant* combatant)
+{
+    if(combatant != _combatant)
+        return;
+
+    updateConditionIcons();
 }
 
 void BattleCombatantWidget::setCombatantValues()
@@ -165,4 +200,42 @@ void BattleCombatantWidget::setCombatantValues()
 
     ui->edtName->setText(_combatant->getName());
     ui->edtHP->setText(QString::number(_combatant->getHitPoints()));
+    updateConditionIcons();
+}
+
+void BattleCombatantWidget::updateConditionIcons()
+{
+    QLayout* layout = ui->frameConditions->layout();
+    if(!layout)
+        return;
+
+    while(QLayoutItem* item = layout->takeAt(0))
+    {
+        if(QWidget* w = item->widget())
+            w->deleteLater();
+        delete item;
+    }
+
+    const int iconSize = 18;
+    const int conditions = _combatant ? _combatant->getConditions() : 0;
+    for(int i = 0; i < Combatant::getConditionCount(); ++i)
+    {
+        const int condition = Combatant::getConditionByIndex(i);
+        if((condition == Combatant::Condition_None) || !(conditions & condition))
+            continue;
+
+        const QString iconName = Combatant::getConditionIcon(condition);
+        if(iconName.isEmpty())
+            continue;
+
+        QLabel* iconLabel = new QLabel(ui->frameConditions);
+        const QPixmap pixmap(QString(":/img/data/img/") + iconName + QString(".png"));
+        iconLabel->setPixmap(pixmap.scaled(iconSize, iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        iconLabel->setFixedSize(iconSize, iconSize);
+        iconLabel->setToolTip(Combatant::getConditionTitle(condition));
+        iconLabel->setStyleSheet(QString("background: transparent;"));
+        layout->addWidget(iconLabel);
+    }
+
+    layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum));
 }
