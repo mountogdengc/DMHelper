@@ -1,5 +1,6 @@
 #include "videoplayerglscreenshot.h"
 #include "videoplayerglvideo.h"
+#include <vlc/libvlc_version.h>
 #include "dmhcache.h"
 #include <QImage>
 #include <QImageReader>
@@ -220,6 +221,7 @@ bool VideoPlayerGLScreenshot::startPlayer()
 
     libvlc_audio_set_volume(_vlcPlayer, 0);
 
+#if LIBVLC_VERSION_MAJOR >= 4
     libvlc_video_set_output_callbacks(_vlcPlayer,
                                       libvlc_video_engine_opengl,
                                       VideoPlayerGLVideo::setup,
@@ -232,6 +234,9 @@ bool VideoPlayerGLScreenshot::startPlayer()
                                       nullptr,
                                       nullptr,
                                       _video);
+#else
+    qDebug() << "[VideoPlayerGLScreenshot] VLC GL output callbacks not available (VLC < 4.0)";
+#endif
 
     libvlc_media_player_play(_vlcPlayer);
     emit contextReady(nullptr);
