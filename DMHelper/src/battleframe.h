@@ -8,26 +8,27 @@
 #include "battleframemapdrawer.h"
 #include "battleframestatemachine.h"
 
-class BattleDialogModelCombatant;
+#include "characterv2.h"
+#include "battledialogmodelcombatant.h"
+#include "battledialogmodel.h"
+#include "layer.h"
+#include "publishglrenderer.h"
+
 class CombatantWidget;
 class CombatantDialog;
 class QVBoxLayout;
 class EncounterBattle;
-class BattleDialogModel;
 class BattleDialogLogger;
 class Grid;
 class GridConfig;
 class GridSizer;
-#include "characterv2.h"
 class Map;
 class QTimer;
 class CameraRect;
 class BattleCombatantFrame;
 class UnselectedPixmap;
 class CombatantRolloverFrame;
-class PublishGLRenderer;
 class PublishGLBattleRenderer;
-class Layer;
 class LayerTokens;
 
 namespace Ui {
