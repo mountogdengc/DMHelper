@@ -62,7 +62,7 @@ int AudioTrackFile::getTrackStatus() const
 
 bool AudioTrackFile::isPlaying() const
 {
-    return ((_player) && (_player->isPlaying()));
+    return ((_player) && (_player->playbackState() == QMediaPlayer::PlayingState));
 }
 
 bool AudioTrackFile::isRepeat() const
@@ -84,7 +84,7 @@ void AudioTrackFile::play()
 {
     if(_player)
     {
-        if(!_player->isPlaying())
+        if(_player->playbackState() != QMediaPlayer::PlayingState)
             _player->play();
         return;
     }
