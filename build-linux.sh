@@ -20,12 +20,14 @@ sudo apt-get install -y \
   libgl1-mesa-dev \
   build-essential
 
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
 echo "=== Building DMHelper ==="
-cd "$(dirname "$0")/DMHelper"
+cd "$REPO_ROOT"
 rm -rf build-release
 mkdir build-release
 cd build-release
-qmake6 ../src/DMHelper.pro CONFIG+=release
+qmake6 "$REPO_ROOT/DMHelper/src/DMHelper.pro" CONFIG+=release
 make -j$(nproc)
 
 echo "=== Build complete! ==="
