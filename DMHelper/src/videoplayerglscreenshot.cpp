@@ -248,7 +248,7 @@ bool VideoPlayerGLScreenshot::stopPlayer(bool restart)
     _framesReceived = SCREENSHOT_USE_FRAME;
 
     if(_vlcPlayer)
-        libvlc_media_player_stop_async(_vlcPlayer);
+        libvlc_media_player_stop(_vlcPlayer);
 
     return true;
 }

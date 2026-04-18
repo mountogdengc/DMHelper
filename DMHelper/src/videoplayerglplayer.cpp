@@ -572,7 +572,7 @@ bool VideoPlayerGLPlayer::stopPlayer(bool restart)
     _selfRestart = restart;
 
     if(_vlcPlayer)
-        libvlc_media_player_stop_async(_vlcPlayer);
+        libvlc_media_player_stop(_vlcPlayer);
 
     return true;
 }
