@@ -1,6 +1,8 @@
 #include "audiotrackyoutube.h"
 #include "dmconstants.h"
 #include "dmversion.h"
+#include <QDomDocument>
+#include <QDomElement>
 #include <QMessageBox>
 #include <QIcon>
 #include <QDebug>
