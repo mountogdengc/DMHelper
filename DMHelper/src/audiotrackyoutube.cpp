@@ -218,20 +218,23 @@ void AudioTrackYoutube::internalOutputXML(QDomDocument &doc, QDomElement &elemen
 
 void AudioTrackYoutube::findDirectUrl(const QString& youtubeId)
 {
+    Q_UNUSED(youtubeId);
+
     if(isPlaying())
         return;
 
     if(_ytdlpProcess)
         return;
 
-    QString youtubeUrl = QString("https://www.youtube.com/watch?v=%1").arg(youtubeId);
+    // Pass the original URL directly to yt-dlp — it handles all YouTube URL formats
+    QString youtubeUrl = _url.toString();
     qDebug() << "[AudioTrackYoutube] Resolving YouTube URL via yt-dlp:" << youtubeUrl;
 
     _ytdlpProcess = new QProcess(this);
     connect(_ytdlpProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &AudioTrackYoutube::ytdlpFinished);
 
-    _ytdlpProcess->start("yt-dlp", QStringList() << "--get-url" << "-f" << "best" << youtubeUrl);
+    _ytdlpProcess->start("yt-dlp", QStringList() << "--get-url" << "-f" << "b" << youtubeUrl);
 }
 
 void AudioTrackYoutube::timerEvent(QTimerEvent *event)
