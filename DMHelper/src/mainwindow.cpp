@@ -590,6 +590,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(_ribbonTabBattleMap, SIGNAL(brushSizeChanged(int)), mapDrawer, SLOT(setSize(int)));
     connect(_ribbonTabBattleMap, SIGNAL(fillFoWClicked()), mapDrawer, SLOT(fillFoW()));
     connect(_ribbonTabBattleMap, SIGNAL(brushModeChanged(int)), mapDrawer, SLOT(setBrushMode(int)));
+    connect(_ribbonTabBattleMap, &RibbonTabBattleMap::drawWallsClicked, _battleFrame, &BattleFrame::setWallDrawMode);
 
     connect(this, SIGNAL(cancelSelect()), _battleFrame, SLOT(cancelSelect()));
 

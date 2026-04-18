@@ -38,6 +38,7 @@ public slots:
     void setSmooth(bool checked);
     void setBrushSize(int size);
     void setSelectFoW(bool checked);
+    void setDrawWalls(bool checked);
 
 signals:
     void reloadMapClicked();
@@ -61,6 +62,7 @@ signals:
     void brushSizeChanged(int size);
     void selectFoWClicked(bool checked);
     void fillFoWClicked();
+    void drawWallsClicked(bool checked);
 
 protected:
     virtual void showEvent(QShowEvent *event) override;

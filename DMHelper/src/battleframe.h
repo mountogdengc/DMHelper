@@ -167,7 +167,8 @@ public slots:
     void setHeight(qreal height);
 
     void setFoWEdit(bool enabled);
-    void setFoWSelect(bool enabled);   
+    void setFoWSelect(bool enabled);
+    void setWallDrawMode(bool enabled);
 
     void setPointerOn(bool enabled);
     void showStatistics();

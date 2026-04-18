@@ -54,6 +54,7 @@ RibbonTabBattleMap::RibbonTabBattleMap(QWidget *parent) :
     connect(ui->spinSize, SIGNAL(valueChanged(int)), this, SIGNAL(brushSizeChanged(int)));
     connect(ui->btnBrushSelect, SIGNAL(clicked(bool)), this, SIGNAL(selectFoWClicked(bool)));
     connect(ui->btnFillFoW, SIGNAL(clicked(bool)), this, SIGNAL(fillFoWClicked()));
+    connect(ui->btnDrawWalls, SIGNAL(clicked(bool)), this, SIGNAL(drawWallsClicked(bool)));
 
     // Set up the brush mode button group
     ui->btnGrpBrush->setId(ui->btnBrushCircle, DMHelper::BrushType_Circle);
@@ -171,6 +172,12 @@ void RibbonTabBattleMap::setSelectFoW(bool checked)
     ui->btnBrushSelect->setChecked(checked);
 }
 
+void RibbonTabBattleMap::setDrawWalls(bool checked)
+{
+    if(ui->btnDrawWalls->isChecked() != checked)
+        ui->btnDrawWalls->setChecked(checked);
+}
+
 void RibbonTabBattleMap::showEvent(QShowEvent *event)
 {
     RibbonFrame::showEvent(event);
@@ -190,6 +197,8 @@ void RibbonTabBattleMap::showEvent(QShowEvent *event)
 
     setStandardButtonSize(*ui->lblBrushSelect, *ui->btnBrushSelect, frameHeight);
     setStandardButtonSize(*ui->lblFillFoW, *ui->btnFillFoW, frameHeight);
+    setLineHeight(*ui->line_walls, frameHeight);
+    setStandardButtonSize(*ui->lblDrawWalls, *ui->btnDrawWalls, frameHeight);
 
     setLineHeight(*ui->line_4, frameHeight);
     setLineHeight(*ui->line_5, frameHeight);

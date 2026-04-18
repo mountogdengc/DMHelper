@@ -1635,6 +1635,23 @@ void BattleFrame::setFoWSelect(bool enabled)
     _stateMachine.toggleState(DMHelper::BattleFrameState_FoWSelect);
 }
 
+void BattleFrame::setWallDrawMode(bool enabled)
+{
+    if(!_mapDrawer)
+        return;
+
+    _mapDrawer->setDrawMode(enabled ? BattleFrameMapDrawer::DrawMode_Walls
+                                    : BattleFrameMapDrawer::DrawMode_Fow);
+    if(_scene)
+        _mapDrawer->setPreviewScene(_scene);
+
+    // Wall drawing requires map-edit mode to be active so mouse events reach
+    // the drawer. Turning the tool on while not in FoW edit enters it; turning
+    // the tool off leaves FoW edit alone so the user can go back to painting.
+    if(enabled && (_stateMachine.getCurrentStateId() != DMHelper::BattleFrameState_FoWEdit))
+        _stateMachine.toggleState(DMHelper::BattleFrameState_FoWEdit);
+}
+
 void BattleFrame::setPointerOn(bool enabled)
 {
     Q_UNUSED(enabled);

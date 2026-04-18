@@ -4,9 +4,15 @@
 #include "undofowshape.h"
 #include "map.h"
 #include "layerfow.h"
+#include "layerwalls.h"
+#include "layerscene.h"
 #include <QPixmap>
 #include <QPainter>
 #include <QMessageBox>
+#include <QGraphicsLineItem>
+#include <QGraphicsScene>
+#include <QLineF>
+#include <QPen>
 
 BattleFrameMapDrawer::BattleFrameMapDrawer(QObject *parent) :
     QObject(parent),
@@ -22,8 +28,12 @@ BattleFrameMapDrawer::BattleFrameMapDrawer(QObject *parent) :
     _size(10),
     _erase(true),
     _smooth(true),
-    _brushMode(DMHelper::BrushType_Circle)
-
+    _brushMode(DMHelper::BrushType_Circle),
+    _drawMode(DrawMode_Fow),
+    _wallDragActive(false),
+    _wallStart(),
+    _wallPreview(nullptr),
+    _wallPreviewScene(nullptr)
 {
     createCursor();
 }
@@ -58,19 +68,65 @@ LayerScene* BattleFrameMapDrawer::getScene() const
     return _scene;
 }
 
+void BattleFrameMapDrawer::setPreviewScene(QGraphicsScene* scene)
+{
+    _wallPreviewScene = scene;
+}
+
 const QCursor& BattleFrameMapDrawer::getCursor() const
 {
     return _cursor;
 }
 
+BattleFrameMapDrawer::DrawMode BattleFrameMapDrawer::getDrawMode() const
+{
+    return _drawMode;
+}
+
+void BattleFrameMapDrawer::setDrawMode(DrawMode mode)
+{
+    if(_drawMode == mode)
+        return;
+
+    cancelWallInProgress();
+    _drawMode = mode;
+}
+
+void BattleFrameMapDrawer::cancelWallInProgress()
+{
+    _wallDragActive = false;
+    clearWallPreview();
+}
+
 void BattleFrameMapDrawer::handleMouseDown(const QPointF& pos)
 {
-    //if((!_map) || (!_fow) || (!_glFow))
-    //    return;
-
     if(!_scene)
         return;
 
+    if(_drawMode == DrawMode_Walls)
+        handleWallMouseDown(pos);
+    else
+        handleFowMouseDown(pos);
+}
+
+void BattleFrameMapDrawer::handleMouseMoved(const QPointF& pos)
+{
+    if(_drawMode == DrawMode_Walls)
+        handleWallMouseMoved(pos);
+    else
+        handleFowMouseMoved(pos);
+}
+
+void BattleFrameMapDrawer::handleMouseUp(const QPointF& pos)
+{
+    if(_drawMode == DrawMode_Walls)
+        handleWallMouseUp(pos);
+    else
+        handleFowMouseUp(pos);
+}
+
+void BattleFrameMapDrawer::handleFowMouseDown(const QPointF& pos)
+{
     _mouseDownPos = pos;
     _mouseDown = true;
 
@@ -81,41 +137,102 @@ void BattleFrameMapDrawer::handleMouseDown(const QPointF& pos)
     {
         _undoPath = new UndoFowPath(layer, MapDrawPath(_gridScale * _size / 10, _brushMode, _erase, _smooth, pos.toPoint() - layer->getPosition()));
         layer->getUndoStack()->push(_undoPath);
-        //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-        //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-        //emit fowEdited(*_fow);
         emit dirty();
     }
-
-    //_undoPath = new UndoFowPath(_map, MapDrawPath(_gridScale * _size / 10, _brushMode, _erase, _smooth, pos.toPoint()));
-    //_map->getUndoStack()->push(_undoPath);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-    //emit fowEdited(*_fow);
 }
 
-void BattleFrameMapDrawer::handleMouseMoved(const QPointF& pos)
+void BattleFrameMapDrawer::handleFowMouseMoved(const QPointF& pos)
 {
-    //if((!_map) || (!_undoPath) || (!_fow) || (!_glFow))
-
     if((!_undoPath) || (!_undoPath->getLayer()))
         return;
 
     _undoPath->addPoint(pos.toPoint() - _undoPath->getLayer()->getPosition());
-    // TODO: Layers
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-    //emit fowEdited(*_fow);
     emit dirty();
 }
 
-void BattleFrameMapDrawer::handleMouseUp(const QPointF& pos)
+void BattleFrameMapDrawer::handleFowMouseUp(const QPointF& pos)
 {
     Q_UNUSED(pos);
-    //if(_glFow)
-    //    emit fowChanged(*_glFow);
     endPath();
     emit dirty();
+}
+
+void BattleFrameMapDrawer::handleWallMouseDown(const QPointF& pos)
+{
+    LayerWalls* wallsLayer = dynamic_cast<LayerWalls*>(
+        _scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Walls));
+    if(!wallsLayer)
+        return;
+
+    _wallDragActive = true;
+    _wallStart = pos;
+
+    // Rubber-band preview: create a translucent line on the same QGraphicsScene
+    // used by the battle view. We look it up lazily through any existing
+    // graphics item on the scene.
+    clearWallPreview();
+    QGraphicsScene* gs = _wallPreviewScene;
+    if(gs)
+    {
+        QPen previewPen(wallsLayer->wallColor());
+        previewPen.setStyle(Qt::DashLine);
+        previewPen.setWidthF(wallsLayer->wallThickness());
+        previewPen.setCosmetic(true);
+        _wallPreview = gs->addLine(QLineF(pos, pos), previewPen);
+        if(_wallPreview)
+            _wallPreview->setZValue(1e6); // keep on top while dragging
+    }
+}
+
+void BattleFrameMapDrawer::handleWallMouseMoved(const QPointF& pos)
+{
+    if(!_wallDragActive)
+        return;
+
+    if(_wallPreview)
+        _wallPreview->setLine(QLineF(_wallStart, pos));
+}
+
+void BattleFrameMapDrawer::handleWallMouseUp(const QPointF& pos)
+{
+    if(!_wallDragActive)
+        return;
+
+    LayerWalls* wallsLayer = dynamic_cast<LayerWalls*>(
+        _scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Walls));
+    if(!wallsLayer)
+    {
+        _wallDragActive = false;
+        clearWallPreview();
+        return;
+    }
+
+    QLineF segment(_wallStart - QPointF(wallsLayer->getPosition()),
+                   pos - QPointF(wallsLayer->getPosition()));
+
+    // Ignore zero-length or accidental sub-pixel drags (e.g. click without drag).
+    constexpr qreal kMinWallLength = 3.0;
+    if(segment.length() >= kMinWallLength)
+    {
+        wallsLayer->addWall(segment);
+        emit dirty();
+    }
+
+    _wallDragActive = false;
+    clearWallPreview();
+}
+
+void BattleFrameMapDrawer::clearWallPreview()
+{
+    if(_wallPreview)
+    {
+        if(_wallPreview->scene())
+            _wallPreview->scene()->removeItem(_wallPreview);
+        delete _wallPreview;
+        _wallPreview = nullptr;
+    }
+    // Intentionally retain _wallPreviewScene — the scene outlives any single
+    // drag and is what the next handleWallMouseDown needs to draw its preview.
 }
 
 void BattleFrameMapDrawer::drawRect(const QRect& rect)

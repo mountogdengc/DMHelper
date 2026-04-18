@@ -3,14 +3,23 @@
 
 #include <QObject>
 #include <QCursor>
+#include <QPointF>
 
 class UndoFowPath;
 class LayerScene;
+class QGraphicsLineItem;
+class QGraphicsScene;
 
 class BattleFrameMapDrawer : public QObject
 {
     Q_OBJECT
 public:
+    enum DrawMode
+    {
+        DrawMode_Fow = 0,
+        DrawMode_Walls
+    };
+
     explicit BattleFrameMapDrawer(QObject *parent = nullptr);
 
     //void setMap(Map* map, QPixmap* fow, QImage* glFow);
@@ -18,6 +27,12 @@ public:
     void setScene(LayerScene* scene);
     LayerScene* getScene() const;
     const QCursor& getCursor() const;
+
+    // Optional: graphics scene used for the wall rubber-band preview.
+    // If nullptr, wall drawing still works but with no live preview.
+    void setPreviewScene(QGraphicsScene* scene);
+
+    DrawMode getDrawMode() const;
 
 signals:
     //void fowEdited(const QPixmap& fow);
@@ -41,10 +56,22 @@ public slots:
     void setSmooth(bool smooth);
     void setBrushMode(int brushMode);
 
+    void setDrawMode(DrawMode mode);
+    void cancelWallInProgress();
+
 private:
 
     void endPath();
     void createCursor();
+
+    // Wall-drawing helpers
+    void handleFowMouseDown(const QPointF& pos);
+    void handleFowMouseMoved(const QPointF& pos);
+    void handleFowMouseUp(const QPointF& pos);
+    void handleWallMouseDown(const QPointF& pos);
+    void handleWallMouseMoved(const QPointF& pos);
+    void handleWallMouseUp(const QPointF& pos);
+    void clearWallPreview();
 
     bool _mouseDown;
     QPointF _mouseDownPos;
@@ -61,6 +88,14 @@ private:
     bool _erase;
     bool _smooth;
     int _brushMode;
+
+    DrawMode _drawMode;
+
+    // Wall drag state
+    bool _wallDragActive;
+    QPointF _wallStart;
+    QGraphicsLineItem* _wallPreview;
+    QGraphicsScene* _wallPreviewScene;
 };
 
 #endif // BATTLEFRAMEMAPDRAWER_H
