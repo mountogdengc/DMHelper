@@ -110,8 +110,7 @@ void AudioTrackFile::play()
     }
 
     fileString = fileInfo.canonicalFilePath();
-    QUrl url = QUrl(fileString);
-    url.setScheme(QString("file"));
+    QUrl url = QUrl::fromLocalFile(fileString);
     _player = new QMediaPlayer(this);
     _player->setLoops(_repeat ? QMediaPlayer::Infinite : 1);
 
