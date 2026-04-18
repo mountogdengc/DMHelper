@@ -2,11 +2,12 @@
 #include "audiotrack.h"
 #include "dmconstants.h"
 
-SoundboardTrack::SoundboardTrack(AudioTrack* track, int volume, bool mute, QObject *parent):
+SoundboardTrack::SoundboardTrack(AudioTrack* track, int volume, bool mute, PlaybackMode mode, QObject *parent):
     QObject{parent},
     _track{track},
     _volume{volume},
-    _mute{mute}
+    _mute{mute},
+    _playbackMode{mode}
 {
     if(_track)
     {
@@ -42,6 +43,11 @@ bool SoundboardTrack::getMute() const
     return _mute;
 }
 
+SoundboardTrack::PlaybackMode SoundboardTrack::getPlaybackMode() const
+{
+    return _playbackMode;
+}
+
 QString SoundboardTrack::getTrackName() const
 {
     if(!_track)
@@ -61,7 +67,10 @@ QString SoundboardTrack::getTrackDetails() const
 void SoundboardTrack::play()
 {
     if(_track)
+    {
+        _track->setRepeat(_playbackMode == PlaybackMode_Loop);
         _track->play();
+    }
 }
 
 void SoundboardTrack::stop()
@@ -95,4 +104,17 @@ void SoundboardTrack::setMute(bool mute)
 
     if(_track)
         _track->setMute(mute);
+}
+
+void SoundboardTrack::setPlaybackMode(int mode)
+{
+    PlaybackMode newMode = (mode == PlaybackMode_OneShot) ? PlaybackMode_OneShot : PlaybackMode_Loop;
+    if(_playbackMode == newMode)
+        return;
+
+    _playbackMode = newMode;
+    emit playbackModeChanged(newMode);
+
+    if(_track)
+        _track->setRepeat(_playbackMode == PlaybackMode_Loop);
 }

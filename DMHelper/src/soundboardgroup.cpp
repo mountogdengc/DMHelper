@@ -7,18 +7,22 @@
 
 SoundboardGroup::SoundboardGroup(const QString& groupName, QObject *parent) :
     QObject(parent),
+    _id(QUuid::createUuid()),
     _groupName(groupName),
     _volume(100),
     _mute(false),
+    _role(GroupRole_Mixed),
     _tracks()
 {
 }
 
 SoundboardGroup::SoundboardGroup(Campaign& campaign, const QDomElement& element, bool isImport) :
     QObject(nullptr),
+    _id(),
     _groupName(),
     _volume(100),
     _mute(false),
+    _role(GroupRole_Mixed),
     _tracks()
 {
     internalPostProcessXML(campaign, element, isImport);
@@ -35,9 +39,11 @@ void SoundboardGroup::outputXML(QDomDocument &doc, QDomElement &element, QDir& t
     Q_UNUSED(targetDirectory);
     Q_UNUSED(isExport);
 
+    element.setAttribute("id", _id.toString());
     element.setAttribute("groupname", getGroupName());
     element.setAttribute("volume", getVolume());
     element.setAttribute("mute", getMute());
+    element.setAttribute("role", static_cast<int>(_role));
 
     for(SoundboardTrack* track : _tracks)
     {
@@ -47,9 +53,15 @@ void SoundboardGroup::outputXML(QDomDocument &doc, QDomElement &element, QDir& t
             trackElement.setAttribute("trackID", track->getTrack()->getID().toString());
             trackElement.setAttribute("volume", track->getVolume());
             trackElement.setAttribute("mute", track->getMute());
+            trackElement.setAttribute("playbackmode", static_cast<int>(track->getPlaybackMode()));
             element.appendChild(trackElement);
         }
     }
+}
+
+QUuid SoundboardGroup::getID() const
+{
+    return _id;
 }
 
 QString SoundboardGroup::getGroupName() const
@@ -65,6 +77,11 @@ int SoundboardGroup::getVolume() const
 bool SoundboardGroup::getMute() const
 {
     return _mute;
+}
+
+SoundboardGroup::GroupRole SoundboardGroup::getRole() const
+{
+    return _role;
 }
 
 QList<SoundboardTrack*> SoundboardGroup::getTracks() const
@@ -85,7 +102,7 @@ void SoundboardGroup::addTrack(AudioTrack* track)
     if(!track)
         return;
 
-    _tracks.append(new SoundboardTrack(track, 100, false, this));
+    _tracks.append(new SoundboardTrack(track, 100, false, SoundboardTrack::PlaybackMode_Loop, this));
 }
 
 void SoundboardGroup::removeTrack(SoundboardTrack* track)
@@ -124,13 +141,35 @@ void SoundboardGroup::setMute(bool mute)
     }
 }
 
+void SoundboardGroup::setRole(int role)
+{
+    GroupRole newRole = GroupRole_Mixed;
+    switch(role)
+    {
+        case GroupRole_Music:   newRole = GroupRole_Music;   break;
+        case GroupRole_Ambient: newRole = GroupRole_Ambient; break;
+        case GroupRole_SFX:     newRole = GroupRole_SFX;     break;
+        default:                newRole = GroupRole_Mixed;   break;
+    }
+
+    if(_role == newRole)
+        return;
+
+    _role = newRole;
+    emit roleChanged(static_cast<int>(_role));
+}
+
 void SoundboardGroup::internalPostProcessXML(Campaign& campaign, const QDomElement& element, bool isImport)
 {
     Q_UNUSED(isImport);
 
+    QUuid loadedId(element.attribute("id"));
+    _id = loadedId.isNull() ? QUuid::createUuid() : loadedId;
+
     _groupName = element.attribute("groupname");
     _volume = element.attribute("volume", QString("100")).toInt();
     _mute = static_cast<bool>(element.attribute("mute").toInt());
+    setRole(element.attribute("role", QString::number(static_cast<int>(GroupRole_Mixed))).toInt());
 
     QDomElement trackElement = element.firstChildElement("soundboardtrack");
     while(!trackElement.isNull())
@@ -141,7 +180,9 @@ void SoundboardGroup::internalPostProcessXML(Campaign& campaign, const QDomEleme
         {
             int volume = trackElement.attribute("volume", QString("100")).toInt();
             bool mute = static_cast<bool>(trackElement.attribute("mute").toInt());
-            addTrack(new SoundboardTrack(track, volume, mute, this));
+            int modeInt = trackElement.attribute("playbackmode", QString::number(static_cast<int>(SoundboardTrack::PlaybackMode_Loop))).toInt();
+            SoundboardTrack::PlaybackMode mode = (modeInt == SoundboardTrack::PlaybackMode_OneShot) ? SoundboardTrack::PlaybackMode_OneShot : SoundboardTrack::PlaybackMode_Loop;
+            addTrack(new SoundboardTrack(track, volume, mute, mode, this));
         }
 
         trackElement = trackElement.nextSiblingElement("soundboardtrack");

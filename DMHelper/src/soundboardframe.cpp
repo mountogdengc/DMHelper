@@ -23,7 +23,8 @@ SoundboardFrame::SoundboardFrame(QWidget *parent) :
     _groupList(),
     _mouseDown(false),
     _mouseDownPos(),
-    _campaign(nullptr)
+    _campaign(nullptr),
+    _mixer(nullptr)
 {
     ui->setupUi(this);
     _layout = new QVBoxLayout();
@@ -53,6 +54,19 @@ SoundboardFrame::SoundboardFrame(QWidget *parent) :
 SoundboardFrame::~SoundboardFrame()
 {
     delete ui;
+}
+
+void SoundboardFrame::setMixer(SoundboardMixer* mixer)
+{
+    _mixer = mixer;
+    for(int i = 0; i < _layout->count() - 1; ++i)
+    {
+        QLayoutItem* item = _layout->itemAt(i);
+        if(!item) continue;
+        SoundBoardGroupFrame* groupFrame = dynamic_cast<SoundBoardGroupFrame*>(item->widget());
+        if(groupFrame)
+            groupFrame->setMixer(_mixer.data());
+    }
 }
 
 void SoundboardFrame::setCampaign(Campaign* campaign)
@@ -269,6 +283,7 @@ void SoundboardFrame::addGroupToLayout(SoundboardGroup* group)
         return;
 
     SoundBoardGroupFrame* newGroupBox = new SoundBoardGroupFrame(group, _campaign);
+    newGroupBox->setMixer(_mixer.data());
     connect(newGroupBox, &SoundBoardGroupFrame::dirty, this, &SoundboardFrame::dirty);
     connect(newGroupBox, &SoundBoardGroupFrame::removeGroup, this, &SoundboardFrame::removeGroup);
     _layout->insertWidget(_layout->count() - 1, newGroupBox);

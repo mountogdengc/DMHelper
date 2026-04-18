@@ -2,6 +2,7 @@
 #define SOUNDBOARDFRAME_H
 
 #include <QFrame>
+#include <QPointer>
 
 namespace Ui {
 class SoundboardFrame;
@@ -11,6 +12,7 @@ class Campaign;
 class QVBoxLayout;
 class SoundBoardGroupFrame;
 class SoundboardGroup;
+class SoundboardMixer;
 class AudioTrack;
 class CampaignObjectBase;
 
@@ -21,6 +23,8 @@ class SoundboardFrame : public QFrame
 public:
     explicit SoundboardFrame(QWidget *parent = nullptr);
     ~SoundboardFrame();
+
+    void setMixer(SoundboardMixer* mixer);
 
 signals:
     void trackCreated(CampaignObjectBase* track);
@@ -56,6 +60,7 @@ private:
     bool _mouseDown;
     QPoint _mouseDownPos;
     Campaign* _campaign;
+    QPointer<SoundboardMixer> _mixer;
 };
 
 #endif // SOUNDBOARDFRAME_H

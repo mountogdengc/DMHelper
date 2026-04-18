@@ -35,6 +35,7 @@ OptionsContainer::OptionsContainer(QMainWindow *parent) :
     _logicalDPI(0.0),
     _pasteRich(false),
     _audioVolume(100),
+    _audioCrossfadeMs(2000),
     _initiativeType(DMHelper::InitiativeType_None),
     _initiativeScale(1.0),
     _combatantTokenType(DMHelper::CombatantTokenType_CharactersAndMonsters),
@@ -180,6 +181,11 @@ bool OptionsContainer::getPasteRich() const
 int OptionsContainer::getAudioVolume() const
 {
     return _audioVolume;
+}
+
+int OptionsContainer::getAudioCrossfadeMs() const
+{
+    return _audioCrossfadeMs;
 }
 
 int OptionsContainer::getInitiativeType() const
@@ -489,6 +495,7 @@ void OptionsContainer::readSettings()
     setFontSize(settings.value("fontSize", QVariant(defaultFontSize)).toInt());
     setPasteRich(settings.value("pasteRich", QVariant(false)).toBool());
     setAudioVolume(settings.value("audioVolume", QVariant(100)).toInt());
+    setAudioCrossfadeMs(settings.value("audioCrossfadeMs", QVariant(2000)).toInt());
     if(settings.contains("initiativeType"))
         setInitiativeType(settings.value("initiativeType", QVariant(0)).toInt());
     else
@@ -572,6 +579,7 @@ void OptionsContainer::writeSettings()
     settings.setValue("fontSize", getFontSize());
     settings.setValue("pasteRich", getPasteRich());
     settings.setValue("audioVolume", getAudioVolume());
+    settings.setValue("audioCrossfadeMs", getAudioCrossfadeMs());
     settings.setValue("initiativeType", getInitiativeType());
     settings.setValue("initiativeScale", getInitiativeScale());
     settings.setValue("combatantTokenType", getCombatantTokenType());
@@ -1108,6 +1116,18 @@ void OptionsContainer::setAudioVolume(int volume)
     {
         _audioVolume = volume;
         emit audioVolumeChanged(_audioVolume);
+    }
+}
+
+void OptionsContainer::setAudioCrossfadeMs(int ms)
+{
+    if(ms < 0) ms = 0;
+    if(ms > 30000) ms = 30000;
+
+    if(_audioCrossfadeMs != ms)
+    {
+        _audioCrossfadeMs = ms;
+        emit audioCrossfadeMsChanged(_audioCrossfadeMs);
     }
 }
 

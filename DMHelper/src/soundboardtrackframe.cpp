@@ -1,6 +1,7 @@
 #include "soundboardtrackframe.h"
 #include "ui_soundboardtrackframe.h"
 #include "soundboardtrack.h"
+#include "soundboardmixer.h"
 #include "audiotrack.h"
 #include "dmconstants.h"
 #include <QPainter>
@@ -13,15 +14,39 @@ SoundboardTrackFrame::SoundboardTrackFrame(SoundboardTrack* track, QWidget *pare
     _localMute(false),
     _currentMute(false),
     _trackLength("0:00"),
-    _trackPosition("0:00")
+    _trackPosition("0:00"),
+    _mixer(nullptr),
+    _parentGroup(nullptr)
 {
     ui->setupUi(this);
+
+    // btnRepeat now doubles as the Loop <-> OneShot toggle. Checked = Loop
+    // (the natural meaning of "repeat"), unchecked = OneShot.
+    ui->btnRepeat->setToolTip(tr("Loop (checked) or one-shot (unchecked) playback"));
+
     setTrack(track);
 
     connect(ui->btnMute, &QAbstractButton::clicked, this, &SoundboardTrackFrame::toggleMute);
     connect(ui->btnPlay, &QAbstractButton::toggled, this, &SoundboardTrackFrame::togglePlay);
     connect(ui->btnRepeat, &QAbstractButton::toggled, this, &SoundboardTrackFrame::repeatChanged);
+    connect(ui->btnRepeat, &QAbstractButton::toggled, this, &SoundboardTrackFrame::handlePlaybackModeToggle);
     connect(ui->btnRemove, &QAbstractButton::clicked, this, &SoundboardTrackFrame::handleRemove);
+}
+
+void SoundboardTrackFrame::setMixer(SoundboardMixer* mixer, SoundboardGroup* parentGroup)
+{
+    _mixer = mixer;
+    _parentGroup = parentGroup;
+}
+
+void SoundboardTrackFrame::handlePlaybackModeToggle(bool loopChecked)
+{
+    if(!_track)
+        return;
+
+    _track->setPlaybackMode(loopChecked
+        ? SoundboardTrack::PlaybackMode_Loop
+        : SoundboardTrack::PlaybackMode_OneShot);
 }
 
 SoundboardTrackFrame::~SoundboardTrackFrame()
@@ -150,9 +175,22 @@ void SoundboardTrackFrame::setTrack(SoundboardTrack* track)
     setToolTip(_track->getTrackDetails());
     ui->slideVolume->setValue(_track->getVolume());
     setMute(_track->getMute());
+    ui->btnRepeat->setChecked(_track->getPlaybackMode() == SoundboardTrack::PlaybackMode_Loop);
 
-    connect(this, &SoundboardTrackFrame::play, _track, &SoundboardTrack::play);
-    connect(this, &SoundboardTrackFrame::stop, _track, &SoundboardTrack::stop);
+    // Playback is routed through the mixer when one is installed (via
+    // setMixer) so crossfade and channel management work; otherwise fall
+    // back to the track's own direct play/stop.
+    connect(this, &SoundboardTrackFrame::play, this, [this]() {
+        if(!_track) return;
+        if(_mixer)
+            _mixer->playTrack(_track, _parentGroup.data());
+        else
+            _track->play();
+    });
+    connect(this, &SoundboardTrackFrame::stop, this, [this]() {
+        if(!_track) return;
+        _track->stop();
+    });
     connect(this, &SoundboardTrackFrame::muteChanged, _track, &SoundboardTrack::setMute);
     connect(ui->slideVolume, &QAbstractSlider::valueChanged, _track, &SoundboardTrack::setVolume);
     connect(_track, &SoundboardTrack::trackLengthChanged, this, &SoundboardTrackFrame::setTrackLength);

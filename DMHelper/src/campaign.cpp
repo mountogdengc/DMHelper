@@ -324,6 +324,19 @@ QList<SoundboardGroup*> Campaign::getSoundboardGroups() const
     return _soundboardGroups;
 }
 
+SoundboardGroup* Campaign::getSoundboardGroupById(const QUuid& id) const
+{
+    if(id.isNull())
+        return nullptr;
+
+    for(SoundboardGroup* group : _soundboardGroups)
+    {
+        if((group) && (group->getID() == id))
+            return group;
+    }
+    return nullptr;
+}
+
 void Campaign::addSoundboardGroup(SoundboardGroup* soundboardGroup)
 {
     if(!soundboardGroup)

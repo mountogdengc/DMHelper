@@ -45,6 +45,7 @@ public:
 
     // Audio settings
     int getAudioVolume() const;
+    int getAudioCrossfadeMs() const;
 
     // Battle settings
     int getInitiativeType() const;
@@ -119,6 +120,7 @@ signals:
 
     // Audio settings
     void audioVolumeChanged(int volume);
+    void audioCrossfadeMsChanged(int ms);
 
     // Battle settings
     void initiativeTypeChanged(int initiativeType);
@@ -204,6 +206,7 @@ public slots:
 
     // Audio settings
     void setAudioVolume(int volume);
+    void setAudioCrossfadeMs(int ms);
 
     // Battle settings
     void setInitiativeType(int initiativeType);
@@ -288,6 +291,7 @@ private:
 
     // Audio settings
     int _audioVolume;
+    int _audioCrossfadeMs;
 
     // Battle settings
     int _initiativeType;

@@ -2,8 +2,11 @@
 #define SOUNDBOARDTRACKFRAME_H
 
 #include <QFrame>
+#include <QPointer>
 
 class SoundboardTrack;
+class SoundboardGroup;
+class SoundboardMixer;
 
 namespace Ui {
 class SoundboardTrackFrame;
@@ -19,6 +22,8 @@ public:
 
     SoundboardTrack* getTrack() const;
     int getAudioType() const;
+
+    void setMixer(SoundboardMixer* mixer, SoundboardGroup* parentGroup);
 
 public slots:
     void setMute(bool mute);
@@ -40,6 +45,7 @@ protected slots:
     void setCurrentMute(bool mute);
     void updateProgress();
     void handleRemove();
+    void handlePlaybackModeToggle(bool loopChecked);
 
 private:
     void setTrack(SoundboardTrack* track);
@@ -51,6 +57,8 @@ private:
     bool _currentMute;
     QString _trackLength;
     QString _trackPosition;
+    QPointer<SoundboardMixer> _mixer;
+    QPointer<SoundboardGroup> _parentGroup;
 };
 
 #endif // SOUNDBOARDTRACKFRAME_H

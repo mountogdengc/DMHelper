@@ -45,6 +45,7 @@ public:
     AudioTrack* getTrackById(QUuid id);
 
     QList<SoundboardGroup*> getSoundboardGroups() const;
+    SoundboardGroup* getSoundboardGroupById(const QUuid& id) const;
     void addSoundboardGroup(SoundboardGroup* soundboardGroup);
     void removeSoundboardGroup(SoundboardGroup* soundboardGroup);
 

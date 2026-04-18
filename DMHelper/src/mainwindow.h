@@ -31,6 +31,7 @@ class QItemSelection;
 class BattleDialogManager;
 class AudioPlayer;
 class AudioTrack;
+class SoundboardMixer;
 class PublishFrame;
 class QuickRefFrame;
 class RibbonMain;
@@ -230,6 +231,7 @@ private:
     QuickRefFrame* _quickRefFrame;
     QDialog* _quickRefDlg;
     QDialog* _soundDlg;
+    SoundboardMixer* _soundboardMixer;
     TimeAndDateFrame* _timeAndDateFrame;
     QDialog* _calendarDlg;
     QDialog* _countdownDlg;

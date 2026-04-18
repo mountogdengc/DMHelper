@@ -30,6 +30,7 @@
 #include "campaigntreeitem.h"
 #include "battleframe.h"
 #include "soundboardframe.h"
+#include "soundboardmixer.h"
 #include "audiofactory.h"
 #include "monsterclassv2.h"
 #include "bestiary.h"
@@ -130,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
     _quickRefFrame(nullptr),
     _quickRefDlg(nullptr),
     _soundDlg(nullptr),
+    _soundboardMixer(nullptr),
     _timeAndDateFrame(nullptr),
     _calendarDlg(nullptr),
     _countdownDlg(nullptr),
@@ -243,6 +245,12 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(_options, SIGNAL(bestiaryFileNameChanged()), this, SLOT(readBestiary())); --> moved this to the campaign ruleset
     connect(_options, SIGNAL(spellbookFileNameChanged()), this, SLOT(readSpellbook()));
     qDebug() << "[MainWindow] Settings Read";
+
+    // Central soundboard mixer shared by the soundboard UI and any future
+    // scene-triggered auto-play. Crossfade duration tracks the option.
+    _soundboardMixer = new SoundboardMixer(this);
+    _soundboardMixer->setCrossfadeMs(_options->getAudioCrossfadeMs());
+    connect(_options, &OptionsContainer::audioCrossfadeMsChanged, _soundboardMixer, &SoundboardMixer::setCrossfadeMs);
 
     // Set the global font
     QFont f = qApp->font();
@@ -2566,6 +2574,7 @@ void MainWindow::handleOpenSoundboard()
     if(!_soundDlg)
     {
         SoundboardFrame* soundboard = new SoundboardFrame(this);
+        soundboard->setMixer(_soundboardMixer);
         connect(this, SIGNAL(campaignLoaded(Campaign*)), soundboard, SLOT(setCampaign(Campaign*)));
         connect(this, SIGNAL(audioTrackAdded(AudioTrack*)), soundboard, SLOT(addTrackToTree(AudioTrack*)));
         connect(soundboard, SIGNAL(trackCreated(CampaignObjectBase*)), this, SLOT(addNewObject(CampaignObjectBase*)));

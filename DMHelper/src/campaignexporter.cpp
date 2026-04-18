@@ -1,6 +1,8 @@
 #include "campaignexporter.h"
 #include "map.h"
 #include "audiotrack.h"
+#include "soundboardgroup.h"
+#include "soundboardtrack.h"
 #include "combatantreference.h"
 
 CampaignExporter::CampaignExporter(Campaign& originalCampaign, QUuid exportId, QDir& exportDirectory) :
@@ -118,7 +120,19 @@ bool CampaignExporter::checkObjectReferences(CampaignObjectBase* exportObject, Q
     {
         Map* map = dynamic_cast<Map*>(exportObject);
         if(map)
+        {
             addObjectTree(map->getAudioTrackId(), doc, parent, targetDirectory);
+            // Export tracks referenced through the scene's audio group so
+            // playback works after an export round-trip.
+            if(SoundboardGroup* group = map->getAudioGroup())
+            {
+                for(SoundboardTrack* sbTrack : group->getTracks())
+                {
+                    if((sbTrack) && (sbTrack->getTrack()))
+                        addObjectTree(sbTrack->getTrack()->getID(), doc, parent, targetDirectory);
+                }
+            }
+        }
     }
 
     return true;

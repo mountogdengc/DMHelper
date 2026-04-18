@@ -8,6 +8,7 @@
 #include "dmconstants.h"
 #include "campaign.h"
 #include "audiotrack.h"
+#include "soundboardgroup.h"
 #include "party.h"
 #include "dmhcache.h"
 #include "layerimage.h"
@@ -28,6 +29,7 @@
 Map::Map(const QString& mapName, QObject *parent) :
     CampaignObjectBase(mapName, parent),
     _audioTrackId(),
+    _audioGroupId(),
     _playAudio(false),
     _mapRect(),
     _cameraRect(),
@@ -180,6 +182,7 @@ void Map::copyValues(const CampaignObjectBase* other)
         return;
 
     _audioTrackId = otherMap->getAudioTrackId();
+    _audioGroupId = otherMap->getAudioGroupId();
     _playAudio = otherMap->getPlayAudio();
     _mapRect = otherMap->getMapRect();
     _cameraRect = otherMap->getCameraRect();
@@ -310,6 +313,34 @@ void Map::setAudioTrack(AudioTrack* track)
     if(_audioTrackId != newTrackId)
     {
         _audioTrackId = newTrackId;
+        emit dirty();
+    }
+}
+
+SoundboardGroup* Map::getAudioGroup()
+{
+    Campaign* campaign = dynamic_cast<Campaign*>(getParentByType(DMHelper::CampaignType_Campaign));
+    if(!campaign)
+        return nullptr;
+
+    return campaign->getSoundboardGroupById(_audioGroupId);
+}
+
+QUuid Map::getAudioGroupId() const
+{
+    return _audioGroupId;
+}
+
+void Map::setAudioGroup(SoundboardGroup* group)
+{
+    setAudioGroupId(group ? group->getID() : QUuid());
+}
+
+void Map::setAudioGroupId(const QUuid& id)
+{
+    if(_audioGroupId != id)
+    {
+        _audioGroupId = id;
         emit dirty();
     }
 }
@@ -826,6 +857,7 @@ void Map::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targe
     element.setAttribute("mapSizeWidth", _mapSize.width());
     element.setAttribute("mapSizeHeight", _mapSize.height());
     element.setAttribute("audiotrack", _audioTrackId.toString());
+    element.setAttribute("audiogroup", _audioGroupId.toString());
     element.setAttribute("playaudio", _playAudio);
     element.setAttribute("showparty", _showPartyIcon);
     element.setAttribute("party", _partyId.toString());
@@ -875,6 +907,7 @@ bool Map::belongsToObject(QDomElement& element)
 void Map::internalPostProcessXML(const QDomElement &element, bool isImport)
 {
     _audioTrackId = parseIdString(element.attribute("audiotrack"));
+    _audioGroupId = parseIdString(element.attribute("audiogroup"));
     _partyId = parseIdString(element.attribute("party"));
 
     QDomElement layersElement = element.firstChildElement(QString("layer-scene"));

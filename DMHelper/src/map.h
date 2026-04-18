@@ -13,6 +13,7 @@ class QDomDocument;
 class QDomElement;
 class UndoFowBase;
 class AudioTrack;
+class SoundboardGroup;
 class Party;
 class UndoMarker;
 
@@ -44,6 +45,11 @@ public:
     AudioTrack* getAudioTrack();
     QUuid getAudioTrackId() const;
     void setAudioTrack(AudioTrack* track);
+
+    SoundboardGroup* getAudioGroup();
+    QUuid getAudioGroupId() const;
+    void setAudioGroup(SoundboardGroup* group);
+    void setAudioGroupId(const QUuid& id);
 
     bool getPlayAudio() const;
     void setPlayAudio(bool playAudio);
@@ -159,6 +165,7 @@ protected:
     virtual void internalPostProcessXML(const QDomElement &element, bool isImport) override;
 
     QUuid _audioTrackId;
+    QUuid _audioGroupId;
     bool _playAudio;
     QRect _mapRect;
     QRect _cameraRect;

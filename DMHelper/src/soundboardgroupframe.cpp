@@ -16,7 +16,8 @@ SoundBoardGroupFrame::SoundBoardGroupFrame(SoundboardGroup* group, Campaign* cam
     _trackWidgets(),
     _localMute(false),
     _group(group),
-    _campaign(campaign)
+    _campaign(campaign),
+    _mixer(nullptr)
 {
     ui->setupUi(this);
 
@@ -67,6 +68,16 @@ int SoundBoardGroupFrame::getVolume() const
 SoundboardGroup* SoundBoardGroupFrame::getGroup() const
 {
     return _group;
+}
+
+void SoundBoardGroupFrame::setMixer(SoundboardMixer* mixer)
+{
+    _mixer = mixer;
+    for(SoundboardTrackFrame* trackFrame : _trackWidgets)
+    {
+        if(trackFrame)
+            trackFrame->setMixer(_mixer.data(), _group);
+    }
 }
 
 void SoundBoardGroupFrame::updateTrackLayout()
@@ -218,7 +229,7 @@ void SoundBoardGroupFrame::dropEvent(QDropEvent *event)
             QUuid trackId(roleDataMap.value(Qt::UserRole).toString());
             AudioTrack* track = _campaign->getTrackById(trackId);
             if(track)
-                addTrack(new SoundboardTrack(track, 100, false, _group));
+                addTrack(new SoundboardTrack(track, 100, false, SoundboardTrack::PlaybackMode_Loop, _group));
         }
     }
 
@@ -251,6 +262,7 @@ void SoundBoardGroupFrame::toggleMute()
 void SoundBoardGroupFrame::addTrackToLayout(SoundboardTrack* track)
 {
     SoundboardTrackFrame* trackFrame = new SoundboardTrackFrame(track);
+    trackFrame->setMixer(_mixer.data(), _group);
     connect(this, &SoundBoardGroupFrame::muteChanged, trackFrame, &SoundboardTrackFrame::parentMuteChanged);
     connect(this, &SoundBoardGroupFrame::overrideChildMute, trackFrame, &SoundboardTrackFrame::setMute);
     connect(trackFrame, &SoundboardTrackFrame::muteChanged, this, &SoundBoardGroupFrame::trackMuteChanged);

@@ -213,6 +213,7 @@ SOURCES += main.cpp\
     soundboardframe.cpp \
     soundboardgroup.cpp \
     soundboardgroupframe.cpp \
+    soundboardmixer.cpp \
     soundboardtrack.cpp \
     soundboardtrackframe.cpp \
     spell.cpp \
@@ -522,6 +523,7 @@ HEADERS  += mainwindow.h \
     soundboardframe.h \
     soundboardgroup.h \
     soundboardgroupframe.h \
+    soundboardmixer.h \
     soundboardtrack.h \
     soundboardtrackframe.h \
     spell.h \

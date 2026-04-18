@@ -9,6 +9,7 @@
 #include "battledialogmodel.h"
 #include "battledialogmodeleffectfactory.h"
 #include "audiotrack.h"
+#include "soundboardgroup.h"
 #include "encounterfactory.h"
 #include <QDomDocument>
 #include <QDomElement>
@@ -20,6 +21,7 @@
 EncounterBattle::EncounterBattle(const QString& encounterName, QObject *parent) :
     EncounterText(encounterName, parent),
     _audioTrackId(),
+    _audioGroupId(),
     _battleModel(nullptr)
 {
 }
@@ -61,6 +63,7 @@ void EncounterBattle::copyValues(const CampaignObjectBase* other)
         return;
 
     _audioTrackId = otherBattle->_audioTrackId;
+    _audioGroupId = otherBattle->_audioGroupId;
 
     EncounterText::copyValues(other);
 }
@@ -100,6 +103,34 @@ void EncounterBattle::setAudioTrack(AudioTrack* track)
     if(_audioTrackId != newTrackId)
     {
         _audioTrackId = newTrackId;
+        emit dirty();
+    }
+}
+
+SoundboardGroup* EncounterBattle::getAudioGroup()
+{
+    Campaign* campaign = dynamic_cast<Campaign*>(getParentByType(DMHelper::CampaignType_Campaign));
+    if(!campaign)
+        return nullptr;
+
+    return campaign->getSoundboardGroupById(_audioGroupId);
+}
+
+QUuid EncounterBattle::getAudioGroupId() const
+{
+    return _audioGroupId;
+}
+
+void EncounterBattle::setAudioGroup(SoundboardGroup* group)
+{
+    setAudioGroupId(group ? group->getID() : QUuid());
+}
+
+void EncounterBattle::setAudioGroupId(const QUuid& id)
+{
+    if(_audioGroupId != id)
+    {
+        _audioGroupId = id;
         emit dirty();
     }
 }
@@ -173,6 +204,7 @@ QDomElement EncounterBattle::createOutputXML(QDomDocument &doc)
 void EncounterBattle::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
 {
     element.setAttribute("audiotrack", _audioTrackId.toString());
+    element.setAttribute("audiogroup", _audioGroupId.toString());
 
     if(_battleModel)
         _battleModel->outputXML(doc, element, targetDirectory, isExport);
@@ -191,6 +223,7 @@ bool EncounterBattle::belongsToObject(QDomElement& element)
 void EncounterBattle::internalPostProcessXML(const QDomElement &element, bool isImport)
 {
     _audioTrackId = parseIdString(element.attribute("audiotrack"));
+    _audioGroupId = parseIdString(element.attribute("audiogroup"));
 
     // Read the battle
     if(!isImport)

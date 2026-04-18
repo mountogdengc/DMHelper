@@ -7,6 +7,7 @@
 class QDomDocument;
 class BattleDialogModel;
 class AudioTrack;
+class SoundboardGroup;
 
 class EncounterBattle : public EncounterText
 {
@@ -29,6 +30,11 @@ public:
     QUuid getAudioTrackId();
     void setAudioTrack(AudioTrack* track);
 
+    SoundboardGroup* getAudioGroup();
+    QUuid getAudioGroupId() const;
+    void setAudioGroup(SoundboardGroup* group);
+    void setAudioGroupId(const QUuid& id);
+
     void createBattleDialogModel();
     void setBattleDialogModel(BattleDialogModel* model);
     BattleDialogModel* getBattleDialogModel() const;
@@ -48,6 +54,7 @@ protected:
     void disconnectFrameFromModel();
 
     QUuid _audioTrackId;
+    QUuid _audioGroupId;
     BattleDialogModel* _battleModel;
 
 };

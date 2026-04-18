@@ -2,6 +2,7 @@
 #define SOUNDBOARDGROUPFRAME_H
 
 #include <QFrame>
+#include <QPointer>
 #include "soundboardgroup.h"
 
 namespace Ui {
@@ -9,6 +10,7 @@ class SoundBoardGroupFrame;
 }
 
 class SoundboardTrackFrame;
+class SoundboardMixer;
 class Campaign;
 
 class SoundBoardGroupFrame : public QFrame
@@ -22,6 +24,8 @@ public:
     bool isMuted() const;
     int getVolume() const;
     SoundboardGroup* getGroup() const;
+
+    void setMixer(SoundboardMixer* mixer);
 
 public slots:
     void updateTrackLayout();
@@ -58,6 +62,7 @@ private:
 
     SoundboardGroup* _group;
     Campaign* _campaign;
+    QPointer<SoundboardMixer> _mixer;
 };
 
 #endif // SOUNDBOARDGROUPFRAME_H
