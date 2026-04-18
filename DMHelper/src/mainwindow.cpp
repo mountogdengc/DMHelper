@@ -2875,6 +2875,18 @@ void MainWindow::openMapManager()
 
     MapManagerDialog* dlg = new MapManagerDialog(*_options, this);
     connect(dlg, &MapManagerDialog::createEntryImage, this, &MainWindow::handleCreateMap);
+    connect(dlg, &MapManagerDialog::addLayerImage, this, &MainWindow::handleAddMapLayer);
+
+    dlg->setCampaignOpen(_campaign != nullptr);
+
+    bool hasLayerScene = false;
+    if(_campaign)
+    {
+        CampaignObjectBase* currentObject = ui->treeView->currentCampaignObject();
+        hasLayerScene = (dynamic_cast<Map*>(currentObject) != nullptr);
+    }
+    dlg->setLayerSceneAvailable(hasLayerScene);
+
     dlg->resize(qMax(dlg->width(), width() * 3 / 4), qMax(dlg->height(), height() * 3 / 4));
     dlg->setAttribute(Qt::WA_DeleteOnClose);
     dlg->open();
@@ -2890,6 +2902,31 @@ void MainWindow::handleCreateMap(const QString& mapFile)
         return;
 
     newEncounter(DMHelper::CampaignType_Map, mapFile, currentObject);
+}
+
+void MainWindow::handleAddMapLayer(const QString& mapFile)
+{
+    if((!_campaign) || (mapFile.isEmpty()))
+        return;
+
+    CampaignObjectBase* currentObject = ui->treeView->currentCampaignObject();
+    Map* currentMap = dynamic_cast<Map*>(currentObject);
+    if(!currentMap)
+    {
+        QMessageBox::warning(this, tr("Add Layer"), tr("Please select a Map entry in the campaign tree to add the layer to."));
+        return;
+    }
+
+    QMimeType mimeType = QMimeDatabase().mimeTypeForFile(mapFile);
+    Layer* newLayer = nullptr;
+
+    if(mimeType.isValid() && mimeType.name().startsWith("video/"))
+        newLayer = new LayerVideo(QString("Map Video: ") + QFileInfo(mapFile).fileName(), mapFile);
+    else
+        newLayer = new LayerImage(QString("Map Image: ") + QFileInfo(mapFile).fileName(), mapFile);
+
+    if(newLayer)
+        currentMap->getLayerScene().appendLayer(newLayer);
 }
 
 void MainWindow::openAboutDialog()

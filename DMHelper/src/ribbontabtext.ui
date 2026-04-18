@@ -298,7 +298,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add a hyperlink</string>
+        <string>Add a checkbox</string>
        </property>
        <property name="text">
         <string/>
@@ -381,7 +381,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add a hyperlink</string>
+        <string>Toggle animation</string>
        </property>
        <property name="text">
         <string/>
@@ -507,7 +507,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Set the background image</string>
+          <string>Play or pause the animation</string>
        </property>
        <property name="text">
         <string/>
@@ -562,7 +562,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Set the background image</string>
+          <string>Restart the animation</string>
        </property>
        <property name="text">
         <string/>

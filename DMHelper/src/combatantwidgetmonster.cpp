@@ -25,9 +25,9 @@ CombatantWidgetMonster::CombatantWidgetMonster(bool showDone, QWidget *parent) :
 
     CombatantWidgetMonster::setShowDone(showDone);
 
-    QValidator* valInit = new QIntValidator(-99, 99, this);
+    QValidator* valInit = new QIntValidator(-999999, 999999, this);
     ui->edtInit->setValidator(valInit);
-    QValidator* valHitPoints = new QIntValidator(-10, 9999, this);
+    QValidator* valHitPoints = new QIntValidator(-999999, 999999, this);
     ui->edtHP->setValidator(valHitPoints);
 }
 

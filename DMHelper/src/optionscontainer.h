@@ -70,6 +70,7 @@ public:
     QDate getLastUpdateCheck() const;
     QString getHeroForgeToken() const;
     QString getLastMapDirectory() const;
+    QStringList getMapDirectories() const;
 
     // Token search settings
     QString getTokenSearchString() const;
@@ -137,6 +138,7 @@ signals:
 
     // Data settings
     void heroForgeTokenChanged(const QString& token);
+    void mapDirectoriesChanged(const QStringList& directories);
 
     // Token search settings
     void tokenSearchStringChanged(const QString& tokenSearchString);
@@ -231,6 +233,9 @@ public slots:
     void setLastUpdateDate(const QDate& date);
     void setHeroForgeToken(const QString& token);
     void setLastMapDirectory(const QString& mapDirectory);
+    void setMapDirectories(const QStringList& directories);
+    void addMapDirectory(const QString& directory);
+    void removeMapDirectory(const QString& directory);
 
     // Token search settings
     void setTokenSearchString(const QString& tokenSearchString);
@@ -315,6 +320,7 @@ private:
     QDate _lastUpdateDate;
     QString _heroForgeToken;
     QString _lastMapDirectory;
+    QStringList _mapDirectories;
 
     // Token search settings
     QString _tokenSearchString;

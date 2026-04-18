@@ -884,6 +884,7 @@ endif()
 # -------------------------------------------------
 # Common definitions
 # -------------------------------------------------
+
 target_compile_definitions(DMHelper PRIVATE
     $<$<CONFIG:Release>:NDEBUG>
 )

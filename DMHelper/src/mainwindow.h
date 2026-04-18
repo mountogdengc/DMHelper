@@ -207,6 +207,7 @@ protected slots:
 
     void openMapManager();
     void handleCreateMap(const QString& mapFile);
+    void handleAddMapLayer(const QString& mapFile);
     void openAboutDialog();
     void openHelpDialog();
     void openBackupDirectory();
