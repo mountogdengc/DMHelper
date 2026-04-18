@@ -1,11 +1,9 @@
 #include "audiotrackyoutube.h"
 #include "dmconstants.h"
 #include "dmversion.h"
-#include <QUrlQuery>
 #include <QMessageBox>
-#include <QDomDocument>
-#include <QDomElement>
 #include <QIcon>
+#include <QDebug>
 
 const int AUDIOTRACKYOUTUBE_STOPCALLCOMPLETE = 0x01;
 const int AUDIOTRACKYOUTUBE_STOPCALLCONFIRMED = 0x02;
@@ -15,7 +13,7 @@ void youtubeEventCallback(const struct libvlc_event_t *p_event, void *p_data);
 
 AudioTrackYoutube::AudioTrackYoutube(const QString& trackName, const QUrl& trackUrl, QObject *parent) :
     AudioTrackUrl(trackName, trackUrl, parent),
-    _manager(nullptr),
+    _ytdlpProcess(nullptr),
     _urlString(),
     _vlcPlayer(nullptr),
     _stopStatus(0),
@@ -175,46 +173,36 @@ void AudioTrackYoutube::setRepeat(bool repeat)
     emit dirty();
 }
 
-void AudioTrackYoutube::urlRequestFinished(QNetworkReply *reply)
+void AudioTrackYoutube::ytdlpFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    if(!reply)
+    if(!_ytdlpProcess)
+        return;
+
+    if(isPlaying())
     {
-        QMessageBox::critical(nullptr,
-        QString("DMHelper Audio Error"),
-        QString("An unexpected and unknown error was encountered trying to find the requested YouTube video for playback!"));
-        qDebug() << "[AudioTrackYoutube] ERROR identified in reply, unexpected null pointer reply received!";
+        _ytdlpProcess->deleteLater();
+        _ytdlpProcess = nullptr;
         return;
     }
 
-    if(!isPlaying())
+    if(exitStatus != QProcess::NormalExit || exitCode != 0)
     {
-        if(reply->error() != QNetworkReply::NoError)
-        {
-            if(reply->error() == QNetworkReply::HostNotFoundError)
-            {
-                QMessageBox::critical(nullptr,
-                                      QString("DMHelper Audio Error"),
-                                      QString("A network error was encountered trying to find the requested YouTube video. It was not possible to reach the server!"));
-            }
-            else
-            {
-                QMessageBox::critical(nullptr,
-                                      QString("DMHelper Audio Error"),
-                                      QString("A network error was encountered trying to find the requested YouTube video:") + QChar::LineFeed + QChar::LineFeed + reply->errorString());
-            }
-
-            qDebug() << "[AudioTrackYoutube] ERROR identified in network reply: " << QString::number(reply->error()) << ", Error string " << reply->errorString();
-        }
-        else
-        {
-            QByteArray bytes = reply->readAll();
-            qDebug() << "[AudioTrackYoutube] Request received; payload " << bytes.size() << " bytes";
-
-            handleReplyDirect(bytes);
-        }
+        QString errorOutput = QString::fromUtf8(_ytdlpProcess->readAllStandardError()).trimmed();
+        qDebug() << "[AudioTrackYoutube] yt-dlp failed with exit code" << exitCode << ":" << errorOutput;
+        QMessageBox::critical(nullptr,
+                              QString("DMHelper Audio Error"),
+                              QString("Failed to resolve YouTube video URL:") + QChar::LineFeed + QChar::LineFeed + errorOutput);
+    }
+    else
+    {
+        _urlString = QString::fromUtf8(_ytdlpProcess->readAllStandardOutput()).trimmed();
+        qDebug() << "[AudioTrackYoutube] yt-dlp resolved URL:" << _urlString.left(80) << "...";
+        if(!_urlString.isEmpty())
+            playDirectUrl();
     }
 
-    reply->deleteLater();
+    _ytdlpProcess->deleteLater();
+    _ytdlpProcess = nullptr;
 }
 
 void AudioTrackYoutube::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
@@ -231,28 +219,17 @@ void AudioTrackYoutube::findDirectUrl(const QString& youtubeId)
     if(isPlaying())
         return;
 
-    if(!_manager)
-    {
-        _manager = new QNetworkAccessManager(this);
-        connect(_manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(urlRequestFinished(QNetworkReply*)));
-    }
+    if(_ytdlpProcess)
+        return;
 
-    QString getString("https://api.dmhh.net/youtube?id=");
-    getString.append(youtubeId);
-    getString.append("&version=");
-    getString.append(QString("%1.%2").arg(DMHelper::DMHELPER_MAJOR_VERSION)
-                                   .arg(DMHelper::DMHELPER_MINOR_VERSION));
-    if(DMHelper::DMHELPER_ENGINEERING_VERSION > 0)
-        getString.append("&debug=true");
+    QString youtubeUrl = QString("https://www.youtube.com/watch?v=%1").arg(youtubeId);
+    qDebug() << "[AudioTrackYoutube] Resolving YouTube URL via yt-dlp:" << youtubeUrl;
 
-    // Request format: https://api.dmhh.net/youtube?id=t2nhQRYUGy0&version=2.0&debug=true
-    QUrl serviceUrl = QUrl(getString);
-    QNetworkRequest request(serviceUrl);
-    qDebug() << "[AudioTrackYoutube] Asked for youtube direct link. Request: " << getString;
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    _ytdlpProcess = new QProcess(this);
+    connect(_ytdlpProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &AudioTrackYoutube::ytdlpFinished);
 
-    qDebug() << "[AudioTrackYoutube] Asked for youtube direct link. Request: " << serviceUrl;
-    _manager->get(request);
+    _ytdlpProcess->start("yt-dlp", QStringList() << "--get-url" << "-f" << "best" << youtubeUrl);
 }
 
 void AudioTrackYoutube::timerEvent(QTimerEvent *event)
@@ -274,56 +251,6 @@ void AudioTrackYoutube::timerEvent(QTimerEvent *event)
     emit trackPositionChanged(currentTime / 1000);
 }
 
-bool AudioTrackYoutube::handleReplyDirect(const QByteArray& data)
-{
-    if(isPlaying())
-        return false;
-
-    QDomDocument doc;
-    QString errorMsg;
-    int errorLine;
-    int errorColumn;
-    if(!doc.setContent(data, &errorMsg, &errorLine, &errorColumn))
-    {
-        qDebug() << "[AudioTrackYoutube] ERROR identified reading data: unable to parse network reply XML at line " << errorLine << ", column " << errorColumn << ": " << errorMsg;
-        qDebug() << "[AudioTrackYoutube] Data: " << data;
-        return false;
-    }
-
-    QDomElement root = doc.documentElement();
-    if(root.isNull())
-    {
-        qDebug() << "[AudioTrackYoutube] ERROR identified reading data: unable to find root element: " << doc.toString();
-        return false;
-    }
-
-    QDomElement formats = root.firstChildElement(QString("adaptiveFormats"));
-    if(formats.isNull())
-    {
-        qDebug() << "[AudioTrackYoutube] ERROR identified reading data: unable to find adaptiveFormats element: " << doc.toString();
-        return false;
-    }
-
-    QDomElement format = formats.firstChildElement(QString("adaptiveFormat"));
-    while(!format.isNull())
-    {
-        QDomElement mimeElement = format.firstChildElement(QString("mimeType"));
-        QString mimeString = mimeElement.text();
-        if(mimeString.left(9) == QString("audio/mp4"))
-        {
-            QDomElement urlElement = format.firstChildElement(QString("url"));
-            if(!urlElement.isNull())
-            {
-                _urlString = urlElement.text();
-                playDirectUrl();
-                return true;
-            }
-        }
-        format = format.nextSiblingElement(QString("adaptiveFormat"));
-    }
-
-    return false;
-}
 
 void AudioTrackYoutube::playDirectUrl()
 {

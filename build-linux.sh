@@ -18,7 +18,8 @@ sudo apt-get install -y \
   libvlccore-dev \
   vlc-plugin-base \
   libgl1-mesa-dev \
-  build-essential
+  build-essential \
+  yt-dlp
 
 REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
 
