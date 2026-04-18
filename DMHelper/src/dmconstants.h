@@ -194,6 +194,7 @@ namespace DMHelper
         LayerType_VideoEffect,
         LayerType_Blank,
         LayerType_Effect,
+        LayerType_Walls,
     };
 
     enum OverlayType

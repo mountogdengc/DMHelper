@@ -129,6 +129,7 @@ SOURCES += main.cpp\
     layervideo.cpp \
     layervideoeffect.cpp \
     layervideoeffectsettings.cpp \
+    layerwalls.cpp \
     legaldialog.cpp \
     mainwindow.cpp \
     mapblankdialog.cpp \
@@ -287,6 +288,7 @@ SOURCES += main.cpp\
     unselectedpolygon.cpp \
     unselectedrect.cpp \
     updatechecker.cpp \
+    visioncalculator.cpp \
     videoplayer.cpp \
     videoplayergl.cpp \
     videoplayerglplayer.cpp \
@@ -438,6 +440,7 @@ HEADERS  += mainwindow.h \
     layervideo.h \
     layervideoeffect.h \
     layervideoeffectsettings.h \
+    layerwalls.h \
     legaldialog.h \
     mapblankdialog.h \
     mapcolorizedialog.h \
@@ -597,6 +600,7 @@ HEADERS  += mainwindow.h \
     unselectedpolygon.h \
     unselectedrect.h \
     updatechecker.h \
+    visioncalculator.h \
     videoplayer.h \
     videoplayergl.h \
     videoplayerglplayer.h \

@@ -11,6 +11,7 @@
 #include "layerframe.h"
 #include "layergrid.h"
 #include "layereffect.h"
+#include "layerwalls.h"
 #include "ribbonframe.h"
 #include "publishglrenderer.h"
 #include "mapblankdialog.h"
@@ -99,7 +100,7 @@ void LayersEditDialog::addLayer()
     items << tr("Image") << tr("Video") << tr("Effect Video") << tr("FoW");
     if(_model)
         items << tr("Tokens") ;
-    items << tr("Grid") << tr("Blank") << tr("Cloud Effect");
+    items << tr("Grid") << tr("Blank") << tr("Cloud Effect") << tr("Walls");
 
     bool ok;
     QString selectedItem = QInputDialog::getItem(this, tr("New Layer"), tr("Select New Layer Type:"), items, 0, false, &ok);
@@ -165,6 +166,12 @@ void LayersEditDialog::addLayer()
     else if(selectedItem == tr("Cloud Effect"))
     {
         newLayer = new LayerEffect(QString("Cloud Effect"));
+    }
+    else if(selectedItem == tr("Walls"))
+    {
+        LayerWalls* wallsLayer = new LayerWalls(QString("Walls"));
+        wallsLayer->setSize(_scene.sceneSize().toSize());
+        newLayer = wallsLayer;
     }
     else
     {
