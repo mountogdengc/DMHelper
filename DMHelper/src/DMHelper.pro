@@ -24,20 +24,20 @@ win32:RC_ICONS += dmhelper.ico
 macx:ICON=data/macimg/DMHelper.icns
 
 SOURCES += main.cpp\
-    ../../DMHelperShared/src/dmhlogon.cpp \
-    ../../DMHelperShared/src/dmhlogon_private.cpp \
-    ../../DMHelperShared/src/dmhnetworkdata.cpp \
-    ../../DMHelperShared/src/dmhnetworkdata_private.cpp \
-    ../../DMHelperShared/src/dmhnetworkdatafactory.cpp \
-    ../../DMHelperShared/src/dmhnetworkmanager.cpp \
-    ../../DMHelperShared/src/dmhnetworkmanager_private.cpp \
-    ../../DMHelperShared/src/dmhnetworkobserver.cpp \
-    ../../DMHelperShared/src/dmhnetworkobserver_private.cpp \
-    ../../DMHelperShared/src/dmhobjectbase.cpp \
-    ../../DMHelperShared/src/dmhobjectbase_private.cpp \
-    ../../DMHelperShared/src/dmhpayload.cpp \
-    ../../DMHelperShared/src/dmhpayload_private.cpp \
-    ../../DMHelperShared/src/dmhshared.cpp \
+    $$PWD/../../DMHelperShared/src/dmhlogon.cpp \
+    $$PWD/../../DMHelperShared/src/dmhlogon_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkdata.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkdata_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkdatafactory.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkmanager.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkmanager_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkobserver.cpp \
+    $$PWD/../../DMHelperShared/src/dmhnetworkobserver_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhobjectbase.cpp \
+    $$PWD/../../DMHelperShared/src/dmhobjectbase_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhpayload.cpp \
+    $$PWD/../../DMHelperShared/src/dmhpayload_private.cpp \
+    $$PWD/../../DMHelperShared/src/dmhshared.cpp \
     audiofactory.cpp \
     audiotrackfile.cpp \
     audiotracksyrinscape.cpp \
@@ -331,21 +331,21 @@ SOURCES += main.cpp\
     texttranslatedialog.cpp
 
 HEADERS  += mainwindow.h \
-    ../../DMHelperShared/inc/dmhglobal.h \
-    ../../DMHelperShared/inc/dmhlogon.h \
-    ../../DMHelperShared/inc/dmhnetworkdata.h \
-    ../../DMHelperShared/inc/dmhnetworkmanager.h \
-    ../../DMHelperShared/inc/dmhnetworkobserver.h \
-    ../../DMHelperShared/inc/dmhobjectbase.h \
-    ../../DMHelperShared/inc/dmhpayload.h \
-    ../../DMHelperShared/src/dmhlogon_private.h \
-    ../../DMHelperShared/src/dmhnetworkdata_private.h \
-    ../../DMHelperShared/src/dmhnetworkdatafactory.h \
-    ../../DMHelperShared/src/dmhnetworkmanager_private.h \
-    ../../DMHelperShared/src/dmhnetworkobserver_private.h \
-    ../../DMHelperShared/src/dmhobjectbase_private.h \
-    ../../DMHelperShared/src/dmhpayload_private.h \
-    ../../DMHelperShared/src/dmhshared.h \
+    $$PWD/../../DMHelperShared/inc/dmhglobal.h \
+    $$PWD/../../DMHelperShared/inc/dmhlogon.h \
+    $$PWD/../../DMHelperShared/inc/dmhnetworkdata.h \
+    $$PWD/../../DMHelperShared/inc/dmhnetworkmanager.h \
+    $$PWD/../../DMHelperShared/inc/dmhnetworkobserver.h \
+    $$PWD/../../DMHelperShared/inc/dmhobjectbase.h \
+    $$PWD/../../DMHelperShared/inc/dmhpayload.h \
+    $$PWD/../../DMHelperShared/src/dmhlogon_private.h \
+    $$PWD/../../DMHelperShared/src/dmhnetworkdata_private.h \
+    $$PWD/../../DMHelperShared/src/dmhnetworkdatafactory.h \
+    $$PWD/../../DMHelperShared/src/dmhnetworkmanager_private.h \
+    $$PWD/../../DMHelperShared/src/dmhnetworkobserver_private.h \
+    $$PWD/../../DMHelperShared/src/dmhobjectbase_private.h \
+    $$PWD/../../DMHelperShared/src/dmhpayload_private.h \
+    $$PWD/../../DMHelperShared/src/dmhshared.h \
     audiofactory.h \
     audiotrackfile.h \
     audiotracksyrinscape.h \

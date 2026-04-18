@@ -20,7 +20,7 @@ sudo apt-get install -y \
   libgl1-mesa-dev \
   build-essential
 
-REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
 
 echo "=== Building DMHelper ==="
 cd "$REPO_ROOT"
