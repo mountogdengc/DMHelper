@@ -67,6 +67,9 @@ public:
 
     BattleFrameMapDrawer* getMapDrawer() const;
 
+    virtual QAction* getUndoAction(QObject* parent) override;
+    virtual QAction* getRedoAction(QObject* parent) override;
+
     enum BattleFrameMode
     {
         BattleFrameMode_Battle = 0,

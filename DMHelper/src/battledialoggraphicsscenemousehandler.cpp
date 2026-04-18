@@ -1,7 +1,13 @@
 #include "battledialoggraphicsscenemousehandler.h"
 #include "battledialoggraphicsscene.h"
 #include "battledialogmodel.h"
+#include "battledialogmodelcombatant.h"
+#include "battledialogmodeleffect.h"
+#include "battledialogmodelobject.h"
 #include "layergrid.h"
+#include "layerscene.h"
+#include "layertokens.h"
+#include "undotokenmove.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsLineItem>
 #include <QGraphicsPathItem>
@@ -10,6 +16,8 @@
 #include <QPen>
 #include <QLine>
 #include <QtMath>
+#include <QUndoStack>
+#include <QDebug>
 
 BattleDialogGraphicsSceneMouseHandlerBase::BattleDialogGraphicsSceneMouseHandlerBase(BattleDialogGraphicsScene& scene) :
     QObject(),
@@ -467,12 +475,93 @@ bool BattleDialogGraphicsSceneMouseHandlerCombatants::mouseMoveEvent(QGraphicsSc
 
 bool BattleDialogGraphicsSceneMouseHandlerCombatants::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    // Snapshot the positions of everything draggable by this press: the object
+    // directly under the cursor plus any currently multi-selected objects.
+    // UnselectedPixmap::itemChange will mutate these positions during the drag;
+    // we compare on release and push one UndoTokenMove per object that moved.
+    _dragStartPositions.clear();
+
+    if((mouseEvent) && (mouseEvent->button() == Qt::LeftButton))
+    {
+        QGraphicsItem* topItem = _scene.findTopObject(mouseEvent->scenePos());
+        BattleDialogModelObject* topObject = _scene.getFinalObjectFromItem(topItem);
+        if(topObject)
+            _dragStartPositions.insert(topObject, topObject->getPosition());
+
+        foreach(QGraphicsItem* selectedItem, _scene.selectedItems())
+        {
+            BattleDialogModelObject* selectedObject = _scene.getFinalObjectFromItem(selectedItem);
+            if((selectedObject) && (!_dragStartPositions.contains(selectedObject)))
+                _dragStartPositions.insert(selectedObject, selectedObject->getPosition());
+        }
+    }
+
     return _scene.handleMousePressEvent(mouseEvent);
 }
 
 bool BattleDialogGraphicsSceneMouseHandlerCombatants::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    return _scene.handleMouseReleaseEvent(mouseEvent);
+    const bool sceneResult = _scene.handleMouseReleaseEvent(mouseEvent);
+
+    if((mouseEvent) && (mouseEvent->button() == Qt::LeftButton) && (!_dragStartPositions.isEmpty()))
+    {
+        // Collect only objects that actually moved; grouped pushes go into a single
+        // macro so one Ctrl+Z reverts a whole multi-select drag.
+        struct MoveRecord { LayerTokens* layer; BattleDialogModelObject* object; QPointF oldPos; QPointF newPos; };
+        QList<MoveRecord> moves;
+
+        for(auto it = _dragStartPositions.constBegin(); it != _dragStartPositions.constEnd(); ++it)
+        {
+            BattleDialogModelObject* object = it.key();
+            if(!object)
+                continue;
+
+            const QPointF newPos = object->getPosition();
+            if(newPos == it.value())
+                continue;
+
+            LayerTokens* layer = object->getLayer();
+            if((!layer) || (!layer->getUndoStack()))
+                continue;
+
+            moves.append({layer, object, it.value(), newPos});
+        }
+
+        if(moves.size() == 1)
+        {
+            const MoveRecord& move = moves.first();
+            move.layer->getUndoStack()->push(new UndoTokenMove(move.layer, move.object, move.oldPos, move.newPos));
+        }
+        else if(moves.size() > 1)
+        {
+            // Multi-select drag. If every moved object lives on the same layer,
+            // wrap the pushes in a QUndoStack macro so one Ctrl+Z reverts the
+            // whole gesture. Cross-layer multi-drags (rare) fall back to one
+            // command per object - a macro cannot span multiple stacks.
+            LayerTokens* primaryLayer = moves.first().layer;
+            bool sameLayer = true;
+            foreach(const MoveRecord& move, moves)
+            {
+                if(move.layer != primaryLayer)
+                {
+                    sameLayer = false;
+                    break;
+                }
+            }
+
+            if(sameLayer)
+                primaryLayer->getUndoStack()->beginMacro(QObject::tr("Move Tokens"));
+
+            foreach(const MoveRecord& move, moves)
+                move.layer->getUndoStack()->push(new UndoTokenMove(move.layer, move.object, move.oldPos, move.newPos));
+
+            if(sameLayer)
+                primaryLayer->getUndoStack()->endMacro();
+        }
+    }
+
+    _dragStartPositions.clear();
+    return sceneResult;
 }
 
 

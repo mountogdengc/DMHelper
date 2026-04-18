@@ -5,6 +5,7 @@
 
 class CampaignObjectBase;
 class PublishGLRenderer;
+class QAction;
 
 class CampaignObjectFrame : public QFrame
 {
@@ -16,6 +17,11 @@ public:
 
     virtual void activateObject(CampaignObjectBase* object, PublishGLRenderer* currentRenderer);
     virtual void deactivateObject();
+
+    // Override to return an undo/redo action bound to this frame's content.
+    // Default returns nullptr; MainWindow falls back to a disabled action.
+    virtual QAction* getUndoAction(QObject* parent);
+    virtual QAction* getRedoAction(QObject* parent);
 
 signals:
     void setPublishEnabled(bool enabled, bool layered);

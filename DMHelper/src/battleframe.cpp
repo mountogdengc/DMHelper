@@ -46,6 +46,10 @@
 #include "ruleinitiative.h"
 #include "spellbook.h"
 #include "gridsizer.h"
+#include "undotokenadd.h"
+#include "undotokenremove.h"
+#include <QUndoStack>
+#include <QUndoGroup>
 #include <QDebug>
 #include <QVBoxLayout>
 #include <QKeyEvent>
@@ -343,7 +347,16 @@ void BattleFrame::addCombatant(BattleDialogModelCombatant* combatant, LayerToken
         return;
     }
 
-    _model->appendCombatant(combatant, targetLayer);
+    // Route user-initiated adds through the undo stack so Ctrl+Z reverses them.
+    // The layer is resolved the same way BattleDialogModel::appendCombatant does,
+    // so behavior matches when no target is given. If no token layer exists yet,
+    // fall back to the non-undo path - the model handles that case by silently
+    // dropping the add, which we preserve for parity.
+    LayerTokens* layer = (targetLayer ? targetLayer : dynamic_cast<LayerTokens*>(_model->getLayerScene().getPriority(DMHelper::LayerType_Tokens)));
+    if((layer) && (layer->getUndoStack()) && (!combatant->getLayer()))
+        layer->getUndoStack()->push(new UndoTokenAddCombatant(layer, combatant));
+    else
+        _model->appendCombatant(combatant, targetLayer);
 }
 
 void BattleFrame::addCombatants(QList<BattleDialogModelCombatant*> combatants)
@@ -476,6 +489,22 @@ QPoint BattleFrame::viewportCenter()
 BattleFrameMapDrawer* BattleFrame::getMapDrawer() const
 {
     return _mapDrawer;
+}
+
+QAction* BattleFrame::getUndoAction(QObject* parent)
+{
+    if((!_model) || (!_model->getLayerScene().getUndoGroup()))
+        return nullptr;
+
+    return _model->getLayerScene().getUndoGroup()->createUndoAction(parent, tr("&Undo"));
+}
+
+QAction* BattleFrame::getRedoAction(QObject* parent)
+{
+    if((!_model) || (!_model->getLayerScene().getUndoGroup()))
+        return nullptr;
+
+    return _model->getLayerScene().getUndoGroup()->createRedoAction(parent, tr("&Redo"));
 }
 
 void BattleFrame::clear()
@@ -1471,7 +1500,10 @@ bool BattleFrame::duplicateCombatant(LayerTokens* tokenLayer, BattleDialogModelC
 
     BattleDialogModelCombatant* newCombatant = combatant->clone();
     newCombatant->setPosition(combatant->getPosition());
-    tokenLayer->addCombatant(newCombatant);
+    if(tokenLayer->getUndoStack())
+        tokenLayer->getUndoStack()->push(new UndoTokenAddCombatant(tokenLayer, newCombatant));
+    else
+        tokenLayer->addCombatant(newCombatant);
 
     return true;
 }
@@ -3219,6 +3251,7 @@ void BattleFrame::setModel(BattleDialogModel* model)
         disconnect(_model, SIGNAL(showAliveChanged(bool)), this, SLOT(updateCombatantVisibility()));
         disconnect(_model, SIGNAL(showDeadChanged(bool)), this, SLOT(updateCombatantVisibility()));
         disconnect(_model, &BattleDialogModel::combatantListChanged, this, &BattleFrame::clearCopy);
+        disconnect(_model, &BattleDialogModel::combatantListChanged, this, &BattleFrame::recreateCombatantWidgets);
         disconnect(_model, &BattleDialogModel::combatantAdded, this, &BattleFrame::handleCombatantAdded);
         disconnect(_model, &BattleDialogModel::combatantRemoved, this, &BattleFrame::handleCombatantRemoved);
         disconnect(_model, &BattleDialogModel::gridScaleChanged, this, &BattleFrame::gridConfigChanged);
@@ -3260,6 +3293,10 @@ void BattleFrame::setModel(BattleDialogModel* model)
         connect(_model, SIGNAL(showAliveChanged(bool)), this, SLOT(updateCombatantVisibility()));
         connect(_model, SIGNAL(showDeadChanged(bool)), this, SLOT(updateCombatantVisibility()));
         connect(_model, &BattleDialogModel::combatantListChanged, this, &BattleFrame::clearCopy);
+        // Rebuild the combatant sidebar whenever the list mutates. Direct callers
+        // still invoke recreateCombatantWidgets explicitly (redundant but cheap);
+        // the key case this covers is undo/redo of add/remove commands.
+        connect(_model, &BattleDialogModel::combatantListChanged, this, &BattleFrame::recreateCombatantWidgets);
         connect(_model, &BattleDialogModel::combatantAdded, this, &BattleFrame::handleCombatantAdded);
         connect(_model, &BattleDialogModel::combatantRemoved, this, &BattleFrame::handleCombatantRemoved);
         connect(_model, &BattleDialogModel::gridScaleChanged, this, &BattleFrame::gridConfigChanged);
@@ -3943,20 +3980,20 @@ void BattleFrame::removeSingleCombatant(BattleDialogModelCombatant* combatant)
         ui->frameCombatant->setCombatant(nullptr);
     }
 
-    // Find the index of the removed item
-    int index = _model->getCombatantList().indexOf(combatant);
-
-    // Delete the widget for the combatant
-    _combatantWidgets.remove(combatant);
-    QLayoutItem *child = _combatantLayout->takeAt(index);
-    if(child != nullptr)
+    // Route removal through the undo stack so Ctrl+Z restores the token.
+    // The command's redo() calls layer->removeCombatant (non-destructive); the
+    // command retains ownership for undo and deletes on command destruction.
+    // Widget teardown is handled by the combatantListChanged signal that we
+    // hook to recreateCombatantWidgets in this frame.
+    LayerTokens* layer = combatant->getLayer();
+    if((layer) && (layer->getUndoStack()))
     {
-        qDebug() << "[Battle Frame] deleting combatant widget: " << reinterpret_cast<quint64>(child->widget());
-        child->widget()->deleteLater();
-        delete child;
+        layer->getUndoStack()->push(new UndoTokenRemoveCombatant(layer, combatant));
     }
-
-    _model->removeCombatant(combatant);
+    else
+    {
+        _model->removeCombatant(combatant);
+    }
 }
 
 bool BattleFrame::validateTokenLayerExists()

@@ -67,6 +67,9 @@ public:
     static const int DEFAULT_MRU_FILE_COUNT = 10;
 
 public slots:
+    void undo();
+    void redo();
+
     void newCampaign();
     bool saveCampaign();
     void saveCampaignAs();

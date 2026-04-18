@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QColor>
 #include <QPointF>
+#include <QHash>
 
 class BattleDialogGraphicsScene;
 class QGraphicsSceneMouseEvent;
@@ -185,6 +186,8 @@ protected:
 /******************************************************************************************************/
 
 
+class BattleDialogModelObject;
+
 class BattleDialogGraphicsSceneMouseHandlerCombatants : public BattleDialogGraphicsSceneMouseHandlerBase
 {
     Q_OBJECT
@@ -197,6 +200,12 @@ public:
     virtual bool mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     virtual bool mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     virtual bool mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
+
+protected:
+    // Populated on press for every draggable object under the cursor (including
+    // any other items that the user currently has multi-selected). Flushed on
+    // release: objects whose position changed are wrapped in UndoTokenMove.
+    QHash<BattleDialogModelObject*, QPointF> _dragStartPositions;
 };
 
 

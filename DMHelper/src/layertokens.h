@@ -12,6 +12,7 @@ class PublishGLBattleToken;
 class PublishGLBattleEffect;
 class QGraphicsPixmapItem;
 class QGraphicsItem;
+class QUndoStack;
 
 class LayerTokens : public Layer
 {
@@ -49,6 +50,8 @@ public:
     QGraphicsItem* getObjectItem(BattleDialogModelObject* battleObject);
 
     int getScale() const;
+
+    QUndoStack* getUndoStack() const;
 
 public slots:
     // DM Window Generic Interface
@@ -150,6 +153,7 @@ protected:
     QHash<BattleDialogModelEffect*, PublishGLBattleEffect*> _effectTokenHash;
 
     int _scale;
+    QUndoStack* _undoStack;
 };
 
 #endif // LAYERTOKENS_H

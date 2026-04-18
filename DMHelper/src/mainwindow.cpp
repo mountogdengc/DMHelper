@@ -102,6 +102,8 @@
 #include <QInputDialog>
 #include <QScrollBar>
 #include <QMenu>
+#include <QAction>
+#include <QKeySequence>
 #include <QMessageBox>
 #include <QTime>
 #include <QScrollArea>
@@ -275,6 +277,21 @@ MainWindow::MainWindow(QWidget *parent) :
         resize(screen->availableSize().width() * 4 / 5, screen->availableSize().height() * 4 / 5);
     }
     setupRibbonBar();
+
+    // Persistent Ctrl+Z / Ctrl+Y bindings. The actions themselves never
+    // rebind; they dispatch to the active frame's undo group at trigger
+    // time so frame switches don't require plumbing.
+    _undoAction = new QAction(tr("Undo"), this);
+    _undoAction->setShortcuts({QKeySequence::Undo});
+    _undoAction->setShortcutContext(Qt::ApplicationShortcut);
+    connect(_undoAction, &QAction::triggered, this, &MainWindow::undo);
+    addAction(_undoAction);
+
+    _redoAction = new QAction(tr("Redo"), this);
+    _redoAction->setShortcuts({QKeySequence::Redo, QKeySequence(Qt::CTRL | Qt::Key_Y)});
+    _redoAction->setShortcutContext(Qt::ApplicationShortcut);
+    connect(_redoAction, &QAction::triggered, this, &MainWindow::redo);
+    addAction(_redoAction);
 
     // Set the MRU menu to the created menu bar
     mruHandler->setActionsMenu(_ribbonTabFile->getMRUMenu());
@@ -799,6 +816,37 @@ MainWindow::~MainWindow()
     DMH_VLC::Shutdown();
     ScaledPixmap::cleanupDefaultPixmap();
     DMH_DEBUG_OPENGL_Singleton::Shutdown();
+}
+
+void MainWindow::undo()
+{
+    CampaignObjectFrame* activeFrame = dynamic_cast<CampaignObjectFrame*>(ui->stackedWidgetEncounter->currentWidget());
+    if(!activeFrame)
+        return;
+
+    // Walk up to the scene's undo group. The per-frame helpers return a
+    // fresh QAction each call; we don't want to accumulate those, so fetch
+    // only to learn the group and trigger it directly via triggerUndo().
+    QAction* frameUndo = activeFrame->getUndoAction(activeFrame);
+    if(!frameUndo)
+        return;
+
+    frameUndo->trigger();
+    frameUndo->deleteLater();
+}
+
+void MainWindow::redo()
+{
+    CampaignObjectFrame* activeFrame = dynamic_cast<CampaignObjectFrame*>(ui->stackedWidgetEncounter->currentWidget());
+    if(!activeFrame)
+        return;
+
+    QAction* frameRedo = activeFrame->getRedoAction(activeFrame);
+    if(!frameRedo)
+        return;
+
+    frameRedo->trigger();
+    frameRedo->deleteLater();
 }
 
 void MainWindow::newCampaign()

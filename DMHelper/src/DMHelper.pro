@@ -261,6 +261,10 @@ SOURCES += main.cpp\
     undofowpoint.cpp \
     undofowshape.cpp \
     undomarker.cpp \
+    undotokenadd.cpp \
+    undotokenbase.cpp \
+    undotokenmove.cpp \
+    undotokenremove.cpp \
     mapcontent.cpp \
     mapmarkergraphicsitem.cpp \
     scaledpixmap.cpp \
@@ -571,6 +575,10 @@ HEADERS  += mainwindow.h \
     undofowpoint.h \
     undofowshape.h \
     undomarker.h \
+    undotokenadd.h \
+    undotokenbase.h \
+    undotokenmove.h \
+    undotokenremove.h \
     mapcontent.h \
     mapmarkergraphicsitem.h \
     scaledpixmap.h \

@@ -42,8 +42,8 @@ public:
 
     virtual bool eventFilter(QObject *obj, QEvent *event) override;
 
-    QAction* getUndoAction(QObject* parent);
-    QAction* getRedoAction(QObject* parent);
+    virtual QAction* getUndoAction(QObject* parent) override;
+    virtual QAction* getRedoAction(QObject* parent) override;
 
 signals:
     void encounterSelected(QUuid id);

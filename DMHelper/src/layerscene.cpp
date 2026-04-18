@@ -16,6 +16,8 @@
 #include <QPainter>
 #include <QDomElement>
 #include <QGraphicsScene>
+#include <QUndoGroup>
+#include <QUndoStack>
 #include <QDebug>
 
 //#define DEBUG_LAYERSCENE
@@ -28,13 +30,48 @@ LayerScene::LayerScene(QObject *parent) :
     _selected(-1),
     _dmScene(nullptr),
     _playerGLScene(nullptr),
-    _renderer(nullptr)
+    _renderer(nullptr),
+    _undoGroup(new QUndoGroup(this))
 {
 }
 
 LayerScene::~LayerScene()
 {
     clearLayers();
+}
+
+QUndoGroup* LayerScene::getUndoGroup() const
+{
+    return _undoGroup;
+}
+
+void LayerScene::registerUndoStack(QUndoStack* stack)
+{
+    if((!stack) || (!_undoGroup))
+        return;
+
+    _undoGroup->addStack(stack);
+    connect(stack, &QUndoStack::indexChanged, this, &LayerScene::handleUndoStackTouched, Qt::UniqueConnection);
+
+    // Make the newly registered stack the active target so the first Ctrl+Z
+    // after attach targets the most recent layer rather than a stale one.
+    _undoGroup->setActiveStack(stack);
+}
+
+void LayerScene::unregisterUndoStack(QUndoStack* stack)
+{
+    if((!stack) || (!_undoGroup))
+        return;
+
+    disconnect(stack, &QUndoStack::indexChanged, this, &LayerScene::handleUndoStackTouched);
+    _undoGroup->removeStack(stack);
+}
+
+void LayerScene::handleUndoStackTouched()
+{
+    QUndoStack* stack = qobject_cast<QUndoStack*>(sender());
+    if((stack) && (_undoGroup))
+        _undoGroup->setActiveStack(stack);
 }
 
 void LayerScene::inputXML(const QDomElement &element, bool isImport)
@@ -821,6 +858,14 @@ void LayerScene::connectLayer(Layer* layer)
     connect(layer, &Layer::layerResized, this, &LayerScene::sceneChanged);
     connect(layer, &Layer::layerVisibilityChanged, this, &LayerScene::layerVisibilityChanged);
     connect(layer, &Layer::layerScaleChanged, this, &LayerScene::handleLayerScaleChanged);
+
+    LayerFow* fowLayer = dynamic_cast<LayerFow*>(layer);
+    if((fowLayer) && (fowLayer->getUndoStack()))
+        registerUndoStack(fowLayer->getUndoStack());
+
+    LayerTokens* tokensLayer = dynamic_cast<LayerTokens*>(layer);
+    if((tokensLayer) && (tokensLayer->getUndoStack()))
+        registerUndoStack(tokensLayer->getUndoStack());
 }
 
 void LayerScene::disconnectLayer(Layer* layer)
@@ -834,6 +879,14 @@ void LayerScene::disconnectLayer(Layer* layer)
     disconnect(layer, &Layer::layerResized, this, &LayerScene::sceneChanged);
     disconnect(layer, &Layer::layerVisibilityChanged, this, &LayerScene::layerVisibilityChanged);
     disconnect(layer, &Layer::layerScaleChanged, this, &LayerScene::handleLayerScaleChanged);
+
+    LayerFow* fowLayer = dynamic_cast<LayerFow*>(layer);
+    if((fowLayer) && (fowLayer->getUndoStack()))
+        unregisterUndoStack(fowLayer->getUndoStack());
+
+    LayerTokens* tokensLayer = dynamic_cast<LayerTokens*>(layer);
+    if((tokensLayer) && (tokensLayer->getUndoStack()))
+        unregisterUndoStack(tokensLayer->getUndoStack());
 }
 
 void LayerScene::resetLayerOrders()

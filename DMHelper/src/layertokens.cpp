@@ -17,11 +17,13 @@
 #include "battledialogmodeleffectfactory.h"
 #include "battledialogmodeleffectobject.h"
 #include "battledialogmodeleffectobjectvideo.h"
+#include "layerscene.h"
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QImage>
 #include <QPainter>
 #include <QtGlobal>
+#include <QUndoStack>
 #include <QDebug>
 
 LayerTokens::LayerTokens(BattleDialogModel* model, const QString& name, int order, QObject *parent) :
@@ -35,7 +37,8 @@ LayerTokens::LayerTokens(BattleDialogModel* model, const QString& name, int orde
     _effects(),
     _effectIconHash(),
     _effectTokenHash(),
-    _scale(DMHelper::STARTING_GRID_SCALE)
+    _scale(DMHelper::STARTING_GRID_SCALE),
+    _undoStack(new QUndoStack(this))
 {
     setModel(model);
 }
@@ -44,6 +47,11 @@ LayerTokens::~LayerTokens()
 {
     cleanupDM();
     cleanupPlayer();
+}
+
+QUndoStack* LayerTokens::getUndoStack() const
+{
+    return _undoStack;
 }
 
 void LayerTokens::inputXML(const QDomElement &element, bool isImport)
@@ -775,6 +783,14 @@ void LayerTokens::combatantMoved(BattleDialogModelObject* object)
     if(!combatantItem)
         return;
 
+    // Sync pixmap position to model position. During user drags the pixmap is the
+    // source of truth (UnselectedPixmap::itemChange pushes scenePos into the model),
+    // but when setPosition is driven externally - e.g. by an undo command - the
+    // pixmap must follow. setPos fires itemChange which re-enters setPosition, but
+    // the equality guard in setPosition short-circuits the recursion.
+    if(combatantItem->pos() != combatant->getPosition())
+        combatantItem->setPos(combatant->getPosition());
+
     PublishGLBattleToken* combatantToken = _combatantTokenHash.value(combatant);
 
     QList<Layer*> tokenLayers = _layerScene->getLayers(DMHelper::LayerType_Tokens);
@@ -893,6 +909,11 @@ void LayerTokens::effectMoved(BattleDialogModelObject* object)
     QGraphicsItem* effectItem = _effectIconHash.value(keyEffect);
     if(!effectItem)
         return;
+
+    // See combatantMoved() for rationale: sync graphics item to model pos so undo
+    // commands that drive setPosition get reflected visually.
+    if((movedEffect) && (effectItem->pos() != movedEffect->getPosition()))
+        effectItem->setPos(movedEffect->getPosition());
 
     QGraphicsItem* collisionEffect = effectItem;
     foreach(QGraphicsItem* childEffect, effectItem->childItems())

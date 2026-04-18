@@ -23,6 +23,18 @@ void CampaignObjectFrame::deactivateObject()
 {
 }
 
+QAction* CampaignObjectFrame::getUndoAction(QObject* parent)
+{
+    Q_UNUSED(parent);
+    return nullptr;
+}
+
+QAction* CampaignObjectFrame::getRedoAction(QObject* parent)
+{
+    Q_UNUSED(parent);
+    return nullptr;
+}
+
 void CampaignObjectFrame::publishClicked(bool checked)
 {
     Q_UNUSED(checked);

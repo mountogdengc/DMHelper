@@ -10,6 +10,8 @@ class Layer;
 class QGraphicsScene;
 class PublishGLRenderer;
 class PublishGLScene;
+class QUndoGroup;
+class QUndoStack;
 
 class LayerScene : public CampaignObjectBase
 {
@@ -60,6 +62,10 @@ public:
 
     PublishGLRenderer* getRenderer() const;
 
+    QUndoGroup* getUndoGroup() const;
+    void registerUndoStack(QUndoStack* stack);
+    void unregisterUndoStack(QUndoStack* stack);
+
     QList<Layer*> getLayers() const;
     QList<Layer*> getLayers(DMHelper::LayerType type) const;
 
@@ -99,6 +105,7 @@ protected slots:
     void layerResized(const QSize& size);
 
     void handleReferenceDestroyed(Layer* source, Layer* reference);
+    void handleUndoStackTouched();
 
 protected:
     // From CampaignObjectBase
@@ -118,6 +125,7 @@ protected:
     QGraphicsScene* _dmScene;
     PublishGLScene* _playerGLScene;
     PublishGLRenderer* _renderer;
+    QUndoGroup* _undoGroup;
 };
 
 #endif // LAYERSCENE_H

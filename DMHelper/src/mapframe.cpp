@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QStyleOptionGraphicsItem>
 #include <QMessageBox>
+#include <QUndoGroup>
 #include <QDebug>
 
 MapFrame::MapFrame(QWidget *parent) :
@@ -208,18 +209,18 @@ bool MapFrame::eventFilter(QObject *obj, QEvent *event)
 
 QAction* MapFrame::getUndoAction(QObject* parent)
 {
-    Q_UNUSED(parent);
-    // TODO: layers
-    //return _mapSource->getUndoStack()->createUndoAction(parent);
-    return nullptr;
+    if((!_mapSource) || (!_mapSource->getLayerScene().getUndoGroup()))
+        return nullptr;
+
+    return _mapSource->getLayerScene().getUndoGroup()->createUndoAction(parent, tr("&Undo"));
 }
 
 QAction* MapFrame::getRedoAction(QObject* parent)
 {
-    Q_UNUSED(parent);
-    // TODO: layers
-    //return _mapSource->getUndoStack()->createRedoAction(parent);
-    return nullptr;
+    if((!_mapSource) || (!_mapSource->getLayerScene().getUndoGroup()))
+        return nullptr;
+
+    return _mapSource->getLayerScene().getUndoGroup()->createRedoAction(parent, tr("&Redo"));
 }
 
 void MapFrame::fillFoW()
