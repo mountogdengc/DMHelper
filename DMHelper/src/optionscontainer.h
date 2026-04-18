@@ -35,6 +35,12 @@ public:
     bool getShowAnimations() const;
     bool getAutoSave() const;
 
+    // Feature toggles
+    bool getEnableBestiary() const;
+    bool getEnableSpellbook() const;
+    bool getEnableQuickReference() const;
+    bool getEnableAudio() const;
+
     // Font settings
     QString getFontFamily() const;
     int getFontSize() const;
@@ -109,6 +115,12 @@ signals:
     void rulesetFileNameChanged(const QString& filename);
     void showAnimationsChanged(bool showAnimations);
     void autoSaveChanged(bool autoSave);
+
+    // Feature toggles
+    void enableBestiaryChanged(bool enabled);
+    void enableSpellbookChanged(bool enabled);
+    void enableQuickReferenceChanged(bool enabled);
+    void enableAudioChanged(bool enabled);
 
     // Font settings
     void fontFamilyChanged(const QString& fontFamily);
@@ -193,6 +205,12 @@ public slots:
     void setShowAnimations(bool showAnimations);
     void setAutoSave(bool autoSave);
 
+    // Feature toggles
+    void setEnableBestiary(bool enabled);
+    void setEnableSpellbook(bool enabled);
+    void setEnableQuickReference(bool enabled);
+    void setEnableAudio(bool enabled);
+
     // Font settings
     void setFontFamily(const QString& fontFamily);
     void setFontFamilyFromFont(const QFont& font);
@@ -276,6 +294,12 @@ private:
     QString _rulesetFileName;
     bool _showAnimations;
     bool _autoSave;
+
+    // Feature toggles
+    bool _enableBestiary;
+    bool _enableSpellbook;
+    bool _enableQuickReference;
+    bool _enableAudio;
 
     // Font settings
     QString _fontFamily;

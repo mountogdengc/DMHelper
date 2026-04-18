@@ -30,6 +30,10 @@ OptionsContainer::OptionsContainer(QMainWindow *parent) :
     _rulesetFileName(),
     _showAnimations(false),
     _autoSave(true),
+    _enableBestiary(true),
+    _enableSpellbook(true),
+    _enableQuickReference(true),
+    _enableAudio(true),
     _fontFamily("Trebuchet MS"),
     _fontSize(12),
     _logicalDPI(0.0),
@@ -155,6 +159,26 @@ bool OptionsContainer::getShowAnimations() const
 bool OptionsContainer::getAutoSave() const
 {
     return _autoSave;
+}
+
+bool OptionsContainer::getEnableBestiary() const
+{
+    return _enableBestiary;
+}
+
+bool OptionsContainer::getEnableSpellbook() const
+{
+    return _enableSpellbook;
+}
+
+bool OptionsContainer::getEnableQuickReference() const
+{
+    return _enableQuickReference;
+}
+
+bool OptionsContainer::getEnableAudio() const
+{
+    return _enableAudio;
 }
 
 QString OptionsContainer::getFontFamily() const
@@ -478,6 +502,10 @@ void OptionsContainer::readSettings()
 
     setShowAnimations(settings.value("showAnimations", QVariant(false)).toBool());
     setAutoSave(settings.value("autoSave", QVariant(true)).toBool());
+    setEnableBestiary(settings.value("enableBestiary", QVariant(true)).toBool());
+    setEnableSpellbook(settings.value("enableSpellbook", QVariant(true)).toBool());
+    setEnableQuickReference(settings.value("enableQuickReference", QVariant(true)).toBool());
+    setEnableAudio(settings.value("enableAudio", QVariant(true)).toBool());
     setFontFamily(settings.value("fontFamily", "Trebuchet MS").toString());
 
     //12*96/72 = 16 Pixels
@@ -568,6 +596,10 @@ void OptionsContainer::writeSettings()
     settings.setValue("ruleset", getUserRulesetFileName());
     settings.setValue("showAnimations", getShowAnimations());
     settings.setValue("autoSave", getAutoSave());
+    settings.setValue("enableBestiary", getEnableBestiary());
+    settings.setValue("enableSpellbook", getEnableSpellbook());
+    settings.setValue("enableQuickReference", getEnableQuickReference());
+    settings.setValue("enableAudio", getEnableAudio());
     settings.setValue("fontFamily", getFontFamily());
     settings.setValue("fontSize", getFontSize());
     settings.setValue("pasteRich", getPasteRich());
@@ -1058,6 +1090,42 @@ void OptionsContainer::setAutoSave(bool autoSave)
     }
 }
 
+void OptionsContainer::setEnableBestiary(bool enabled)
+{
+    if(_enableBestiary != enabled)
+    {
+        _enableBestiary = enabled;
+        emit enableBestiaryChanged(_enableBestiary);
+    }
+}
+
+void OptionsContainer::setEnableSpellbook(bool enabled)
+{
+    if(_enableSpellbook != enabled)
+    {
+        _enableSpellbook = enabled;
+        emit enableSpellbookChanged(_enableSpellbook);
+    }
+}
+
+void OptionsContainer::setEnableQuickReference(bool enabled)
+{
+    if(_enableQuickReference != enabled)
+    {
+        _enableQuickReference = enabled;
+        emit enableQuickReferenceChanged(_enableQuickReference);
+    }
+}
+
+void OptionsContainer::setEnableAudio(bool enabled)
+{
+    if(_enableAudio != enabled)
+    {
+        _enableAudio = enabled;
+        emit enableAudioChanged(_enableAudio);
+    }
+}
+
 void OptionsContainer::setFontFamily(const QString& fontFamily)
 {
     if(_fontFamily != fontFamily)
@@ -1472,6 +1540,10 @@ void OptionsContainer::copy(OptionsContainer* other)
         setLastRuleset(other->_lastRuleset);
         setShowAnimations(other->_showAnimations);
         setAutoSave(other->_autoSave);
+        setEnableBestiary(other->_enableBestiary);
+        setEnableSpellbook(other->_enableSpellbook);
+        setEnableQuickReference(other->_enableQuickReference);
+        setEnableAudio(other->_enableAudio);
         setFontFamily(other->_fontFamily);
         setFontSize(other->_fontSize);
         setInitiativeType(other->_initiativeType);

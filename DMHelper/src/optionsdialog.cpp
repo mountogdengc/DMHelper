@@ -71,6 +71,10 @@ OptionsDialog::OptionsDialog(OptionsContainer* options, Campaign* campaign, QWid
         if(_options->getMRUHandler())
             ui->spinBoxMRUCount->setValue(_options->getMRUHandler()->getMRUCount());
         ui->chkAutosave->setChecked(_options->getAutoSave());
+        ui->chkEnableBestiary->setChecked(_options->getEnableBestiary());
+        ui->chkEnableSpellbook->setChecked(_options->getEnableSpellbook());
+        ui->chkEnableQuickReference->setChecked(_options->getEnableQuickReference());
+        ui->chkEnableAudio->setChecked(_options->getEnableAudio());
         ui->cmbInitiativeType->setCurrentIndex(_options->getInitiativeType());
         ui->edtInitiativeScale->setText(QString::number(_options->getInitiativeScale()));
         ui->sliderInitiativeScale->setValue(static_cast<int>(_options->getInitiativeScale() * 100.0));
@@ -143,6 +147,10 @@ OptionsDialog::OptionsDialog(OptionsContainer* options, Campaign* campaign, QWid
         connect(ui->fontComboBox, SIGNAL(currentFontChanged(const QFont &)), _options, SLOT(setFontFamilyFromFont(const QFont&)));
         connect(ui->spinBoxFontSize, SIGNAL(valueChanged(int)), _options, SLOT(setFontSize(int)));
         connect(ui->chkAutosave, SIGNAL(clicked(bool)), _options, SLOT(setAutoSave(bool)));
+        connect(ui->chkEnableBestiary, SIGNAL(clicked(bool)), _options, SLOT(setEnableBestiary(bool)));
+        connect(ui->chkEnableSpellbook, SIGNAL(clicked(bool)), _options, SLOT(setEnableSpellbook(bool)));
+        connect(ui->chkEnableQuickReference, SIGNAL(clicked(bool)), _options, SLOT(setEnableQuickReference(bool)));
+        connect(ui->chkEnableAudio, SIGNAL(clicked(bool)), _options, SLOT(setEnableAudio(bool)));
         if(_options->getMRUHandler())
             connect(ui->spinBoxMRUCount, &QSpinBox::valueChanged, _options->getMRUHandler(), &MRUHandler::setMRUCount);
         connect(ui->cmbInitiativeType, SIGNAL(currentIndexChanged(int)), _options, SLOT(setInitiativeType(int)));

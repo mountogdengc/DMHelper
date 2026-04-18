@@ -1194,6 +1194,76 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabFeatures">
+      <attribute name="title">
+       <string>Features</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_features">
+       <item>
+        <widget class="QLabel" name="lblFeaturesDescription">
+         <property name="text">
+          <string>Turn off features you don't use to keep DMHelper lightweight. Changes apply after restart.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBoxFeatureToggles">
+         <property name="title">
+          <string>Feature Toggles</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_featureToggles">
+          <item>
+           <widget class="QCheckBox" name="chkEnableBestiary">
+            <property name="text">
+             <string>Enable Bestiary</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkEnableSpellbook">
+            <property name="text">
+             <string>Enable Spellbook</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkEnableQuickReference">
+            <property name="text">
+             <string>Enable Quick Reference</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkEnableAudio">
+            <property name="text">
+             <string>Enable Audio</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_features">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::MinimumExpanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -1249,6 +1319,10 @@
   <tabstop>edtSessionID</tabstop>
   <tabstop>edtInviteID</tabstop>
   <tabstop>btnGenerateInvite</tabstop>
+  <tabstop>chkEnableBestiary</tabstop>
+  <tabstop>chkEnableSpellbook</tabstop>
+  <tabstop>chkEnableQuickReference</tabstop>
+  <tabstop>chkEnableAudio</tabstop>
  </tabstops>
  <resources>
   <include location="resources.qrc"/>
