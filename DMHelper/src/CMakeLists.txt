@@ -879,6 +879,23 @@ elseif (APPLE)
         data/macimg/DMHelper.icns
         PROPERTIES MACOSX_PACKAGE_LOCATION Resources
     )
+elseif (UNIX AND NOT APPLE)
+    message(STATUS "Configuring Linux build")
+
+    target_compile_options(DMHelper PRIVATE
+        $<$<CONFIG:Debug>:-g>
+        $<$<CONFIG:Release>:-O2>
+    )
+
+    # VLC
+    target_include_directories(DMHelper PRIVATE /usr/include /usr/include/vlc)
+    target_link_libraries(DMHelper PRIVATE vlc)
+
+    # RPATH so the AppImage can find bundled libraries
+    set_target_properties(DMHelper PROPERTIES
+        INSTALL_RPATH "$ORIGIN/lib"
+        BUILD_WITH_INSTALL_RPATH TRUE
+    )
 endif()
 
 # -------------------------------------------------
