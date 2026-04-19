@@ -1,10 +1,12 @@
 #include "ruleset.h"
 #include "conditions.h"
+#include "combatantvocabulary.h"
 #include "dmconstants.h"
 #include "ruleinitiative.h"
 #include "rulefactory.h"
 #include <QDomDocument>
 #include <QDomElement>
+#include <QFileInfo>
 
 Ruleset::Ruleset(const QString& name, QObject *parent) :
     CampaignObjectBase(name, parent),
@@ -12,6 +14,8 @@ Ruleset::Ruleset(const QString& name, QObject *parent) :
     _conditions(nullptr),
     _rulesetDefaultConditions(nullptr),
     _conditionsFile(),
+    _vocabularyFile(),
+    _combatantVocabulary(nullptr),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -32,6 +36,8 @@ Ruleset::Ruleset(const RuleFactory::RulesetTemplate& rulesetTemplate, QObject *p
     _conditions(nullptr),
     _rulesetDefaultConditions(nullptr),
     _conditionsFile(),
+    _vocabularyFile(),
+    _combatantVocabulary(nullptr),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -51,6 +57,7 @@ Ruleset::~Ruleset()
 {
     delete _conditions;
     delete _rulesetDefaultConditions;
+    delete _combatantVocabulary;
 }
 
 void Ruleset::inputXML(const QDomElement &element, bool isImport)
@@ -97,6 +104,12 @@ void Ruleset::inputXML(const QDomElement &element, bool isImport)
     _bestiaryFile = element.attribute("bestiary");
     if(_bestiaryFile.isEmpty())
         _bestiaryFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._bestiary);
+
+    _vocabularyFile = element.attribute("vocabulary");
+    if(_vocabularyFile.isEmpty() && !rulesetTemplate._vocabulary.isEmpty())
+        _vocabularyFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._vocabulary);
+    delete _combatantVocabulary;
+    _combatantVocabulary = nullptr;
 
     _combatantDoneCheckbox = element.hasAttribute("combatantDone") ? static_cast<bool>(element.attribute("combatantDone").toInt()) : rulesetTemplate._combatantDone;
     _hitPointsCountDown = element.hasAttribute("hitPointsCountDown") ? static_cast<bool>(element.attribute("hitPointsCountDown").toInt()) : rulesetTemplate._hitPointsCountDown;
@@ -155,6 +168,12 @@ void Ruleset::setValues(const RuleFactory::RulesetTemplate& rulesetTemplate)
     _bestiaryFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._bestiary);
     _monsterDataFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._monsterData);
     _monsterUIFile = rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._monsterUI);
+
+    _vocabularyFile = rulesetTemplate._vocabulary.isEmpty()
+        ? QString()
+        : rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._vocabulary);
+    delete _combatantVocabulary;
+    _combatantVocabulary = nullptr;
 
     _combatantDoneCheckbox = rulesetTemplate._combatantDone;
     _hitPointsCountDown = rulesetTemplate._hitPointsCountDown;
@@ -228,6 +247,32 @@ Conditions* Ruleset::getRulesetDefaultConditions() const
 QString Ruleset::getConditionsFile() const
 {
     return _conditionsFile;
+}
+
+const CombatantVocabulary* Ruleset::getCombatantVocabulary() const
+{
+    if(_combatantVocabulary)
+        return _combatantVocabulary;
+
+    _combatantVocabulary = new CombatantVocabulary();
+    if(!_vocabularyFile.isEmpty() && QFileInfo::exists(_vocabularyFile))
+    {
+        if(!_combatantVocabulary->loadFromFile(_vocabularyFile))
+        {
+            qDebug() << "[Ruleset] Vocabulary file " << _vocabularyFile << " failed to load; falling back to 5e defaults.";
+            _combatantVocabulary->loadDefaults5e();
+        }
+    }
+    else
+    {
+        _combatantVocabulary->loadDefaults5e();
+    }
+    return _combatantVocabulary;
+}
+
+QString Ruleset::getVocabularyFile() const
+{
+    return _vocabularyFile;
 }
 
 QString Ruleset::getCharacterDataFile() const
@@ -461,6 +506,18 @@ void Ruleset::setMovementRanges(QList<int> ranges)
     emit dirty();
 }
 
+void Ruleset::setVocabularyFile(const QString& vocabularyFile)
+{
+    if(_vocabularyFile == vocabularyFile)
+        return;
+
+    _vocabularyFile = vocabularyFile;
+    delete _combatantVocabulary;
+    _combatantVocabulary = nullptr;
+    emit dirty();
+    registerChange();
+}
+
 QDomElement Ruleset::createOutputXML(QDomDocument &doc)
 {
     return doc.createElement("ruleset");
@@ -502,6 +559,12 @@ void Ruleset::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& t
 
     if(!areSameFile(_monsterUIFile, rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._monsterUI)))
         element.setAttribute("monsterUI", targetDirectory.relativeFilePath(_monsterUIFile));
+
+    const QString templateVocab = rulesetTemplate._vocabulary.isEmpty()
+        ? QString()
+        : rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._vocabulary);
+    if(!_vocabularyFile.isEmpty() && !areSameFile(_vocabularyFile, templateVocab))
+        element.setAttribute("vocabulary", targetDirectory.relativeFilePath(_vocabularyFile));
 
     if(_combatantDoneCheckbox != rulesetTemplate._combatantDone)
         element.setAttribute("combatantDone", _combatantDoneCheckbox);

@@ -6,6 +6,7 @@
 #include "dmconstants.h"
 
 class Conditions;
+class CombatantVocabulary;
 class RuleInitiative;
 
 class Ruleset : public CampaignObjectBase
@@ -33,6 +34,8 @@ public:
     Conditions* getConditions();
     Conditions* getRulesetDefaultConditions() const;
     QString getConditionsFile() const;
+    const CombatantVocabulary* getCombatantVocabulary() const;
+    QString getVocabularyFile() const;
     QString getCharacterDataFile() const;
     QString getCharacterUIFile() const;
     QString getBestiaryFile() const;
@@ -53,6 +56,7 @@ signals:
 public slots:
     void setRuleInitiative(const QString& initiativeType);
     void setConditionsFile(const QString& conditionsFile);
+    void setVocabularyFile(const QString& vocabularyFile);
     void setCharacterDataFile(const QString& characterDataFile);
     void setCharacterUIFile(const QString& characterUIFile);
     void setBestiaryFile(const QString& bestiaryFile);
@@ -79,6 +83,8 @@ protected:
     Conditions* _conditions;
     Conditions* _rulesetDefaultConditions;
     QString _conditionsFile;
+    QString _vocabularyFile;
+    mutable CombatantVocabulary* _combatantVocabulary;
     QString _characterDataFile;
     QString _characterUIFile;
     QString _bestiaryFile;

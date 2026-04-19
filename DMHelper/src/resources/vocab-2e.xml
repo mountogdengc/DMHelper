@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    DnD 2e combatant vocabulary. Mirrors the hardcoded 5e enums because 2e
+    still flows through Combatant's 5e-shaped ability/skill tables. A later
+    pass can diverge this file (2e saving-throw categories Paralyzation/Rod/
+    Petrification/Breath/Spell, nine-step alignment, THAC0) once consumers
+    read the vocabulary.
+-->
+<dmh:vocabulary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <dmh:abilities>
+        <dmh:ability key="strength"     display="Strength"     short="STR"/>
+        <dmh:ability key="dexterity"    display="Dexterity"    short="DEX"/>
+        <dmh:ability key="constitution" display="Constitution" short="CON"/>
+        <dmh:ability key="intelligence" display="Intelligence" short="INT"/>
+        <dmh:ability key="wisdom"       display="Wisdom"       short="WIS"/>
+        <dmh:ability key="charisma"     display="Charisma"     short="CHA"/>
+    </dmh:abilities>
+
+    <dmh:skills>
+        <dmh:skill key="strengthSave"     display="Strength Save"     ability="strength"     save="true"/>
+        <dmh:skill key="athletics"        display="Athletics"         ability="strength"/>
+        <dmh:skill key="dexteritySave"    display="Dexterity Save"    ability="dexterity"    save="true"/>
+        <dmh:skill key="stealth"          display="Stealth"           ability="dexterity"/>
+        <dmh:skill key="acrobatics"       display="Acrobatics"        ability="dexterity"/>
+        <dmh:skill key="sleightOfHand"    display="Sleight of Hand"   ability="dexterity"/>
+        <dmh:skill key="constitutionSave" display="Constitution Save" ability="constitution" save="true"/>
+        <dmh:skill key="intelligenceSave" display="Intelligence Save" ability="intelligence" save="true"/>
+        <dmh:skill key="investigation"    display="Investigation"     ability="intelligence"/>
+        <dmh:skill key="arcana"           display="Arcana"            ability="intelligence"/>
+        <dmh:skill key="nature"           display="Nature"            ability="intelligence"/>
+        <dmh:skill key="history"          display="History"           ability="intelligence"/>
+        <dmh:skill key="religion"         display="Religion"          ability="intelligence"/>
+        <dmh:skill key="wisdomSave"       display="Wisdom Save"       ability="wisdom"       save="true"/>
+        <dmh:skill key="medicine"         display="Medicine"          ability="wisdom"/>
+        <dmh:skill key="animalHandling"   display="Animal Handling"   ability="wisdom"/>
+        <dmh:skill key="perception"       display="Perception"        ability="wisdom"/>
+        <dmh:skill key="insight"          display="Insight"           ability="wisdom"/>
+        <dmh:skill key="survival"         display="Survival"          ability="wisdom"/>
+        <dmh:skill key="charismaSave"     display="Charisma Save"     ability="charisma"     save="true"/>
+        <dmh:skill key="performance"      display="Performance"       ability="charisma"/>
+        <dmh:skill key="deception"        display="Deception"         ability="charisma"/>
+        <dmh:skill key="persuasion"       display="Persuasion"        ability="charisma"/>
+        <dmh:skill key="intimidation"     display="Intimidation"      ability="charisma"/>
+    </dmh:skills>
+
+    <dmh:sizes>
+        <dmh:size key="tiny"       display="Tiny"       category="0" scale="0.5"/>
+        <dmh:size key="small"      display="Small"      category="1" scale="0.75"/>
+        <dmh:size key="medium"     display="Medium"     category="2" scale="1.0"/>
+        <dmh:size key="large"      display="Large"      category="3" scale="2.0"/>
+        <dmh:size key="huge"       display="Huge"       category="4" scale="3.0"/>
+        <dmh:size key="gargantuan" display="Gargantuan" category="5" scale="4.0"/>
+        <dmh:size key="colossal"   display="Colossal"   category="6" scale="8.0"/>
+    </dmh:sizes>
+
+    <dmh:formulas>
+        <dmh:formula name="abilityMod" expression="(v-10)/2"/>
+    </dmh:formulas>
+
+</dmh:vocabulary>

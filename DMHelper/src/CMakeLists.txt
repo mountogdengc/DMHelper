@@ -128,6 +128,7 @@ set(DMHELPER_SOURCES
     combatant.cpp
     combatantdialog.cpp
     combatantfactory.cpp
+    combatantvocabulary.cpp
     combatantreference.cpp
     combatantrolloverframe.cpp
     combatantselectdialog.cpp
@@ -454,6 +455,7 @@ set(DMHELPER_HEADERS
     combatant.h
     combatantdialog.h
     combatantfactory.h
+    combatantvocabulary.h
     combatantreference.h
     combatantrolloverframe.h
     combatantselectdialog.h

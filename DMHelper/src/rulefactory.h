@@ -58,6 +58,7 @@ public:
             _monsterUI(),
             _bestiary(),
             _conditionsFile(),
+            _vocabulary(),
             _rulesetDir(),
             _combatantDone(false),
             _hitPointsCountDown(true),
@@ -68,7 +69,8 @@ public:
                         const QString& characterUI, const QString& monsterData, const QString& monsterUI,
                         const QString& bestiary, QDir _rulesetDir, const QString& movement,
                         bool combatantDone = false, bool hitPointsCountDown = true,
-                        const QString& conditionsFile = QString()) :
+                        const QString& conditionsFile = QString(),
+                        const QString& vocabulary = QString()) :
             _name(name),
             _initiative(initiative),
             _characterData(characterData),
@@ -77,6 +79,7 @@ public:
             _monsterUI(monsterUI),
             _bestiary(bestiary),
             _conditionsFile(conditionsFile),
+            _vocabulary(vocabulary),
             _rulesetDir(_rulesetDir),
             _combatantDone(combatantDone),
             _hitPointsCountDown(hitPointsCountDown),
@@ -91,6 +94,7 @@ public:
         QString _monsterUI;
         QString _bestiary;
         QString _conditionsFile;
+        QString _vocabulary;
         QDir _rulesetDir;
         bool _combatantDone;
         bool _hitPointsCountDown;

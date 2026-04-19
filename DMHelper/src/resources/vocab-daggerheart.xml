@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Daggerheart combatant vocabulary. Ability keys match the six Daggerheart
+    traits (agility/strength/finesse/instinct/presence/knowledge) as they
+    already appear in character-daggerheart.xml and monster-daggerheart.xml.
+    Skills are empty because Daggerheart resolves actions via the trait rolls
+    plus Experiences (not a fixed skill list). Sizes carry through 5e's table
+    since the Daggerheart template files also use the 5e "medium/large/..."
+    size vocabulary today.
+-->
+<dmh:vocabulary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <dmh:abilities>
+        <dmh:ability key="agility"   display="Agility"   short="AGI"/>
+        <dmh:ability key="strength"  display="Strength"  short="STR"/>
+        <dmh:ability key="finesse"   display="Finesse"   short="FIN"/>
+        <dmh:ability key="instinct"  display="Instinct"  short="INS"/>
+        <dmh:ability key="presence"  display="Presence"  short="PRE"/>
+        <dmh:ability key="knowledge" display="Knowledge" short="KNO"/>
+    </dmh:abilities>
+
+    <dmh:skills/>
+
+    <dmh:sizes>
+        <dmh:size key="tiny"       display="Tiny"       category="0" scale="0.5"/>
+        <dmh:size key="small"      display="Small"      category="1" scale="0.75"/>
+        <dmh:size key="medium"     display="Medium"     category="2" scale="1.0"/>
+        <dmh:size key="large"      display="Large"      category="3" scale="2.0"/>
+        <dmh:size key="huge"       display="Huge"       category="4" scale="3.0"/>
+        <dmh:size key="gargantuan" display="Gargantuan" category="5" scale="4.0"/>
+        <dmh:size key="colossal"   display="Colossal"   category="6" scale="8.0"/>
+    </dmh:sizes>
+
+    <dmh:formulas/>
+
+</dmh:vocabulary>
