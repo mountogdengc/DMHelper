@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-#include "soundboardtrack.h"
+class SoundboardTrack;
 
 namespace Ui {
 class SoundboardTrackFrame;

@@ -3,7 +3,7 @@
 
 #include "camerascene.h"
 
-#include "undomarker.h"
+class UndoMarker;
 
 class MapFrameScene : public CameraScene
 {

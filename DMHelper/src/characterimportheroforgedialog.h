@@ -10,7 +10,7 @@ class CharacterImportHeroForgeDialog;
 }
 
 class CharacterImportHeroForge;
-#include "characterimportheroforgedata.h"
+class CharacterImportHeroForgeData;
 class QGridLayout;
 class DMHWaitingDialog;
 

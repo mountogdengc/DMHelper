@@ -1,6 +1,5 @@
 #include "videoplayerglplayer.h"
 #include "videoplayerglvideo.h"
-#include <vlc/libvlc_version.h>
 #include "dmh_opengl.h"
 #include <QTimerEvent>
 #include <QDebug>
@@ -536,7 +535,6 @@ bool VideoPlayerGLPlayer::startPlayer()
 //        libvlc_event_attach(eventManager, libvlc_MediaPlayerStopping, playerEventCallback, static_cast<void*>(this));
     }
 
-#if LIBVLC_VERSION_MAJOR >= 4
     bool callbackResult = libvlc_video_set_output_callbacks(_vlcPlayer,
                                                             libvlc_video_engine_opengl,
                                                             VideoPlayerGLVideo::setup,
@@ -554,9 +552,6 @@ bool VideoPlayerGLPlayer::startPlayer()
     qDebug() << "[VideoPlayerGLPlayer] Player callback result: " << callbackResult;
 #else
     Q_UNUSED(callbackResult);
-#endif
-#else
-    qDebug() << "[VideoPlayerGLPlayer] VLC GL output callbacks not available (VLC < 4.0)";
 #endif
 
     // And start playback
@@ -577,7 +572,7 @@ bool VideoPlayerGLPlayer::stopPlayer(bool restart)
     _selfRestart = restart;
 
     if(_vlcPlayer)
-        libvlc_media_player_stop(_vlcPlayer);
+        libvlc_media_player_stop_async(_vlcPlayer);
 
     return true;
 }

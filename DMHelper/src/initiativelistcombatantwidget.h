@@ -7,7 +7,7 @@ namespace Ui {
 class InitiativeListCombatantWidget;
 }
 
-#include "battledialogmodelcombatant.h"
+class BattleDialogModelCombatant;
 
 class InitiativeListCombatantWidget : public QWidget
 {

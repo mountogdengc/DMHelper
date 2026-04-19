@@ -8,7 +8,7 @@ namespace Ui {
 class BattleCombatantFrame;
 }
 
-#include "battledialogmodelcombatant.h"
+class BattleDialogModelCombatant;
 
 class BattleCombatantFrame : public QFrame
 {

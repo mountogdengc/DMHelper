@@ -12,7 +12,7 @@ class QVBoxLayout;
 class SoundBoardGroupFrame;
 class SoundboardGroup;
 class AudioTrack;
-#include "campaignobjectbase.h"
+class CampaignObjectBase;
 
 class SoundboardFrame : public QFrame
 {

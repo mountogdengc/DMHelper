@@ -5,8 +5,8 @@
 #include <QHash>
 
 class BattleDialogModel;
-#include "battledialogmodelcombatant.h"
-#include "battledialogmodeleffect.h"
+class BattleDialogModelCombatant;
+class BattleDialogModelEffect;
 class BattleDialogModelObject;
 class PublishGLBattleToken;
 class PublishGLBattleEffect;

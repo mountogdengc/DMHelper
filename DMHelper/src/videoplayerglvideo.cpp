@@ -1,5 +1,4 @@
 #include "videoplayerglvideo.h"
-#include <vlc/libvlc_version.h>
 #include "videoplayerglplayer.h"
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
@@ -100,7 +99,6 @@ QSize VideoPlayerGLVideo::getVideoSize() const
     return QSize(static_cast<int>(_width), static_cast<int>(_height));
 }
 
-#if LIBVLC_VERSION_MAJOR >= 4
 // This callback will create the surfaces and FBO used by VLC to perform its rendering
 bool VideoPlayerGLVideo::resizeRenderTextures(void* data,
                                               const libvlc_video_render_cfg_t *cfg,
@@ -180,7 +178,6 @@ bool VideoPlayerGLVideo::setup(void** data,
     that->_height = 0;
     return true;
 }
-#endif // LIBVLC_VERSION_MAJOR >= 4
 
 
 // This callback is called to release the texture and FBO created in resize

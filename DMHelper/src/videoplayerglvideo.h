@@ -2,7 +2,6 @@
 #define VIDEOPLAYERGLVIDEO_H
 
 #include "dmh_vlc.h"
-#include <vlc/libvlc_version.h>
 #include <QObject>
 #include <QSemaphore>
 #include <QMutex>
@@ -31,12 +30,10 @@ public:
     QOpenGLFramebufferObject *getVideoFrame();
     QSize getVideoSize() const;
 
-#if LIBVLC_VERSION_MAJOR >= 4
     static bool resizeRenderTextures(void* data, const libvlc_video_render_cfg_t *cfg,
                                      libvlc_video_output_cfg_t *render_cfg);
     static bool setup(void** data, const libvlc_video_setup_device_cfg_t *cfg,
                       libvlc_video_setup_device_info_t *out);
-#endif
     static void cleanup(void* data);
     static void swap(void* data);
     static bool makeCurrent(void* data, bool current);

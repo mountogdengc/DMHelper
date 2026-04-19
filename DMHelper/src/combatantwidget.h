@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-#include "battledialogmodelcombatant.h"
+class BattleDialogModelCombatant;
 class QHBoxLayout;
 class QLabel;
 class QLineEdit;
