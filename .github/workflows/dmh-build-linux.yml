@@ -49,11 +49,8 @@ jobs:
 
     - name: Build DMHelper
       run: |
-        cd DMHelper
-        mkdir build-release
-        cd build-release
-        qmake ../src/DMHelper.pro CONFIG+=release
-        make -j$(nproc)
+        cmake -S DMHelper/src -B DMHelper/build-release -DCMAKE_BUILD_TYPE=Release
+        cmake --build DMHelper/build-release --config Release -j$(nproc)
 
     - name: Prepare AppDir structure
       run: |

@@ -4,6 +4,7 @@ set -e
 echo "=== Installing dependencies ==="
 sudo apt-get update
 sudo apt-get install -y \
+  cmake \
   qt6-base-dev \
   qt6-multimedia-dev \
   qt6-tools-dev \
@@ -18,20 +19,18 @@ sudo apt-get install -y \
   libvlccore-dev \
   vlc-plugin-base \
   libgl1-mesa-dev \
-  build-essential \
-  yt-dlp
+  pkg-config \
+  build-essential
 
 REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
 
 echo "=== Building DMHelper ==="
 cd "$REPO_ROOT"
-rm -rf build-release
-mkdir build-release
-cd build-release
-qmake6 "$REPO_ROOT/DMHelper/src/DMHelper.pro" CONFIG+=release
-make -j$(nproc)
+cmake -S "$REPO_ROOT/DMHelper/src" -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --config Release -j"$(nproc)"
 
 echo "=== Deploying resources ==="
+cd build-release
 cp -r "$REPO_ROOT/DMHelper/src/resources" .
 cp -r "$REPO_ROOT/DMHelper/src/doc" .
 # Bestiary files go in resources/ where getAbsoluteTemplateFile() looks
