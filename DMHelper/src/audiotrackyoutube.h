@@ -2,9 +2,9 @@
 #define AUDIOTRACKYOUTUBE_H
 
 #include "audiotrackurl.h"
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include "dmh_vlc.h"
-#include <QProcess>
-#include <QTimer>
 
 class AudioTrackYoutube : public AudioTrackUrl
 {
@@ -37,9 +37,7 @@ public slots:
 signals:
 
 protected slots:
-    void ytdlpFinished(int exitCode, QProcess::ExitStatus exitStatus);
-    void ytdlpError(QProcess::ProcessError error);
-    void ytdlpTimeout();
+    void urlRequestFinished(QNetworkReply *reply);
 
 protected:
     // From QObject
@@ -49,12 +47,12 @@ protected:
     virtual void internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
 
     virtual void findDirectUrl(const QString& youtubeId);
+    bool handleReplyDirect(const QByteArray& data);
     void playDirectUrl();
     void internalStopCheck(int status);
     QString extractYoutubeIDFromUrl();
 
-    QProcess* _ytdlpProcess;
-    QTimer* _ytdlpTimer;
+    QNetworkAccessManager* _manager;
     QString _urlString;
     libvlc_media_player_t *_vlcPlayer;
     int _stopStatus;

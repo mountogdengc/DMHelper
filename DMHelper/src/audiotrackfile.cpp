@@ -62,7 +62,7 @@ int AudioTrackFile::getTrackStatus() const
 
 bool AudioTrackFile::isPlaying() const
 {
-    return ((_player) && (_player->playbackState() == QMediaPlayer::PlayingState));
+    return ((_player) && (_player->isPlaying()));
 }
 
 bool AudioTrackFile::isRepeat() const
@@ -84,7 +84,7 @@ void AudioTrackFile::play()
 {
     if(_player)
     {
-        if(_player->playbackState() != QMediaPlayer::PlayingState)
+        if(!_player->isPlaying())
             _player->play();
         return;
     }
@@ -110,7 +110,8 @@ void AudioTrackFile::play()
     }
 
     fileString = fileInfo.canonicalFilePath();
-    QUrl url = QUrl::fromLocalFile(fileString);
+    QUrl url = QUrl(fileString);
+    url.setScheme(QString("file"));
     _player = new QMediaPlayer(this);
     _player->setLoops(_repeat ? QMediaPlayer::Infinite : 1);
 
