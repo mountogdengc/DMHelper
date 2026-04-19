@@ -85,7 +85,7 @@
 #include "mapselectdialog.h"
 #include "newentrydialog.h"
 #include "overlayrenderer.h"
-#include "overlayfear.h"
+#include "overlay.h"
 #include "overlayseditdialog.h"
 #include <QResizeEvent>
 #include <QFileDialog>
@@ -833,8 +833,13 @@ void MainWindow::newCampaign()
         _campaign->addObject(EncounterFactory().createObject(DMHelper::CampaignType_Text, -1, QString("Adventures"), false));
         _campaign->addObject(EncounterFactory().createObject(DMHelper::CampaignType_Text, -1, QString("World"), false));
 
-        if(_campaign->getRuleset().objectName().contains(QString("daggerheart"), Qt::CaseInsensitive))
-            _campaign->addOverlay(new OverlayFear());
+        // Seed the campaign with the overlays the ruleset declares via
+        // its defaultOverlays attribute (e.g. "fear" for Daggerheart).
+        for(const QString& overlayType : _campaign->getRuleset().getDefaultOverlayTypes())
+        {
+            if(Overlay* overlay = Overlay::createByTypeName(overlayType))
+                _campaign->addOverlay(overlay);
+        }
 
         _bestiaryDlg.setMonster(nullptr);
         _bestiaryDlg.loadMonsterUITemplate(_campaign->getRuleset().getMonsterUIFile());

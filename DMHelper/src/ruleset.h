@@ -4,6 +4,7 @@
 #include "campaignobjectbase.h"
 #include "rulefactory.h"
 #include "dmconstants.h"
+#include <QStringList>
 
 class Conditions;
 class CombatantVocabulary;
@@ -36,6 +37,7 @@ public:
     QString getConditionsFile() const;
     const CombatantVocabulary* getCombatantVocabulary() const;
     QString getVocabularyFile() const;
+    QStringList getDefaultOverlayTypes() const;
     QString getCharacterDataFile() const;
     QString getCharacterUIFile() const;
     QString getBestiaryFile() const;
@@ -85,6 +87,7 @@ protected:
     QString _conditionsFile;
     QString _vocabularyFile;
     mutable CombatantVocabulary* _combatantVocabulary;
+    QStringList _defaultOverlayTypes;
     QString _characterDataFile;
     QString _characterUIFile;
     QString _bestiaryFile;

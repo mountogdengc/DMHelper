@@ -59,6 +59,7 @@ public:
             _bestiary(),
             _conditionsFile(),
             _vocabulary(),
+            _defaultOverlays(),
             _rulesetDir(),
             _combatantDone(false),
             _hitPointsCountDown(true),
@@ -70,7 +71,8 @@ public:
                         const QString& bestiary, QDir _rulesetDir, const QString& movement,
                         bool combatantDone = false, bool hitPointsCountDown = true,
                         const QString& conditionsFile = QString(),
-                        const QString& vocabulary = QString()) :
+                        const QString& vocabulary = QString(),
+                        const QString& defaultOverlays = QString()) :
             _name(name),
             _initiative(initiative),
             _characterData(characterData),
@@ -80,6 +82,7 @@ public:
             _bestiary(bestiary),
             _conditionsFile(conditionsFile),
             _vocabulary(vocabulary),
+            _defaultOverlays(defaultOverlays),
             _rulesetDir(_rulesetDir),
             _combatantDone(combatantDone),
             _hitPointsCountDown(hitPointsCountDown),
@@ -95,6 +98,7 @@ public:
         QString _bestiary;
         QString _conditionsFile;
         QString _vocabulary;
+        QString _defaultOverlays;
         QDir _rulesetDir;
         bool _combatantDone;
         bool _hitPointsCountDown;

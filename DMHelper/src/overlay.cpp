@@ -1,4 +1,7 @@
 #include "overlay.h"
+#include "overlaycounter.h"
+#include "overlayfear.h"
+#include "overlaytimer.h"
 #include <QDomElement>
 #include <QImage>
 #include <QFont>
@@ -24,6 +27,18 @@ Overlay::Overlay(const QString& name, QObject *parent) :
 bool Overlay::isDMOnly() const
 {
     return false;
+}
+
+Overlay* Overlay::createByTypeName(const QString& typeName, QObject* parent)
+{
+    const QString t = typeName.trimmed().toLower();
+    if(t == QStringLiteral("fear"))
+        return new OverlayFear(QString("Fear"), parent);
+    if(t == QStringLiteral("counter"))
+        return new OverlayCounter(0, QString("Counter"), parent);
+    if(t == QStringLiteral("timer"))
+        return new OverlayTimer(0, QString("Timer"), parent);
+    return nullptr;
 }
 
 void Overlay::inputXML(const QDomElement &element)

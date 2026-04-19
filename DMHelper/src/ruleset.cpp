@@ -7,6 +7,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QFileInfo>
+#include <QRegularExpression>
 
 Ruleset::Ruleset(const QString& name, QObject *parent) :
     CampaignObjectBase(name, parent),
@@ -16,6 +17,7 @@ Ruleset::Ruleset(const QString& name, QObject *parent) :
     _conditionsFile(),
     _vocabularyFile(),
     _combatantVocabulary(nullptr),
+    _defaultOverlayTypes(),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -38,6 +40,7 @@ Ruleset::Ruleset(const RuleFactory::RulesetTemplate& rulesetTemplate, QObject *p
     _conditionsFile(),
     _vocabularyFile(),
     _combatantVocabulary(nullptr),
+    _defaultOverlayTypes(),
     _characterDataFile(),
     _characterUIFile(),
     _bestiaryFile(),
@@ -111,6 +114,16 @@ void Ruleset::inputXML(const QDomElement &element, bool isImport)
     delete _combatantVocabulary;
     _combatantVocabulary = nullptr;
 
+    // Default overlays are metadata used only when creating a new campaign
+    // (mainwindow seeds the campaign's Overlay list from this). Loaded
+    // campaigns keep whatever <overlay> children they serialised, so we do
+    // not read a per-campaign override here.
+    _defaultOverlayTypes = rulesetTemplate._defaultOverlays
+        .split(QRegularExpression(QStringLiteral("[,;]")), Qt::SkipEmptyParts);
+    for(QString& t : _defaultOverlayTypes)
+        t = t.trimmed();
+    _defaultOverlayTypes.removeAll(QString());
+
     _combatantDoneCheckbox = element.hasAttribute("combatantDone") ? static_cast<bool>(element.attribute("combatantDone").toInt()) : rulesetTemplate._combatantDone;
     _hitPointsCountDown = element.hasAttribute("hitPointsCountDown") ? static_cast<bool>(element.attribute("hitPointsCountDown").toInt()) : rulesetTemplate._hitPointsCountDown;
 
@@ -174,6 +187,12 @@ void Ruleset::setValues(const RuleFactory::RulesetTemplate& rulesetTemplate)
         : rulesetTemplate._rulesetDir.absoluteFilePath(rulesetTemplate._vocabulary);
     delete _combatantVocabulary;
     _combatantVocabulary = nullptr;
+
+    _defaultOverlayTypes = rulesetTemplate._defaultOverlays
+        .split(QRegularExpression(QStringLiteral("[,;]")), Qt::SkipEmptyParts);
+    for(QString& t : _defaultOverlayTypes)
+        t = t.trimmed();
+    _defaultOverlayTypes.removeAll(QString());
 
     _combatantDoneCheckbox = rulesetTemplate._combatantDone;
     _hitPointsCountDown = rulesetTemplate._hitPointsCountDown;
@@ -273,6 +292,11 @@ const CombatantVocabulary* Ruleset::getCombatantVocabulary() const
 QString Ruleset::getVocabularyFile() const
 {
     return _vocabularyFile;
+}
+
+QStringList Ruleset::getDefaultOverlayTypes() const
+{
+    return _defaultOverlayTypes;
 }
 
 QString Ruleset::getCharacterDataFile() const

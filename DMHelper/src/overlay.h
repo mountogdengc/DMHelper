@@ -26,6 +26,13 @@ public:
     virtual int getOverlayType() const = 0;
     virtual bool isInitialized() const;
 
+    // Factory for creating a default-constructed Overlay subclass by type
+    // name ("fear", "counter", "timer"). Used by the new-campaign flow to
+    // seed overlays listed in a ruleset's defaultOverlays attribute without
+    // hardcoding subclass knowledge at the call site. Returns nullptr for
+    // unknown type names.
+    static Overlay* createByTypeName(const QString& typeName, QObject* parent = nullptr);
+
     virtual bool isVisible() const;
     virtual qreal getScale() const;
     virtual int getOpacity() const;
