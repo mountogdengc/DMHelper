@@ -60,6 +60,7 @@ public:
     bool getRatioLocked() const;
     bool getGridLocked() const;
     qreal getGridLockScale() const;
+    bool getLineOfSightEnabled() const;
 
     // Data settings
     QString getLastAppVersion() const;
@@ -134,6 +135,7 @@ signals:
     void ratioLockedChanged(bool ratioLocked);
     void gridLockedChanged(bool gridLocked);
     void gridLockScaleChanged(qreal gridLockScale);
+    void lineOfSightEnabledChanged(bool lineOfSightEnabled);
 
     // Data settings
     void heroForgeTokenChanged(const QString& token);
@@ -221,6 +223,7 @@ public slots:
     void setRatioLocked(bool ratioLocked);
     void setGridLocked(bool gridLocked);
     void setGridLockScale(qreal gridLockScale);
+    void setLineOfSightEnabled(bool lineOfSightEnabled);
 
     // Data settings
     void setUpdatesEnabled(bool updatesEnabled);
@@ -303,6 +306,7 @@ private:
     bool _ratioLocked;
     bool _gridLocked;
     qreal _gridLockScale;
+    bool _lineOfSightEnabled;
 
     // Data settings
     QString _lastAppVersion;

@@ -48,6 +48,7 @@ OptionsContainer::OptionsContainer(QMainWindow *parent) :
     _ratioLocked(false),
     _gridLocked(false),
     _gridLockScale(100.0),
+    _lineOfSightEnabled(false),
     _lastAppVersion(),
     _dataSettingsExist(false),
     _updatesEnabled(false),
@@ -245,6 +246,11 @@ bool OptionsContainer::getGridLocked() const
 qreal OptionsContainer::getGridLockScale() const
 {
     return _gridLockScale;
+}
+
+bool OptionsContainer::getLineOfSightEnabled() const
+{
+    return _lineOfSightEnabled;
 }
 
 QString OptionsContainer::getLastAppVersion() const
@@ -505,6 +511,7 @@ void OptionsContainer::readSettings()
     setRatioLocked(settings.value("ratioLocked", QVariant(false)).toBool());
     setGridLocked(settings.value("gridLocked", QVariant(false)).toBool());
     setGridLockScale(settings.value("gridLockScale", QVariant(0.0)).toReal());
+    setLineOfSightEnabled(settings.value("lineOfSightEnabled", QVariant(false)).toBool());
 
     _lastAppVersion = settings.value("lastAppVersion").toString();
 
@@ -585,6 +592,7 @@ void OptionsContainer::writeSettings()
     settings.setValue("ratioLocked", getRatioLocked());
     settings.setValue("gridLocked", getGridLocked());
     settings.setValue("gridLockScale", getGridLockScale());
+    settings.setValue("lineOfSightEnabled", getLineOfSightEnabled());
 
     QString versionString = QString("%1.%2.%3").arg(DMHelper::DMHELPER_MAJOR_VERSION)
                                                .arg(DMHelper::DMHELPER_MINOR_VERSION)
@@ -1251,6 +1259,16 @@ void OptionsContainer::setGridLockScale(qreal gridLockScale)
     }
 }
 
+void OptionsContainer::setLineOfSightEnabled(bool lineOfSightEnabled)
+{
+    if(_lineOfSightEnabled != lineOfSightEnabled)
+    {
+        _lineOfSightEnabled = lineOfSightEnabled;
+        qDebug() << "[OptionsContainer] Line of sight enabled: " << _lineOfSightEnabled;
+        emit lineOfSightEnabledChanged(_lineOfSightEnabled);
+    }
+}
+
 void OptionsContainer::setUpdatesEnabled(bool updatesEnabled)
 {
     _updatesEnabled = updatesEnabled;
@@ -1486,6 +1504,7 @@ void OptionsContainer::copy(OptionsContainer* other)
         setCountdownFrame(other->_countdownFrame);
         setGridLocked(other->_gridLocked);
         setGridLockScale(other->_gridLockScale);
+        setLineOfSightEnabled(other->_lineOfSightEnabled);
         _lastAppVersion = other->_lastAppVersion;
         _dataSettingsExist = other->_dataSettingsExist;
         _updatesEnabled = other->_updatesEnabled;
