@@ -3,6 +3,7 @@
 #include "spellbook.h"
 #include "battledialogmodeleffect.h"
 #include "conditionseditdialog.h"
+#include "thememanager.h"
 #include "ui_spellbookdialog.h"
 #include <QAbstractItemView>
 #include <QInputDialog>
@@ -46,12 +47,13 @@ SpellbookDialog::SpellbookDialog(QWidget *parent) :
 
     ui->cmbSearch->view()->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
     ui->btnEffectColor->setRotationVisible(false);
+    const QString disabledColor = ThemeManager::instance().colorName(ThemeManager::Role::SpellbookDisabledText);
     ui->edtEffectWidth->setValidator(new QIntValidator(0, 1000));
-    ui->edtEffectWidth->setStyleSheet(QString("QLineEdit:disabled {color: rgb(196, 196, 196);}"));
+    ui->edtEffectWidth->setStyleSheet(QString("QLineEdit:disabled {color: %1;}").arg(disabledColor));
     ui->edtEffectHeight->setValidator(new QIntValidator(0, 1000));
-    ui->edtEffectHeight->setStyleSheet(QString("QLineEdit:disabled {color: rgb(196, 196, 196);}"));
-    ui->edtEffectToken->setStyleSheet(QString("QLineEdit:disabled {color: rgb(196, 196, 196);}"));
-    ui->btnEffectTokenBrowse->setStyleSheet(QString("QPushButton:disabled {color: rgb(196, 196, 196);}"));
+    ui->edtEffectHeight->setStyleSheet(QString("QLineEdit:disabled {color: %1;}").arg(disabledColor));
+    ui->edtEffectToken->setStyleSheet(QString("QLineEdit:disabled {color: %1;}").arg(disabledColor));
+    ui->btnEffectTokenBrowse->setStyleSheet(QString("QPushButton:disabled {color: %1;}").arg(disabledColor));
     connect(ui->edtEffectWidth, &QLineEdit::textEdited, this, &SpellbookDialog::handleWidthChanged);
     connect(ui->edtEffectHeight, &QLineEdit::textEdited, this, &SpellbookDialog::handleHeightChanged);
     connect(ui->btnEffectColor, SIGNAL(colorChanged(const QColor&)), this, SIGNAL(spellDataEdit()));

@@ -740,6 +740,7 @@ void BattleFrame::resizeGrid()
         currentScale = _model->getLayerScene().getScale();
 
     _gridSizer = new GridSizer(currentScale);
+    // Grid sizer overlay is player-visible through publish; keep fixed high-contrast white regardless of DM theme.
     _gridSizer->setBackgroundColor(QColor(255,255,255,204));
     _scene->addItem(_gridSizer);
     _gridSizer->setPos(currentScale, currentScale);

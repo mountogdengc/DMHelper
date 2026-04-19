@@ -1,6 +1,7 @@
 #include "dicerollframe.h"
 #include "ui_dicerollframe.h"
 #include "dice.h"
+#include "thememanager.h"
 #include <QtGlobal>
 #include <QIntValidator>
 
@@ -72,10 +73,12 @@ void DiceRollFrame::rollDice()
             resultStr.append(QString(" = ") + QString::number(result));
 
         // Set the text color based on whether or not we exceeded the target
+        const QString successColor = ThemeManager::instance().colorName(ThemeManager::Role::DiceSuccess);
+        const QString failureColor = ThemeManager::instance().colorName(ThemeManager::Role::DiceFailure);
         if(result >= target)
-            resultStr.prepend(QString("<font color=""#00ff00"">"));
+            resultStr.prepend(QString("<font color=\"%1\">").arg(successColor));
         else
-            resultStr.prepend(QString("<font color=""#ff0000"">"));
+            resultStr.prepend(QString("<font color=\"%1\">").arg(failureColor));
 
         resultStr.append(QString("</font>\n"));
 
@@ -85,7 +88,8 @@ void DiceRollFrame::rollDice()
         ui->editResult->append(resultStr);
     }
 
-    ui->editResult->append(QString("<b><font color=""#000000"">Total: ") + QString::number(total) + QString("</font></b>\n"));
+    const QString totalColor = ThemeManager::instance().colorName(ThemeManager::Role::DicePrimaryText);
+    ui->editResult->append(QString("<b><font color=\"%1\">Total: %2</font></b>\n").arg(totalColor, QString::number(total)));
 }
 
 void DiceRollFrame::init()

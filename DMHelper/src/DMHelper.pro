@@ -328,7 +328,8 @@ SOURCES += main.cpp\
     monsteractioneditdialog.cpp \
     aboutdialog.cpp \
     combatantreference.cpp \
-    texttranslatedialog.cpp
+    texttranslatedialog.cpp \
+    thememanager.cpp
 
 HEADERS  += mainwindow.h \
     ../../DMHelperShared/inc/dmhglobal.h \
@@ -638,7 +639,8 @@ HEADERS  += mainwindow.h \
     monsteractioneditdialog.h \
     aboutdialog.h \
     combatantreference.h \
-    texttranslatedialog.h
+    texttranslatedialog.h \
+    thememanager.h
 
 FORMS    += mainwindow.ui \
     battlecombatantframe.ui \

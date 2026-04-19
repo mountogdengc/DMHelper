@@ -3,6 +3,7 @@
 #include "soundboardtrack.h"
 #include "audiotrack.h"
 #include "dmconstants.h"
+#include "thememanager.h"
 #include <QPainter>
 #include <QTimer>
 
@@ -74,7 +75,8 @@ void SoundboardTrackFrame::togglePlay(bool checked)
 {
     if(checked)
     {
-        ui->btnPlay->setStyleSheet("background-color: rgb(115, 18, 0); border: 5px solid rgb(115, 18, 0);");
+        const QString activeColor = ThemeManager::instance().colorName(ThemeManager::Role::SoundboardActive);
+        ui->btnPlay->setStyleSheet(QString("background-color: %1; border: 5px solid %1;").arg(activeColor));
 
         if(_currentMute)
             ui->btnMute->click();

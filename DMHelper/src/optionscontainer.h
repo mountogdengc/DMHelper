@@ -35,6 +35,9 @@ public:
     bool getShowAnimations() const;
     bool getAutoSave() const;
 
+    // Appearance settings
+    QString getTheme() const;
+
     // Font settings
     QString getFontFamily() const;
     int getFontSize() const;
@@ -109,6 +112,9 @@ signals:
     void rulesetFileNameChanged(const QString& filename);
     void showAnimationsChanged(bool showAnimations);
     void autoSaveChanged(bool autoSave);
+
+    // Appearance settings
+    void themeChanged(const QString& theme);
 
     // Font settings
     void fontFamilyChanged(const QString& fontFamily);
@@ -193,6 +199,9 @@ public slots:
     void setShowAnimations(bool showAnimations);
     void setAutoSave(bool autoSave);
 
+    // Appearance settings
+    void setTheme(const QString& theme);
+
     // Font settings
     void setFontFamily(const QString& fontFamily);
     void setFontFamilyFromFont(const QFont& font);
@@ -276,6 +285,9 @@ private:
     QString _rulesetFileName;
     bool _showAnimations;
     bool _autoSave;
+
+    // Appearance settings
+    QString _theme;
 
     // Font settings
     QString _fontFamily;

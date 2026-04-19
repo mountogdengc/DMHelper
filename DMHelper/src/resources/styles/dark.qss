@@ -1,0 +1,138 @@
+/*
+ * DMHelper Dark Theme
+ *
+ * Supplemental stylesheet for the Dark theme. All rules are scoped to the
+ * DM-facing QMainWindow so they don't leak into the player-facing
+ * PublishWindow (which always keeps its own palette).
+ */
+
+QMainWindow#DMHelperMainWindow QToolTip {
+    color: #e0e0e0;
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+}
+
+QMainWindow#DMHelperMainWindow QMenu {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+}
+
+QMainWindow#DMHelperMainWindow QMenu::item:selected {
+    background-color: #2d6caa;
+    color: #ffffff;
+}
+
+QMainWindow#DMHelperMainWindow QMenu::separator {
+    height: 1px;
+    background: #3a3a3a;
+    margin: 4px 6px;
+}
+
+QMainWindow#DMHelperMainWindow QGroupBox {
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+QMainWindow#DMHelperMainWindow QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 4px;
+    color: #e0e0e0;
+}
+
+QMainWindow#DMHelperMainWindow QTabWidget::pane {
+    border: 1px solid #3a3a3a;
+    top: -1px;
+}
+
+QMainWindow#DMHelperMainWindow QTabBar::tab {
+    background: #2d2d2d;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    padding: 4px 10px;
+}
+
+QMainWindow#DMHelperMainWindow QTabBar::tab:selected {
+    background: #3d3d3d;
+}
+
+QMainWindow#DMHelperMainWindow QScrollBar:vertical,
+QMainWindow#DMHelperMainWindow QScrollBar:horizontal {
+    background: #2d2d2d;
+    border: none;
+}
+
+QMainWindow#DMHelperMainWindow QScrollBar::handle:vertical,
+QMainWindow#DMHelperMainWindow QScrollBar::handle:horizontal {
+    background: #555555;
+    border-radius: 4px;
+    min-height: 20px;
+    min-width: 20px;
+}
+
+QMainWindow#DMHelperMainWindow QScrollBar::handle:vertical:hover,
+QMainWindow#DMHelperMainWindow QScrollBar::handle:horizontal:hover {
+    background: #6a6a6a;
+}
+
+QMainWindow#DMHelperMainWindow QScrollBar::add-line,
+QMainWindow#DMHelperMainWindow QScrollBar::sub-line {
+    background: none;
+    border: none;
+    height: 0;
+    width: 0;
+}
+
+QMainWindow#DMHelperMainWindow QHeaderView::section {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    padding: 4px;
+}
+
+QMainWindow#DMHelperMainWindow QLineEdit,
+QMainWindow#DMHelperMainWindow QTextEdit,
+QMainWindow#DMHelperMainWindow QPlainTextEdit {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    selection-background-color: #2d6caa;
+    selection-color: #ffffff;
+}
+
+QMainWindow#DMHelperMainWindow QComboBox {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    padding: 2px 6px;
+}
+
+QMainWindow#DMHelperMainWindow QComboBox QAbstractItemView {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    selection-background-color: #2d6caa;
+}
+
+QMainWindow#DMHelperMainWindow QPushButton {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border: 1px solid #4a4a4a;
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+
+QMainWindow#DMHelperMainWindow QPushButton:hover {
+    background-color: #4a4a4a;
+}
+
+QMainWindow#DMHelperMainWindow QPushButton:pressed {
+    background-color: #2a2a2a;
+}
+
+QMainWindow#DMHelperMainWindow QPushButton:disabled {
+    color: #808080;
+    background-color: #2a2a2a;
+}

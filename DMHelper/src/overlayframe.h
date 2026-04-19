@@ -34,6 +34,7 @@ protected slots:
 private:
     Ui::OverlayFrame *ui;
     Overlay* _overlay;
+    bool _selected;
 };
 
 #endif // OVERLAYFRAME_H

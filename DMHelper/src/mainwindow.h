@@ -189,6 +189,7 @@ protected slots:
 
     void handleAutoSaveExpired();
     void handleAutoSaveChanged();
+    void handleThemeChanged(const QString& theme);
     void handleAnimationStarted();
 
     void previewCurrentTextEntry();

@@ -1,6 +1,7 @@
 #include "publishbuttonframe.h"
 #include "colorpushbutton.h"
 #include "ui_publishbuttonframe.h"
+#include "thememanager.h"
 #include <QKeyEvent>
 
 PublishButtonFrame::PublishButtonFrame(QWidget *parent) :
@@ -83,12 +84,14 @@ void PublishButtonFrame::handleToggle(bool checked)
 {
     if(checked)
     {
-        ui->btnPublish->setStyleSheet(QString("QPushButton {color: red; font-weight: bold; }"));
+        const QString activeColor = ThemeManager::instance().colorName(ThemeManager::Role::PublishButtonActive);
+        ui->btnPublish->setStyleSheet(QString("QPushButton {color: %1; font-weight: bold; }").arg(activeColor));
         ui->btnPublish->setText(QString("Publishing!"));
     }
     else
     {
-        ui->btnPublish->setStyleSheet(QString("QPushButton {color: black; font-weight: bold; }"));
+        const QString inactiveColor = ThemeManager::instance().colorName(ThemeManager::Role::PublishButtonInactive);
+        ui->btnPublish->setStyleSheet(QString("QPushButton {color: %1; font-weight: bold; }").arg(inactiveColor));
         ui->btnPublish->setText(QString("Publish"));
     }
 }

@@ -4,6 +4,7 @@
 #include "overlaycounter.h"
 #include "overlaytimer.h"
 #include "dmconstants.h"
+#include "thememanager.h"
 #include <QHBoxLayout>
 #include <QDebug>
 
@@ -12,9 +13,12 @@ const int OVERLAY_FRAME_INSERT_POINT = 3;
 OverlayFrame::OverlayFrame(Overlay* overlay, QWidget *parent) :
     QFrame(parent),
     ui(new Ui::OverlayFrame),
-    _overlay(overlay)
+    _overlay(overlay),
+    _selected(false)
 {
     ui->setupUi(this);
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
+            [this]() { setStyleSheet(getStyleString(_selected)); });
 
     if(!_overlay)
     {
@@ -94,6 +98,7 @@ Overlay* OverlayFrame::getOverlay() const
 
 void OverlayFrame::setSelected(bool selected)
 {
+    _selected = selected;
     setStyleSheet(getStyleString(selected));
 }
 
@@ -145,7 +150,8 @@ void OverlayFrame::handleScaleSpinChanged(qreal value)
 QString OverlayFrame::getStyleString(bool selected)
 {
     if(selected)
-        return QString("OverlayFrame{ background-color: rgb(64, 64, 64); }");
+        return QString("OverlayFrame{ background-color: %1; }")
+                .arg(ThemeManager::instance().colorName(ThemeManager::Role::OverlaySelected));
     else
         return QString("OverlayFrame{ background-color: none; }");
 }

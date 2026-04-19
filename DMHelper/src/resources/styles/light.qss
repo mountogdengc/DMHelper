@@ -1,0 +1,14 @@
+/*
+ * DMHelper Light Theme
+ *
+ * Supplemental stylesheet for the Light theme. Most of the app uses the
+ * default Qt palette, so this file only patches up rules that QPalette alone
+ * can't express. All rules are scoped to the DM-facing QMainWindow so they
+ * don't leak into the player-facing PublishWindow.
+ */
+
+QMainWindow#DMHelperMainWindow QToolTip {
+    color: #000000;
+    background-color: #ffffe1;
+    border: 1px solid #c0c0c0;
+}

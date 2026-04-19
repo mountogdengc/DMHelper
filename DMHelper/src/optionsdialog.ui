@@ -152,6 +152,38 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBoxAppearance">
+         <property name="title">
+          <string>Appearance</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayoutAppearance">
+          <item>
+           <widget class="QLabel" name="lblTheme">
+            <property name="text">
+             <string>Theme:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cmbTheme"/>
+          </item>
+          <item>
+           <spacer name="horizontalSpacerAppearance">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
           <string>Player's Window Presentation</string>

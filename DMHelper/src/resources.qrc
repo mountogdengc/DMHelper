@@ -281,5 +281,9 @@
         <file>data/icon_overlay.png</file>
         <file>data/img/glass-heart.png</file>
     </qresource>
+    <qresource prefix="/styles">
+        <file alias="light.qss">resources/styles/light.qss</file>
+        <file alias="dark.qss">resources/styles/dark.qss</file>
+    </qresource>
     <qresource prefix="/"/>
 </RCC>

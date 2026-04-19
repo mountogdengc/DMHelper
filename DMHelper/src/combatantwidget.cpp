@@ -1,6 +1,7 @@
 #include "combatantwidget.h"
 #include "dmconstants.h"
 #include "battledialogmodel.h"
+#include "thememanager.h"
 #include <QLineEdit>
 #include <QMouseEvent>
 #include <QLabel>
@@ -18,6 +19,8 @@ CombatantWidget::CombatantWidget(QWidget *parent) :
 {
     setAttribute(Qt::WA_Hover);
     setAutoFillBackground(true);
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
+            [this]() { setStyleSheet(getStyleString()); });
 }
 
 int CombatantWidget::getInitiative() const
@@ -187,12 +190,16 @@ QString CombatantWidget::getStyleString()
 {
     setLineWidth(5);
 
+    ThemeManager& tm = ThemeManager::instance();
     if(_selected)
-        return QString("CombatantWidget{ background-image: url(); background-color: rgb(196, 196, 196); }");
+        return QString("CombatantWidget{ background-image: url(); background-color: %1; }")
+                .arg(tm.colorName(ThemeManager::Role::CombatantSelected));
     else if(_active)
-        return QString("CombatantWidget{ background-color: rgb(115, 18, 0); }");
+        return QString("CombatantWidget{ background-color: %1; }")
+                .arg(tm.colorName(ThemeManager::Role::CombatantActive));
     else if(_hover)
-        return QString("CombatantWidget{ background-color: rgb(64, 64, 64); }");
+        return QString("CombatantWidget{ background-color: %1; }")
+                .arg(tm.colorName(ThemeManager::Role::CombatantHover));
     else
         return QString("CombatantWidget{ background-color: none; }");
 }

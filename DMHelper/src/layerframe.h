@@ -87,6 +87,7 @@ private:
 
     Layer& _layer;
     int _opacity;
+    bool _selected;
 };
 
 #endif // LAYERFRAME_H

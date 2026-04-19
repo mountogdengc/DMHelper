@@ -2,14 +2,18 @@
 #include "ui_layerframe.h"
 #include "layer.h"
 #include "layervideo.h"
+#include "thememanager.h"
 
 LayerFrame::LayerFrame(Layer& layer, QWidget *parent) :
     QFrame(parent),
     ui(new Ui::LayerFrame),
     _layer(layer),
-    _opacity()
+    _opacity(),
+    _selected(false)
 {
     ui->setupUi(this);
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
+            [this]() { setStyleSheet(getStyleString(_selected)); });
 
     updateLayerData();
 
@@ -181,6 +185,7 @@ void LayerFrame::setPlayAudio(bool playAudio)
 
 void LayerFrame::setSelected(bool selected)
 {
+    _selected = selected;
     setStyleSheet(getStyleString(selected));
 }
 
@@ -351,7 +356,8 @@ bool LayerFrame::eventFilter(QObject *obj, QEvent *event)
 QString LayerFrame::getStyleString(bool selected)
 {
     if(selected)
-        return QString("LayerFrame{ background-color: rgb(64, 64, 64); }");
+        return QString("LayerFrame{ background-color: %1; }")
+                .arg(ThemeManager::instance().colorName(ThemeManager::Role::LayerSelected));
     else
         return QString("LayerFrame{ background-color: none; }");
 }

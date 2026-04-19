@@ -30,6 +30,7 @@ OptionsContainer::OptionsContainer(QMainWindow *parent) :
     _rulesetFileName(),
     _showAnimations(false),
     _autoSave(true),
+    _theme("system"),
     _fontFamily("Trebuchet MS"),
     _fontSize(12),
     _logicalDPI(0.0),
@@ -155,6 +156,11 @@ bool OptionsContainer::getShowAnimations() const
 bool OptionsContainer::getAutoSave() const
 {
     return _autoSave;
+}
+
+QString OptionsContainer::getTheme() const
+{
+    return _theme;
 }
 
 QString OptionsContainer::getFontFamily() const
@@ -478,6 +484,7 @@ void OptionsContainer::readSettings()
 
     setShowAnimations(settings.value("showAnimations", QVariant(false)).toBool());
     setAutoSave(settings.value("autoSave", QVariant(true)).toBool());
+    setTheme(settings.value("theme", QVariant(QString("system"))).toString());
     setFontFamily(settings.value("fontFamily", "Trebuchet MS").toString());
 
     //12*96/72 = 16 Pixels
@@ -568,6 +575,7 @@ void OptionsContainer::writeSettings()
     settings.setValue("ruleset", getUserRulesetFileName());
     settings.setValue("showAnimations", getShowAnimations());
     settings.setValue("autoSave", getAutoSave());
+    settings.setValue("theme", getTheme());
     settings.setValue("fontFamily", getFontFamily());
     settings.setValue("fontSize", getFontSize());
     settings.setValue("pasteRich", getPasteRich());
@@ -1058,6 +1066,15 @@ void OptionsContainer::setAutoSave(bool autoSave)
     }
 }
 
+void OptionsContainer::setTheme(const QString& theme)
+{
+    if(_theme != theme)
+    {
+        _theme = theme;
+        emit themeChanged(_theme);
+    }
+}
+
 void OptionsContainer::setFontFamily(const QString& fontFamily)
 {
     if(_fontFamily != fontFamily)
@@ -1472,6 +1489,7 @@ void OptionsContainer::copy(OptionsContainer* other)
         setLastRuleset(other->_lastRuleset);
         setShowAnimations(other->_showAnimations);
         setAutoSave(other->_autoSave);
+        setTheme(other->_theme);
         setFontFamily(other->_fontFamily);
         setFontSize(other->_fontSize);
         setInitiativeType(other->_initiativeType);

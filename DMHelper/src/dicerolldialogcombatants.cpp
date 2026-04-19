@@ -6,6 +6,7 @@
 #include "characterv2.h"
 #include "character.h" // HACK - needed for "AbilityScorePair"
 #include "conditionseditdialog.h"
+#include "thememanager.h"
 #include <QtGlobal>
 #include <QMouseEvent>
 
@@ -436,14 +437,16 @@ void DiceRollDialogCombatants::rollForWidget(BattleCombatantWidget* widget, cons
         result = roll1;
 
     int target = ui->edtTarget->text().toInt();
+    const QString successColor = ThemeManager::instance().colorName(ThemeManager::Role::DiceSuccess);
+    const QString failureColor = ThemeManager::instance().colorName(ThemeManager::Role::DiceFailure);
     if(result >= target)
     {
-        resultStr.prepend(QString("<font color=""#00ff00"">"));
+        resultStr.prepend(QString("<font color=\"%1\">").arg(successColor));
         resultStr.append(QString("</font>\n"));
     }
     else
     {
-        resultStr.prepend(QString("<font color=""#ff0000"">"));
+        resultStr.prepend(QString("<font color=\"%1\">").arg(failureColor));
         resultStr.append(QString("</font>\n"));
     }
 

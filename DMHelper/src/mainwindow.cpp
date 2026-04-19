@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "dmversion.h"
 #include "publishwindow.h"
+#include "thememanager.h"
 #include "dicerolldialog.h"
 #include "countdownframe.h"
 #include "globalsearchframe.h"
@@ -240,6 +241,10 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "[MainWindow] Recovery Mode: " << _recoveryMode;
     _options->setLoading(true);
 
+    ThemeManager::instance().setModeFromString(_options->getTheme());
+    ThemeManager::instance().applyTo(qApp);
+    connect(_options, &OptionsContainer::themeChanged, this, &MainWindow::handleThemeChanged);
+
     //connect(_options, SIGNAL(bestiaryFileNameChanged()), this, SLOT(readBestiary())); --> moved this to the campaign ruleset
     connect(_options, SIGNAL(spellbookFileNameChanged()), this, SLOT(readSpellbook()));
     qDebug() << "[MainWindow] Settings Read";
@@ -270,6 +275,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QImageReader::setAllocationLimit(0);
 
     ui->setupUi(this);
+    // Needed to scope theme stylesheet rules to the DM window only, so that
+    // the player-facing PublishWindow does not inherit DM theming.
+    setObjectName(QStringLiteral("DMHelperMainWindow"));
     if(screen)
     {
         resize(screen->availableSize().width() * 4 / 5, screen->availableSize().height() * 4 / 5);
@@ -389,6 +397,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "[MainWindow] Creating Player's Window";
     _pubWindow = new PublishWindow(QString("DMHelper Player's Window"));
     _pubWindow->resize(width() * 9 / 10, height() * 9 / 10);
+    // Keep the player-facing window visually independent of the DM's theme.
+    ThemeManager::instance().applyPlayerPaletteTo(_pubWindow);
     connect(_pubWindow, SIGNAL(windowVisible(bool)), _ribbon->getPublishRibbon(), SLOT(setPlayersWindow(bool)));
     connect(_ribbon->getPublishRibbon(), SIGNAL(colorChanged(const QColor&)), _pubWindow, SLOT(setBackgroundColor(const QColor&)));
     qDebug() << "[MainWindow] Player's Window Created";
@@ -2647,6 +2657,16 @@ void MainWindow::handleAutoSaveChanged()
         if(_autoSaveTimer)
             _autoSaveTimer->stop();
     }
+}
+
+void MainWindow::handleThemeChanged(const QString& theme)
+{
+    ThemeManager::instance().setModeFromString(theme);
+    // qApp->setPalette() propagates to every top-level widget; re-force the
+    // player window to its isolated palette so the DM's theme never reaches
+    // the projector.
+    if(_pubWindow)
+        ThemeManager::instance().applyPlayerPaletteTo(_pubWindow);
 }
 
 void MainWindow::handleAnimationStarted()

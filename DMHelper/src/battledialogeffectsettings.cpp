@@ -1,6 +1,7 @@
 #include "battledialogeffectsettings.h"
 #include "ui_battledialogeffectsettings.h"
 #include "battledialogmodeleffect.h"
+#include "thememanager.h"
 #include <QColorDialog>
 #include <QIntValidator>
 
@@ -173,7 +174,8 @@ void BattleDialogEffectSettings::setButtonColor(const QColor& color)
     _color = color;
     QString style;
     if(_color.alpha() == 0)
-        style = "background-image: url(); background-color: rgb(242,242,242);";
+        style = QString("background-image: url(); background-color: %1;")
+                    .arg(ThemeManager::instance().colorName(ThemeManager::Role::EffectPreviewBg));
     else
         style = "background-image: url(); background-color: rgb(" + QString::number(color.red()) + "," + QString::number(color.green()) + "," + QString::number(color.blue()) + ");";
     ui->btnColor->setStyleSheet(style);

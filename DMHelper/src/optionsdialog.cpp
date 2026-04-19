@@ -18,6 +18,10 @@ OptionsDialog::OptionsDialog(OptionsContainer* options, Campaign* campaign, QWid
 {
     ui->setupUi(this);
 
+    ui->cmbTheme->addItem("Light", QVariant(QString("light")));
+    ui->cmbTheme->addItem("Dark", QVariant(QString("dark")));
+    ui->cmbTheme->addItem("System (Auto)", QVariant(QString("system")));
+
     ui->cmbInitiativeType->addItem("No Initiative", QVariant(DMHelper::InitiativeType_None));
     ui->cmbInitiativeType->addItem("Icons Only", QVariant(DMHelper::InitiativeType_Image));
     ui->cmbInitiativeType->addItem("Icons and All Names", QVariant(DMHelper::InitiativeType_ImageName));
@@ -71,6 +75,10 @@ OptionsDialog::OptionsDialog(OptionsContainer* options, Campaign* campaign, QWid
         if(_options->getMRUHandler())
             ui->spinBoxMRUCount->setValue(_options->getMRUHandler()->getMRUCount());
         ui->chkAutosave->setChecked(_options->getAutoSave());
+        {
+            const int themeIdx = ui->cmbTheme->findData(QVariant(_options->getTheme()));
+            ui->cmbTheme->setCurrentIndex(themeIdx >= 0 ? themeIdx : ui->cmbTheme->findData(QVariant(QString("system"))));
+        }
         ui->cmbInitiativeType->setCurrentIndex(_options->getInitiativeType());
         ui->edtInitiativeScale->setText(QString::number(_options->getInitiativeScale()));
         ui->sliderInitiativeScale->setValue(static_cast<int>(_options->getInitiativeScale() * 100.0));
@@ -143,6 +151,8 @@ OptionsDialog::OptionsDialog(OptionsContainer* options, Campaign* campaign, QWid
         connect(ui->fontComboBox, SIGNAL(currentFontChanged(const QFont &)), _options, SLOT(setFontFamilyFromFont(const QFont&)));
         connect(ui->spinBoxFontSize, SIGNAL(valueChanged(int)), _options, SLOT(setFontSize(int)));
         connect(ui->chkAutosave, SIGNAL(clicked(bool)), _options, SLOT(setAutoSave(bool)));
+        connect(ui->cmbTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+                [this](int idx) { _options->setTheme(ui->cmbTheme->itemData(idx).toString()); });
         if(_options->getMRUHandler())
             connect(ui->spinBoxMRUCount, &QSpinBox::valueChanged, _options->getMRUHandler(), &MRUHandler::setMRUCount);
         connect(ui->cmbInitiativeType, SIGNAL(currentIndexChanged(int)), _options, SLOT(setInitiativeType(int)));
