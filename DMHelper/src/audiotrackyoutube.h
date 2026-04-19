@@ -4,6 +4,7 @@
 #include "audiotrackurl.h"
 #include "dmh_vlc.h"
 #include <QProcess>
+#include <QTimer>
 
 class AudioTrackYoutube : public AudioTrackUrl
 {
@@ -37,6 +38,8 @@ signals:
 
 protected slots:
     void ytdlpFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void ytdlpError(QProcess::ProcessError error);
+    void ytdlpTimeout();
 
 protected:
     // From QObject
@@ -51,6 +54,7 @@ protected:
     QString extractYoutubeIDFromUrl();
 
     QProcess* _ytdlpProcess;
+    QTimer* _ytdlpTimer;
     QString _urlString;
     libvlc_media_player_t *_vlcPlayer;
     int _stopStatus;

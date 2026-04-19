@@ -16,6 +16,7 @@ void youtubeEventCallback(const struct libvlc_event_t *p_event, void *p_data);
 AudioTrackYoutube::AudioTrackYoutube(const QString& trackName, const QUrl& trackUrl, QObject *parent) :
     AudioTrackUrl(trackName, trackUrl, parent),
     _ytdlpProcess(nullptr),
+    _ytdlpTimer(nullptr),
     _urlString(),
     _vlcPlayer(nullptr),
     _stopStatus(0),
@@ -28,6 +29,21 @@ AudioTrackYoutube::AudioTrackYoutube(const QString& trackName, const QUrl& track
 
 AudioTrackYoutube::~AudioTrackYoutube()
 {
+    if(_ytdlpTimer)
+    {
+        _ytdlpTimer->stop();
+        delete _ytdlpTimer;
+        _ytdlpTimer = nullptr;
+    }
+
+    if(_ytdlpProcess)
+    {
+        _ytdlpProcess->kill();
+        _ytdlpProcess->waitForFinished(1000);
+        delete _ytdlpProcess;
+        _ytdlpProcess = nullptr;
+    }
+
     if(_timerId)
         killTimer(_timerId);
 
@@ -177,6 +193,13 @@ void AudioTrackYoutube::setRepeat(bool repeat)
 
 void AudioTrackYoutube::ytdlpFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    if(_ytdlpTimer)
+    {
+        _ytdlpTimer->stop();
+        _ytdlpTimer->deleteLater();
+        _ytdlpTimer = nullptr;
+    }
+
     if(!_ytdlpProcess)
         return;
 
@@ -207,6 +230,54 @@ void AudioTrackYoutube::ytdlpFinished(int exitCode, QProcess::ExitStatus exitSta
     _ytdlpProcess = nullptr;
 }
 
+void AudioTrackYoutube::ytdlpError(QProcess::ProcessError error)
+{
+    if(_ytdlpTimer)
+    {
+        _ytdlpTimer->stop();
+        _ytdlpTimer->deleteLater();
+        _ytdlpTimer = nullptr;
+    }
+
+    if(!_ytdlpProcess)
+        return;
+
+    QString errorMsg;
+    if(error == QProcess::FailedToStart)
+        errorMsg = QString("yt-dlp was not found. Please install yt-dlp to play YouTube audio.");
+    else
+        errorMsg = QString("yt-dlp process error: %1").arg(error);
+
+    qDebug() << "[AudioTrackYoutube] yt-dlp process error:" << error;
+    QMessageBox::critical(nullptr,
+                          QString("DMHelper Audio Error"),
+                          errorMsg);
+
+    _ytdlpProcess->deleteLater();
+    _ytdlpProcess = nullptr;
+}
+
+void AudioTrackYoutube::ytdlpTimeout()
+{
+    if(_ytdlpTimer)
+    {
+        _ytdlpTimer->deleteLater();
+        _ytdlpTimer = nullptr;
+    }
+
+    if(!_ytdlpProcess)
+        return;
+
+    qDebug() << "[AudioTrackYoutube] yt-dlp timed out after 30 seconds";
+    _ytdlpProcess->kill();
+    _ytdlpProcess->deleteLater();
+    _ytdlpProcess = nullptr;
+
+    QMessageBox::critical(nullptr,
+                          QString("DMHelper Audio Error"),
+                          QString("YouTube URL resolution timed out. Please check your internet connection and try again."));
+}
+
 void AudioTrackYoutube::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
 {
     element.setAttribute("volume", QString::number(_volume));
@@ -233,8 +304,16 @@ void AudioTrackYoutube::findDirectUrl(const QString& youtubeId)
     _ytdlpProcess = new QProcess(this);
     connect(_ytdlpProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &AudioTrackYoutube::ytdlpFinished);
+    connect(_ytdlpProcess, &QProcess::errorOccurred,
+            this, &AudioTrackYoutube::ytdlpError);
 
-    _ytdlpProcess->start("yt-dlp", QStringList() << "--get-url" << "-f" << "b" << youtubeUrl);
+    // Start a timeout timer to prevent indefinite hangs
+    _ytdlpTimer = new QTimer(this);
+    _ytdlpTimer->setSingleShot(true);
+    connect(_ytdlpTimer, &QTimer::timeout, this, &AudioTrackYoutube::ytdlpTimeout);
+    _ytdlpTimer->start(30000);
+
+    _ytdlpProcess->start("yt-dlp", QStringList() << "--get-url" << "-f" << "b" << "--no-warnings" << "--no-check-certificates" << youtubeUrl);
 }
 
 void AudioTrackYoutube::timerEvent(QTimerEvent *event)
