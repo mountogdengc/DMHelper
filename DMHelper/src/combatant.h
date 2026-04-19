@@ -8,6 +8,7 @@
 #include <QStringList>
 
 class Combatant;
+class CombatantVocabulary;
 
 //typedef QPair<int, Combatant*> CombatantGroup;
 //typedef QList<CombatantGroup> CombatantGroupList;
@@ -97,11 +98,19 @@ public:
     virtual int getCharisma() const = 0;
 
     virtual int getAbilityValue(Ability ability) const;
+    int getAbilityValue(const QString& key) const;
     static int getAbilityMod(int ability);
+    static int getAbilityMod(int ability, const CombatantVocabulary* vocab);
     static QString getAbilityModStr(int ability);
     static QString convertModToStr(int modifier);
     static Ability getSkillAbility(Skills skill);
     static bool isSkillSavingThrow(Skills skill);
+
+    // Bridge helpers between the 5e Ability enum and string keys used by
+    // CombatantVocabulary. Intended as a shim during the migration away
+    // from the hardcoded enum.
+    static QString abilityKey(Ability ability);
+    static Ability abilityFromKey(const QString& key, bool* ok = nullptr);
 
     // String-based condition API
     QStringList getConditionList() const;

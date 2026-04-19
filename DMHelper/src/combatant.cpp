@@ -1,4 +1,5 @@
 #include "combatant.h"
+#include "combatantvocabulary.h"
 #include "conditions.h"
 #include "dmconstants.h"
 #include "scaledpixmap.h"
@@ -9,6 +10,151 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QDebug>
+
+namespace {
+
+// Tiny recursive-descent evaluator for ability-mod formulas with a single
+// integer variable named v. Supports integer literals, + - * /, parens, and
+// unary minus. Division uses FLOOR semantics (rounds toward negative infinity)
+// rather than C++'s default truncation-toward-zero, so "(v-10)/2" matches the
+// classical 5e ability-mod table for negative dividends (e.g. v=1 -> -5, not
+// -4). Returns 0 and sets *ok = false on parse or evaluation error.
+
+int floorDivInt(int a, int b)
+{
+    int q = a / b;
+    const int r = a % b;
+    if((r != 0) && ((r < 0) != (b < 0)))
+        --q;
+    return q;
+}
+
+class AbilityFormulaEval
+{
+public:
+    AbilityFormulaEval(const QString& src, int v) : _src(src), _pos(0), _v(v), _ok(true) {}
+
+    bool ok() const { return _ok; }
+
+    int run()
+    {
+        skip();
+        const int result = parseExpr();
+        skip();
+        if(_pos != _src.size())
+            _ok = false;
+        return _ok ? result : 0;
+    }
+
+private:
+    void skip()
+    {
+        while(_pos < _src.size() && _src.at(_pos).isSpace())
+            ++_pos;
+    }
+
+    bool match(QChar c)
+    {
+        skip();
+        if(_pos < _src.size() && _src.at(_pos) == c)
+        {
+            ++_pos;
+            return true;
+        }
+        return false;
+    }
+
+    int parseExpr()
+    {
+        int value = parseTerm();
+        while(_ok)
+        {
+            skip();
+            if(match('+'))
+                value += parseTerm();
+            else if(match('-'))
+                value -= parseTerm();
+            else
+                break;
+        }
+        return value;
+    }
+
+    int parseTerm()
+    {
+        int value = parseUnary();
+        while(_ok)
+        {
+            skip();
+            if(match('*'))
+                value *= parseUnary();
+            else if(match('/'))
+            {
+                const int rhs = parseUnary();
+                if(rhs == 0) { _ok = false; return 0; }
+                value = floorDivInt(value, rhs);
+            }
+            else
+                break;
+        }
+        return value;
+    }
+
+    int parseUnary()
+    {
+        skip();
+        if(match('-'))
+            return -parseUnary();
+        if(match('+'))
+            return parseUnary();
+        return parsePrimary();
+    }
+
+    int parsePrimary()
+    {
+        skip();
+        if(match('('))
+        {
+            const int value = parseExpr();
+            if(!match(')'))
+                _ok = false;
+            return value;
+        }
+        if(_pos < _src.size() && _src.at(_pos) == 'v')
+        {
+            ++_pos;
+            return _v;
+        }
+        if(_pos < _src.size() && _src.at(_pos).isDigit())
+        {
+            int value = 0;
+            while(_pos < _src.size() && _src.at(_pos).isDigit())
+            {
+                value = value * 10 + _src.at(_pos).digitValue();
+                ++_pos;
+            }
+            return value;
+        }
+        _ok = false;
+        return 0;
+    }
+
+    const QString& _src;
+    int _pos;
+    int _v;
+    bool _ok;
+};
+
+bool isCanonical5eMod(const QString& formula)
+{
+    QString s = formula;
+    s.remove(QChar(' '));
+    s.remove(QChar('\t'));
+    return s == QStringLiteral("(v-10)/2") || s == QStringLiteral("floor((v-10)/2)");
+}
+
+}
+
 
 Combatant::Combatant(const QString& name, QObject *parent) :
     CampaignObjectBase(name, parent),
@@ -183,6 +329,40 @@ int Combatant::getAbilityValue(Ability ability) const
     }
 }
 
+int Combatant::getAbilityValue(const QString& key) const
+{
+    bool ok = false;
+    const Ability a = Combatant::abilityFromKey(key, &ok);
+    return ok ? getAbilityValue(a) : -1;
+}
+
+QString Combatant::abilityKey(Ability ability)
+{
+    switch(ability)
+    {
+        case Ability_Strength:     return QStringLiteral("strength");
+        case Ability_Dexterity:    return QStringLiteral("dexterity");
+        case Ability_Constitution: return QStringLiteral("constitution");
+        case Ability_Intelligence: return QStringLiteral("intelligence");
+        case Ability_Wisdom:       return QStringLiteral("wisdom");
+        case Ability_Charisma:     return QStringLiteral("charisma");
+    }
+    return QString();
+}
+
+Combatant::Ability Combatant::abilityFromKey(const QString& key, bool* ok)
+{
+    if(ok) *ok = true;
+    if(key.compare(QStringLiteral("strength"),     Qt::CaseInsensitive) == 0) return Ability_Strength;
+    if(key.compare(QStringLiteral("dexterity"),    Qt::CaseInsensitive) == 0) return Ability_Dexterity;
+    if(key.compare(QStringLiteral("constitution"), Qt::CaseInsensitive) == 0) return Ability_Constitution;
+    if(key.compare(QStringLiteral("intelligence"), Qt::CaseInsensitive) == 0) return Ability_Intelligence;
+    if(key.compare(QStringLiteral("wisdom"),       Qt::CaseInsensitive) == 0) return Ability_Wisdom;
+    if(key.compare(QStringLiteral("charisma"),     Qt::CaseInsensitive) == 0) return Ability_Charisma;
+    if(ok) *ok = false;
+    return Ability_Strength;
+}
+
 int Combatant::getAbilityMod(int ability)
 {
     switch(ability)
@@ -204,6 +384,25 @@ int Combatant::getAbilityMod(int ability)
         case 28: case 29: return 9;
         default: return 10;
     }
+}
+
+int Combatant::getAbilityMod(int ability, const CombatantVocabulary* vocab)
+{
+    if(!vocab)
+        return getAbilityMod(ability);
+
+    const QString formula = vocab->derivedFormula(QStringLiteral("abilityMod"));
+    if(formula.isEmpty() || isCanonical5eMod(formula))
+        return getAbilityMod(ability);
+
+    AbilityFormulaEval eval(formula, ability);
+    const int result = eval.run();
+    if(!eval.ok())
+    {
+        qDebug() << "[Combatant] Malformed abilityMod formula" << formula << "- falling back to 5e table.";
+        return getAbilityMod(ability);
+    }
+    return result;
 }
 
 QString Combatant::getAbilityModStr(int ability)
