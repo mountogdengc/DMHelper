@@ -24,7 +24,6 @@ CustomTableFrame::CustomTableFrame(const QString& tableDirectory, QWidget *paren
     ui->hSplitter->setStretchFactor(1, 3);
 
     ui->listWidget->setUniformItemSizes(true);
-    //ui->listEntries->setUniformItemSizes(true);
     ui->listEntries->setWordWrap(true);
     ui->listEntries->setTextElideMode(Qt::ElideNone);
 
@@ -172,17 +171,13 @@ void CustomTableFrame::readXMLFile(const QString& fileName)
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
-    QString errMsg;
-    int errRow;
-    int errColumn;
-    bool contentResult = doc.setContent(in.readAll(), &errMsg, &errRow, &errColumn);
+    QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
     file.close();
 
-    if(contentResult == false)
+    if(!contentResult)
     {
-        qDebug() << "[CustomTableFrame] Error reading custom table file XML content.";
-        qDebug() << errMsg << errRow << errColumn;
+        qDebug() << "[CustomTableFrame] Error reading custom table file XML content at line " << contentResult.errorLine << ", column " << contentResult.errorColumn << ": " << contentResult.errorMessage;
         return;
     }
 

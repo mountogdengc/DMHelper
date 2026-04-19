@@ -8,28 +8,32 @@
 #include "battleframemapdrawer.h"
 #include "battleframestatemachine.h"
 
-#include "characterv2.h"
-#include "battledialogmodelcombatant.h"
-#include "battledialogmodel.h"
-#include "layer.h"
-#include "publishglrenderer.h"
-
+class BattleDialogModelCombatant;
+class BattleDialogModelCombatantGroup;
 class CombatantWidget;
+class CombatantGroupWidget;
 class CombatantDialog;
 class QVBoxLayout;
 class EncounterBattle;
+class BattleDialogModel;
 class BattleDialogLogger;
 class Grid;
 class GridConfig;
 class GridSizer;
+class Characterv2;
 class Map;
 class QTimer;
 class CameraRect;
 class BattleCombatantFrame;
+class QGraphicsPolygonItem;
+class QGraphicsRectItem;
 class UnselectedPixmap;
 class CombatantRolloverFrame;
+class PublishGLRenderer;
 class PublishGLBattleRenderer;
+class Layer;
 class LayerTokens;
+class LayerDrawEngine;
 
 namespace Ui {
 class BattleFrame;
@@ -124,6 +128,7 @@ public slots:
     void zoomSelect(bool enabled);
     void zoomDelta(int delta);
     void cancelSelect();
+    void ribbonTabChanged();
 
     // Public for connection to battle ribbon
     bool createNewBattle();
@@ -168,9 +173,10 @@ public slots:
     void setHeight(qreal height);
 
     void setFoWEdit(bool enabled);
-    void setFoWSelect(bool enabled);   
+    void setFoWSelect(bool enabled);
 
     void setPointerOn(bool enabled);
+    void setDrawOn(bool enabled);
     void showStatistics();
 
     void layerSelected(int selected);
@@ -212,6 +218,7 @@ signals:
 
     void pointerToggled(bool enabled);
     void pointerFileNameChanged(const QString& filename);
+    void drawToggled(bool enabled);
 
     void movementChanged(bool visible, BattleDialogModelCombatant* combatant, qreal remaining);
 
@@ -229,16 +236,28 @@ private slots:
     void updateMap();
     void updateRounds();
     void handleContextMenu(BattleDialogModelCombatant* combatant, const QPoint& position);
+    void handleGroupContextMenu(BattleDialogModelCombatantGroup* group, const QPoint& position);
+    void handleGroupClicked(CombatantGroupWidget* groupWidget);
     void handleCombatantSelected(BattleDialogModelCombatant* combatant);
     void handleCombatantHover(BattleDialogModelCombatant* combatant, bool hover);
     void handleCombatantActivate(BattleDialogModelCombatant* combatant);
     void handleCombatantRemove(BattleDialogModelCombatant* combatant);
     void handleCombatantAdded(BattleDialogModelCombatant* combatant);
     void handleCombatantRemoved(BattleDialogModelCombatant* combatant);
+    void handleCombatantVisibilityChanged(BattleDialogModelCombatant* combatant);
     void handleCombatantDamage(BattleDialogModelCombatant* combatant);
     void handleCombatantHeal(BattleDialogModelCombatant* combatant);
+    void handleCombatantHideSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantUnhideSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantKnowSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantUnknowSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantGroupSelected();
+    void handleCombatantUngroupSelected(BattleDialogModelCombatant* combatant);
+    void handleCombatantRemoveFromGroup(BattleDialogModelCombatant* combatant);
     void handleChangeMonsterToken(BattleDialogModelMonsterClass* monster, int iconIndex);
     void handleChangeMonsterTokenCustom(BattleDialogModelMonsterClass* monster);
+    void handleChangeCharacterToken(BattleDialogModelCharacter* character, int iconIndex);
+    void handleChangeCharacterTokenCustom(BattleDialogModelCharacter* character);
     void handleApplyEffect(QGraphicsItem* effect);
 
     void handleItemChangeLayer(BattleDialogModelObject* battleObject);
@@ -258,6 +277,8 @@ private slots:
     void handleLayersChanged();
     void handleLayerSelected(Layer* layer);
 
+    void handleDrawToggled(bool enabled);
+
     void itemLink();
     void itemUnlink();
 
@@ -266,6 +287,13 @@ private slots:
     void changeCombatantLayer();
     void damageCombatant();
     void healCombatant();
+    void hideSelectedCombatant();
+    void unhideSelectedCombatant();
+    void knowSelectedCombatant();
+    void unknowSelectedCombatant();
+    void groupSelectedCombatants();
+    void ungroupSelectedCombatants();
+    void removeFromGroup();
     void applyCombatantHPChange(BattleDialogModelCombatant* combatant, int hpChange);
     void setSelectedCombatant(BattleDialogModelCombatant* selected);
     void setUniqueSelection(BattleDialogModelCombatant* selected);
@@ -300,6 +328,12 @@ private slots:
 
     void setEditMode();
     void setItemsInert(bool inert);
+
+    void handlePolygonChanged(const QPolygonF& polygon);
+    void handlePolygonCancelled();
+
+    void handleSelectRectChanged(const QRectF& rect);
+    void handleSelectRectCancelled();
 
     void removeRollover();
     void clearDoneFlags();
@@ -378,8 +412,10 @@ private:
     BattleDialogModel* _model;
     QVBoxLayout* _combatantLayout;
     BattleDialogLogger* _logger;
+    LayerDrawEngine* _drawEngine;
     
     QMap<BattleDialogModelCombatant*, CombatantWidget*> _combatantWidgets;
+    QMap<QUuid, CombatantGroupWidget*> _groupWidgets;
 
     BattleFrameStateMachine _stateMachine;
 
@@ -421,6 +457,8 @@ private:
     qreal _gridLockScale;
 
     BattleFrameMapDrawer* _mapDrawer;
+    QGraphicsPolygonItem* _polygonPreview;
+    QGraphicsRectItem* _selectRectPreview;
 
     PublishGLBattleRenderer* _renderer;
 

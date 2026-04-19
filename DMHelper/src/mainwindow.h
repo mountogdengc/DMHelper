@@ -28,8 +28,6 @@ class QStandardItem;
 class CampaignTreeModel;
 class QVBoxLayout;
 class QItemSelection;
-class BattleDialogManager;
-class AudioPlayer;
 class AudioTrack;
 class PublishFrame;
 class QuickRefFrame;
@@ -72,6 +70,7 @@ public slots:
     void saveCampaignAs();
     void openFileDialog();
     bool closeCampaign();
+
     void openDiceDialog();
 
     void openEncounter(QUuid id);
@@ -206,6 +205,8 @@ protected slots:
     void exportSpellbook();
     void importSpellbook();
 
+    void openMapManager();
+    void handleCreateMap(const QString& mapFile);
     void openAboutDialog();
     void openHelpDialog();
     void openBackupDirectory();
@@ -249,8 +250,6 @@ private:
 
     BestiaryTemplateDialog _bestiaryDlg;
     SpellbookDialog _spellDlg;
-
-    BattleDialogManager* _battleDlgMgr;
 
 #ifdef INCLUDE_NETWORK_SUPPORT
     NetworkController* _networkController;

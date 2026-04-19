@@ -1,16 +1,20 @@
 #DMHelper ignores
 DMHelper/bin32
 DMHelper/bin64
-DMHelper/build*
+DMHelper/build
+.vlc_cache_sentinel
 DMHelper/build-32_bit-debug
 DMHelper/build-32_bit-profile
 DMHelper/build-32_bit-release
 DMHelper/build-64_bit-debug
 DMHelper/build-64_bit-profile
 DMHelper/build-64_bit-release
+DMHelper/Desktop_Qt*
+DMHelper/out
 DMHelper/rawdata
 DMHelper/testdata
 DMHelper/release
+DMHelper/src/.vs
 DMHelper/src/DMHelper.pro.user
 DMHelper/src/DMHelper.pro.user*
 DMHelper/working
@@ -90,3 +94,4 @@ DMHelper/DMHelper 64-bit release Installer.exe
 DMHelper/DMHelper 64-bit release.zip
 DMHelper/DMHelper 32-bit release Installer.exe
 DMHelper/DMHelper 32-bit release.zip
+build-64_bit-release

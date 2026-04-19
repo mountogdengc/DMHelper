@@ -186,6 +186,7 @@ void LayerImage::dmInitialize(QGraphicsScene* scene)
     _graphicsItem = scene->addPixmap(QPixmap::fromImage(getImage()));
     if(_graphicsItem)
     {
+        _graphicsItem->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
         _graphicsItem->setPos(_position);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsMovable, false);
         _graphicsItem->setFlag(QGraphicsItem::ItemIsSelectable, false);

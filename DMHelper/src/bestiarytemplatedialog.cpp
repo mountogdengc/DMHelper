@@ -24,6 +24,13 @@ BestiaryTemplateDialog::BestiaryTemplateDialog(QWidget *parent) :
     _monster(nullptr)
 {
     ui->setupUi(this);
+    setWindowFlags(windowFlags() | Qt::WindowMaximizeButtonHint);
+    setAttribute(Qt::WA_StyledBackground, true);
+
+    // Fix parchment background for QScrollArea viewport in Qt6
+    QPalette parchPal = ui->scrollArea->palette();
+    parchPal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->scrollArea->setPalette(parchPal);
 
     connect(ui->btnLeft, &QPushButton::clicked, this, &BestiaryTemplateDialog::previousMonster);
     connect(ui->btnRight, &QPushButton::clicked, this, &BestiaryTemplateDialog::nextMonster);
@@ -408,7 +415,7 @@ void BestiaryTemplateDialog::handleSearchToken()
     if((!_monster) || (!_options))
         return;
 
-    BestiaryFindTokenDialog* dlg = new BestiaryFindTokenDialog(_monster->getStringValue("name"), _searchString, *_options);
+    BestiaryFindTokenDialog* dlg = new BestiaryFindTokenDialog(_monster->getStringValue("name"), _searchString, *_options, this);
     dlg->resize(width() * 9 / 10, height() * 9 / 10);
     if(dlg->exec() == QDialog::Accepted)
     {
@@ -471,7 +478,7 @@ void BestiaryTemplateDialog::handlePopulateTokens()
     if(!_options)
         return;
 
-    BestiaryPopulateTokensDialog* dlg = new BestiaryPopulateTokensDialog(*_options);
+    BestiaryPopulateTokensDialog* dlg = new BestiaryPopulateTokensDialog(*_options, this);
     dlg->exec();
     dlg->deleteLater();
 

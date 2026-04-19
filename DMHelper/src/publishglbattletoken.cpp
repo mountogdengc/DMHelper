@@ -1,6 +1,7 @@
 #include "publishglbattletoken.h"
 #include "battledialogmodelcombatant.h"
 #include "battledialogmodeleffect.h"
+#include "conditions.h"
 #include "publishglimage.h"
 #include "publishgltokenhighlighteffect.h"
 #include "publishgltokenhighlightref.h"
@@ -43,8 +44,6 @@ PublishGLBattleToken::~PublishGLBattleToken()
 
 void PublishGLBattleToken::cleanup()
 {
-//    qDebug() << "[PublishGLBattleToken] Cleaning up image object. VAO: " << _VAO << ", VBO: " << _VBO << ", EBO: " << _EBO << ", texture: " << _textureID;
-
     if(QOpenGLContext::currentContext())
     {
         QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
@@ -252,13 +251,14 @@ void PublishGLBattleToken::createTokenObjects()
         return;
 
     QPixmap pix = _combatant->getIconPixmap(DMHelper::PixmapSize_Battle);
-    if(_combatant->hasCondition(Combatant::Condition_Unconscious))
+    if(_combatant->hasConditionId(QStringLiteral("unconscious")))
     {
         QImage originalImage = pix.toImage();
         QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);
         pix = QPixmap::fromImage(grayscaleImage);
     }
-    Combatant::drawConditions(&pix, _combatant->getConditions());
+    if(Conditions::activeConditions())
+        Conditions::activeConditions()->drawConditions(&pix, _combatant->getConditionList());
     QImage textureImage = pix.toImage().convertToFormat(QImage::Format_RGBA8888).mirrored();
     _textureSize = textureImage.size();
 

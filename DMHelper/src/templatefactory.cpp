@@ -209,6 +209,7 @@ void TemplateFactory::readObjectData(QWidget* widget, TemplateObject* source, Te
         if((!keyString.isEmpty()) && (!widgetString.isEmpty()))
         {
             scrollArea->setWidgetResizable(true);
+            scrollArea->setStyleSheet(QStringLiteral("QScrollArea { background: transparent; } QScrollArea > QWidget > QWidget { background: transparent; }"));
             QFrame* scrollWidget = new QFrame;
             QVBoxLayout* scrollLayout = new QVBoxLayout;
             scrollLayout->setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -556,17 +557,13 @@ void TemplateFactory::loadTemplate(const QString& templateFile)
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
-    QString errMsg;
-    int errRow;
-    int errColumn;
-    bool contentResult = doc.setContent(in.readAll(), &errMsg, &errRow, &errColumn);
+    QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
     file.close();
 
-    if(contentResult == false)
+    if(!contentResult)
     {
-        qDebug() << "[TemplateFactory] Error reading template XML content. The XML is probably not valid: " << absoluteTemplateFile;
-        qDebug() << errMsg << errRow << errColumn;
+        qDebug() << "[TemplateFactory] Error reading template XML content. The XML is probably not valid at line " << contentResult.errorLine << ", column " << contentResult.errorColumn << ": " << contentResult.errorMessage;
         QMessageBox::critical(nullptr, QString("Template invalid"), QString("Unable to read the template: ") + absoluteTemplateFile + QString(", the XML is invalid"));
         return;
     }

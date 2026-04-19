@@ -4,6 +4,7 @@
 #include "campaignobjectframe.h"
 #include <QGraphicsScene>
 #include <QImage>
+#include <QPolygon>
 #include <QRubberBand>
 #include "undofowpath.h"
 #include "videoplayer.h"
@@ -23,6 +24,7 @@ class MapMarkerGraphicsItem;
 class UndoMarker;
 class CameraRect;
 class GridSizer;
+class QGraphicsPolygonItem;
 
 class MapFrame : public CampaignObjectFrame
 {
@@ -85,6 +87,7 @@ signals:
     void pointerToggled(bool enabled);
     void pointerPositionChanged(const QPointF& pos);
     void pointerFileNameChanged(const QString& filename);
+    void drawToggled(bool enabled);
 
     void publishCancelled();
 
@@ -122,6 +125,7 @@ public slots:
     void zoomDelta(int delta);
     void centerWindow(const QPointF& position);
     void cancelSelect();
+    void ribbonTabChanged();
 
     void setErase(bool enabled);
     void setSmooth(bool enabled);
@@ -141,6 +145,7 @@ public slots:
 
     void setPointerOn(bool enabled);
     void setPointerFile(const QString& filename);
+    void setDrawOn(bool enabled);
 
     void setTargetLabelSize(const QSize& targetSize);
     void publishWindowMouseDown(const QPointF& position);
@@ -236,6 +241,10 @@ private:
     bool _mouseDown;
     QPoint _mouseDownPos;
     UndoFowPath* _undoPath;
+
+    QPolygon _polygonPoints;
+    QGraphicsPolygonItem* _polygonPreview;
+    QGraphicsLineItem* _polygonPendingLine;
 
     QGraphicsLineItem* _distanceLine;
     MapDraw* _mapItem;

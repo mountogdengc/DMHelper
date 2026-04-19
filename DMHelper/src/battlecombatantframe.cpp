@@ -1,6 +1,7 @@
 #include "battlecombatantframe.h"
 #include "ui_battlecombatantframe.h"
 #include "battledialogmodelcombatant.h"
+#include "conditions.h"
 #include "characterv2.h"
 #include "conditionseditdialog.h"
 #include "quickref.h"
@@ -15,6 +16,11 @@ BattleCombatantFrame::BattleCombatantFrame(QWidget *parent) :
     _conditionGrid(nullptr)
 {
     ui->setupUi(this);
+
+    // Fix parchment background for QScrollArea viewport in Qt6
+    QPalette parchPal = ui->conditionScrollArea->palette();
+    parchPal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->conditionScrollArea->setPalette(parchPal);
 
     ui->edtName->setEnabled(false);
     ui->frameInfoContents->setEnabled(false);
@@ -31,6 +37,11 @@ BattleCombatantFrame::BattleCombatantFrame(BattleDialogModelCombatant* combatant
     _conditionGrid(nullptr)
 {
     ui->setupUi(this);
+
+    // Fix parchment background for QScrollArea viewport in Qt6
+    QPalette parchPal = ui->conditionScrollArea->palette();
+    parchPal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->conditionScrollArea->setPalette(parchPal);
 
     ui->edtName->setEnabled(false);
     ui->frameInfoContents->setEnabled(false);
@@ -114,14 +125,14 @@ void BattleCombatantFrame::editConditions()
     if(!_combatant)
         return;
 
-    ConditionsEditDialog dlg;
-    dlg.setConditions(_combatant->getConditions());
+    ConditionsEditDialog dlg(this);
+    dlg.setConditionList(_combatant->getConditionList());
     int result = dlg.exec();
     if(result == QDialog::Accepted)
     {
-        if(dlg.getConditions() != _combatant->getConditions())
+        if(dlg.getConditionList() != _combatant->getConditionList())
         {
-            _combatant->setConditions(dlg.getConditions());
+            _combatant->setConditionList(dlg.getConditionList());
             updateLayout();
             emit conditionsChanged(_combatant);
         }
@@ -147,14 +158,9 @@ void BattleCombatantFrame::updateLayout()
     _conditionGrid->setSpacing(CONDITION_FRAME_SPACING);
     ui->scrollAreaWidgetContents->setLayout(_conditionGrid);
 
-    int conditions = _combatant->getConditions();
-
-    for(int i = 0; i < Combatant::getConditionCount(); ++i)
-    {
-        Combatant::Condition condition = Combatant::getConditionByIndex(i);
-        if(conditions & condition)
-            addCondition(condition);
-    }
+    QStringList conditionList = _combatant->getConditionList();
+    for(const QString& condId : conditionList)
+        addCondition(condId);
 
     int spacingColumn = _conditionGrid->columnCount();
 
@@ -173,7 +179,6 @@ void BattleCombatantFrame::clearGrid()
     if(!_conditionGrid)
         return;
 
-    // Delete the grid entries
     QLayoutItem *child = nullptr;
     while((child = _conditionGrid->takeAt(0)) != nullptr)
     {
@@ -187,19 +192,24 @@ void BattleCombatantFrame::clearGrid()
     ui->scrollAreaWidgetContents->update();
 }
 
-void BattleCombatantFrame::addCondition(Combatant::Condition condition)
+void BattleCombatantFrame::addCondition(const QString& conditionId)
 {
     if(!_conditionGrid)
         return;
 
-    QString resourceIcon = QString(":/img/data/img/") + Combatant::getConditionIcon(condition) + QString(".png");
-    QLabel* conditionLabel = new QLabel(this);
-    conditionLabel->setPixmap(QPixmap(resourceIcon).scaled(40, 40));
+    Conditions* conds = Conditions::activeConditions();
+    if(!conds)
+        return;
 
-    QString conditionText = QString("<b>") + Combatant::getConditionDescription(condition) + QString("</b>");
+    QString iconPath = conds->getConditionIconPath(conditionId);
+    QLabel* conditionLabel = new QLabel(this);
+    if(!iconPath.isEmpty())
+        conditionLabel->setPixmap(QPixmap(iconPath).scaled(40, 40));
+
+    QString conditionText = QString("<b>") + conds->getConditionDescription(conditionId) + QString("</b>");
     if(QuickRef::Instance())
     {
-        QuickRefData* conditionData = QuickRef::Instance()->getData(QString("Condition"), 0, Combatant::getConditionTitle(condition));
+        QuickRefData* conditionData = QuickRef::Instance()->getData(QString("Condition"), 0, conds->getConditionTitle(conditionId));
         if(conditionData)
             conditionText += QString("<p>") + conditionData->getOverview();
     }

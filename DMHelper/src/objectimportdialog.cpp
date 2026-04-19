@@ -23,6 +23,7 @@ ObjectImportDialog::ObjectImportDialog(Campaign* campaign, CampaignObjectBase* p
     _waitingDlg(nullptr)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
     ui->btnImport->setEnabled(false);
 
     if(!campaignFile.isEmpty())
@@ -97,7 +98,7 @@ void ObjectImportDialog::runImport()
 
     if(!_waitingDlg)
     {
-        _waitingDlg = new DMHWaitingDialog(QString("Importing ") + ui->edtImportFile->text() + QString("..."));
+        _waitingDlg = new DMHWaitingDialog(QString("Importing ") + ui->edtImportFile->text() + QString("..."), this);
         _waitingDlg->resize(width() * 2 / 3, _waitingDlg->height() * 3 / 2);
     }
 

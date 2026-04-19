@@ -6,6 +6,7 @@ BattleDialogModelCombatant::BattleDialogModelCombatant(const QString& name, QObj
     _combatant(nullptr),
     _initiative(0),
     _sortPosition(-1),
+    _groupId(),
     _moved(0.0),
     _isShown(true),
     _isKnown(true),
@@ -19,6 +20,7 @@ BattleDialogModelCombatant::BattleDialogModelCombatant(Combatant* combatant) :
     _combatant(combatant),
     _initiative(0),
     _sortPosition(-1),
+    _groupId(),
     _moved(0.0),
     _isShown(true),
     _isKnown(true),
@@ -32,6 +34,7 @@ BattleDialogModelCombatant::BattleDialogModelCombatant(Combatant* combatant, int
     _combatant(combatant),
     _initiative(initiative),
     _sortPosition(-1),
+    _groupId(),
     _moved(0.0),
     _isShown(true),
     _isKnown(true),
@@ -53,6 +56,9 @@ void BattleDialogModelCombatant::inputXML(const QDomElement &element, bool isImp
     _isShown = static_cast<bool>(element.attribute("isShown", QString::number(1)).toInt());
     _isKnown = static_cast<bool>(element.attribute("isKnown", QString::number(1)).toInt());
     _isDone = static_cast<bool>(element.attribute("done", QString::number(0)).toInt());
+
+    QString groupIdStr = element.attribute("groupId");
+    _groupId = groupIdStr.isEmpty() ? QUuid() : QUuid(groupIdStr);
 }
 
 void BattleDialogModelCombatant::copyValues(const CampaignObjectBase* other)
@@ -64,6 +70,7 @@ void BattleDialogModelCombatant::copyValues(const CampaignObjectBase* other)
     _combatant = otherCombatant->_combatant;
     _initiative = otherCombatant->_initiative;
     _moved = otherCombatant->_moved;
+    _groupId = otherCombatant->_groupId;
     _isShown = otherCombatant->_isShown;
     _isKnown = otherCombatant->_isKnown;
     _isSelected = otherCombatant->_isSelected;
@@ -119,6 +126,19 @@ int BattleDialogModelCombatant::getSortPosition() const
 void BattleDialogModelCombatant::setSortPosition(int sortPosition)
 {
     _sortPosition = sortPosition;
+}
+
+QUuid BattleDialogModelCombatant::getGroupId() const
+{
+    return _groupId;
+}
+
+void BattleDialogModelCombatant::setGroupId(const QUuid& groupId)
+{
+    if(_groupId != groupId)
+    {
+        _groupId = groupId;
+    }
 }
 
 Combatant* BattleDialogModelCombatant::getCombatant() const
@@ -229,6 +249,9 @@ void BattleDialogModelCombatant::internalOutputXML(QDomDocument &doc, QDomElemen
     element.setAttribute("isShown", _isShown);
     element.setAttribute("isKnown", _isKnown);
     element.setAttribute("done", _isDone);
+
+    if(!_groupId.isNull())
+        element.setAttribute("groupId", _groupId.toString());
 
     BattleDialogModelObject::internalOutputXML(doc, element, targetDirectory, isExport);
 }

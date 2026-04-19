@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QCursor>
+#include <QPolygon>
 
 class UndoFowPath;
 class LayerScene;
@@ -13,22 +14,22 @@ class BattleFrameMapDrawer : public QObject
 public:
     explicit BattleFrameMapDrawer(QObject *parent = nullptr);
 
-    //void setMap(Map* map, QPixmap* fow, QImage* glFow);
-    //Map* getMap() const;
     void setScene(LayerScene* scene);
     LayerScene* getScene() const;
     const QCursor& getCursor() const;
 
 signals:
-    //void fowEdited(const QPixmap& fow);
-    //void fowChanged(const QImage& glFow);
     void dirty();
     void cursorChanged(const QCursor& cursor);
+    void polygonChanged(const QPolygonF& polygon);
+    void polygonCancelled();
+    void selectRectChanged(const QRectF& rect);
+    void selectRectCancelled();
 
 public slots:
-    void handleMouseDown(const QPointF& pos);
-    void handleMouseMoved(const QPointF& pos);
-    void handleMouseUp(const QPointF& pos);
+    void handleMouseDown(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers);
+    void handleMouseMoved(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers);
+    void handleMouseUp(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers);
 
     void drawRect(const QRect& rect);
 
@@ -40,19 +41,21 @@ public slots:
     void setErase(bool erase);
     void setSmooth(bool smooth);
     void setBrushMode(int brushMode);
+    void cancelPolygon();
+    void cancelSelect();
 
 private:
 
     void endPath();
+    void applyPolygon();
     void createCursor();
 
     bool _mouseDown;
     QPointF _mouseDownPos;
     UndoFowPath* _undoPath;
-    //Map* _map;
+    QPolygon _polygonPoints;
+    bool _selectActive;
     LayerScene* _scene;
-    //QPixmap* _fow;
-    //QImage* _glFow;
     QCursor _cursor;
 
     int _gridScale;
