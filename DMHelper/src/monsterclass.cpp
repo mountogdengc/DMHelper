@@ -2,7 +2,7 @@
 #include "dmconstants.h"
 #include "dice.h"
 #include "bestiary.h"
-#include "character.h"
+#include "combatant.h"
 #include <QDomElement>
 #include <QDir>
 
@@ -425,7 +425,7 @@ QString MonsterClass::getSkillString() const
             if(!result.isEmpty())
                 result.append(", ");
 
-            result.append(Character::getWrittenSkillName(s));
+            result.append(Combatant::getWrittenSkillName(s));
             result.append(" ");
 
             int v = _skillValues.value(s);
@@ -462,7 +462,7 @@ void MonsterClass::setSkillString(const QString& skills)
         int skillValue = skillValueString.toUInt(&convertSuccess);
         if(convertSuccess)
         {
-            int skillKey = Character::findKeyForSkillName(skillName);
+            int skillKey = Combatant::findKeyForSkillName(skillName);
             if(skillKey >= 0)
             {
                 _skillValues[skillKey] = skillValue;

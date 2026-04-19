@@ -10,8 +10,7 @@
 class QDomElement;
 class MonsterClass;
 
-typedef QPair<int, int> AbilitySkillPair;
-Q_DECLARE_METATYPE(AbilitySkillPair);
+// AbilitySkillPair moved to combatant.h (B1 migration).
 
 class Character : public Combatant
 {
@@ -139,8 +138,9 @@ public:
 
     virtual void copyMonsterValues(MonsterClass& monster);
 
-    static int findKeyForSkillName(const QString& skillName);
-    static QString getWrittenSkillName(int skill);
+    // findKeyForSkillName / getWrittenSkillName moved to Combatant (B1).
+    // Still reachable via Character::findKeyForSkillName(...) thanks to
+    // static-method inheritance, so legacy callers keep compiling.
 
 signals:
     void iconChanged(CampaignObjectBase* character);

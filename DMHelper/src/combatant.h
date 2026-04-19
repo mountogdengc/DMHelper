@@ -10,6 +10,12 @@
 class Combatant;
 class CombatantVocabulary;
 
+// Pair of (ability, skill) enum values used by several dice-roll UIs as the
+// payload on a QVariant (see Q_DECLARE_METATYPE below). Lives on Combatant
+// rather than Character because it ties Combatant's Ability/Skills enums,
+// not any PC-specific state.
+typedef QPair<int, int> AbilitySkillPair;
+
 //typedef QPair<int, Combatant*> CombatantGroup;
 //typedef QList<CombatantGroup> CombatantGroupList;
 
@@ -113,6 +119,13 @@ public:
     static Ability getSkillAbility(Skills skill);
     static bool isSkillSavingThrow(Skills skill);
 
+    // 5e-specific skill-name helpers. Static because they only consult the
+    // Skills enum. Kept on Combatant (not Character) so legacy MonsterClass
+    // and future 5e-compatible code can use them without pulling in the
+    // legacy Character header.
+    static int findKeyForSkillName(const QString& skillName);
+    static QString getWrittenSkillName(int skill);
+
     // Bridge helpers between the 5e Ability enum and string keys used by
     // CombatantVocabulary. Intended as a shim during the migration away
     // from the hardcoded enum.
@@ -164,5 +177,6 @@ protected:
 };
 
 Q_DECLARE_METATYPE(Combatant*)
+Q_DECLARE_METATYPE(AbilitySkillPair);
 
 #endif // COMBATANT_H

@@ -5,8 +5,9 @@
 #include "conditions.h"
 #include "quickref.h"
 #include "characterv2.h"
-#include "character.h" // HACK - needed for "AbilityScorePair"
 #include "conditionseditdialog.h"
+// AbilitySkillPair + Q_DECLARE_METATYPE now live on combatant.h (B1),
+// already included transitively via battledialogmodelcombatant.h above.
 #include <QtGlobal>
 #include <QMouseEvent>
 

@@ -153,6 +153,38 @@ bool isCanonical5eMod(const QString& formula)
     return s == QStringLiteral("(v-10)/2") || s == QStringLiteral("floor((v-10)/2)");
 }
 
+// Display-name table for the 5e Skills enum. Indexed by Combatant::Skills.
+// Kept at file scope alongside findKeyForSkillName / getWrittenSkillName
+// (was in character.cpp prior to B1). Order must match the enum in
+// combatant.h.
+const char* SKILLVALUE_WRITTENNAMES[Combatant::SKILLS_COUNT] =
+{
+    "Str",              // Skills_strengthSave
+    "Athletics",        // Skills_athletics
+    "Dex",              // Skills_dexteritySave
+    "Stealth",          // Skills_stealth
+    "Acrobatics",       // Skills_acrobatics
+    "Sleight of Hand",  // Skills_sleightOfHand
+    "Con",              // Skills_constitutionSave
+    "Int",              // Skills_intelligenceSave
+    "Investigation",    // Skills_investigation
+    "Arcana",           // Skills_arcana
+    "Nature",           // Skills_nature
+    "History",          // Skills_history
+    "Religion",         // Skills_religion
+    "Wis",              // Skills_wisdomSave
+    "Medicine",         // Skills_medicine
+    "Animal Handling",  // Skills_animalHandling
+    "Perception",       // Skills_perception
+    "Insight",          // Skills_insight
+    "Survival",         // Skills_survival
+    "Cha",              // Skills_charismaSave
+    "Performance",      // Skills_performance
+    "Deception",        // Skills_deception
+    "Persuasion",       // Skills_persuasion
+    "Intimidation"      // Skills_intimidation
+};
+
 }
 
 
@@ -478,6 +510,23 @@ bool Combatant::isSkillSavingThrow(Skills skill)
             (skill == Skills_intelligenceSave) ||
             (skill == Skills_wisdomSave) ||
             (skill == Skills_charismaSave));
+}
+
+int Combatant::findKeyForSkillName(const QString& skillName)
+{
+    for(int i = 0; i < SKILLS_COUNT; ++i)
+    {
+        if(skillName.compare(SKILLVALUE_WRITTENNAMES[i], Qt::CaseInsensitive) == 0)
+            return i;
+    }
+    return -1;
+}
+
+QString Combatant::getWrittenSkillName(int skill)
+{
+    if((skill < 0) || (skill >= Combatant::SKILLS_COUNT))
+        return QString();
+    return QString(SKILLVALUE_WRITTENNAMES[skill]);
 }
 
 /*

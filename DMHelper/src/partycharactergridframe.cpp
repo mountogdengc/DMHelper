@@ -1,7 +1,7 @@
 #include "partycharactergridframe.h"
 #include "ui_partycharactergridframe.h"
 #include "characterv2.h"
-#include "character.h"
+#include "combatant.h"
 #include "conditions.h"
 #include "dmconstants.h"
 #include "characterimporter.h"
@@ -40,12 +40,12 @@ void PartyCharacterGridFrame::readCharacter()
     ui->edtSpeed->setText(QString::number(_character.getSpeed()));
     ui->edtPassivePerception->setText(QString::number(_character.getIntValue(QString("passiveperception"))));
 
-    ui->edtStr->setText(QString::number(_character.getStrength()) + " (" + Character::getAbilityModStr(_character.getStrength()) + ")");
-    ui->edtDex->setText(QString::number(_character.getDexterity()) + " (" + Character::getAbilityModStr(_character.getDexterity()) + ")");
-    ui->edtCon->setText(QString::number(_character.getConstitution()) + " (" + Character::getAbilityModStr(_character.getConstitution()) + ")");
-    ui->edtInt->setText(QString::number(_character.getIntelligence()) + " (" + Character::getAbilityModStr(_character.getIntelligence()) + ")");
-    ui->edtWis->setText(QString::number(_character.getWisdom()) + " (" + Character::getAbilityModStr(_character.getWisdom()) + ")");
-    ui->edtCha->setText(QString::number(_character.getCharisma()) + " (" + Character::getAbilityModStr(_character.getCharisma()) + ")");
+    ui->edtStr->setText(QString::number(_character.getStrength()) + " (" + Combatant::getAbilityModStr(_character.getStrength()) + ")");
+    ui->edtDex->setText(QString::number(_character.getDexterity()) + " (" + Combatant::getAbilityModStr(_character.getDexterity()) + ")");
+    ui->edtCon->setText(QString::number(_character.getConstitution()) + " (" + Combatant::getAbilityModStr(_character.getConstitution()) + ")");
+    ui->edtInt->setText(QString::number(_character.getIntelligence()) + " (" + Combatant::getAbilityModStr(_character.getIntelligence()) + ")");
+    ui->edtWis->setText(QString::number(_character.getWisdom()) + " (" + Combatant::getAbilityModStr(_character.getWisdom()) + ")");
+    ui->edtCha->setText(QString::number(_character.getCharisma()) + " (" + Combatant::getAbilityModStr(_character.getCharisma()) + ")");
 
     QPixmap iconPixmap = _character.getIconPixmap(DMHelper::PixmapSize_Animate);
     if(Conditions::activeConditions())

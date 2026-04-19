@@ -129,33 +129,7 @@ const char* SKILLVALUE_NAMES[Combatant::SKILLS_COUNT] =
     "intimidation"      // Skills_intimidation
 };
 
-const char* SKILLVALUE_WRITTENNAMES[Combatant::SKILLS_COUNT] =
-{
-    "Str",              // Skills_strengthSave
-    "Athletics",        // Skills_athletics
-    "Dex",              // Skills_dexteritySave
-    "Stealth",          // Skills_stealth
-    "Acrobatics",       // Skills_acrobatics
-    "Sleight of Hand",  // Skills_sleightOfHand
-    "Con",              // Skills_constitutionSave
-    "Int",              // Skills_intelligenceSave
-    "Investigation",    // Skills_investigation
-    "Arcana",           // Skills_arcana
-    "Nature",           // Skills_nature
-    "History",          // Skills_history
-    "Religion",         // Skills_religion
-    "Wis",              // Skills_wisdomSave
-    "Medicine",         // Skills_medicine
-    "Animal Handling",  // Skills_animalHandling
-    "Perception",       // Skills_perception
-    "Insight",          // Skills_insight
-    "Survival",         // Skills_survival
-    "Cha",              // Skills_charismaSave
-    "Performance",      // Skills_performance
-    "Deception",        // Skills_deception
-    "Persuasion",       // Skills_persuasion
-    "Intimidation"      // Skills_intimidation
-};
+// SKILLVALUE_WRITTENNAMES moved to combatant.cpp (B1).
 
 Character::Character(const QString& name, QObject *parent) :
     Combatant(name, parent),
@@ -757,28 +731,8 @@ void Character::copyMonsterValues(MonsterClass& monster)
     endBatchChanges();
 }
 
-int Character::findKeyForSkillName(const QString& skillName)
-{
-    for(int i = 0; i < SKILLS_COUNT; ++i)
-    {
-        if(skillName.compare(SKILLVALUE_WRITTENNAMES[i], Qt::CaseInsensitive) == 0)
-            return i;
-    }
-
-    return -1;
-}
-
-QString Character::getWrittenSkillName(int skill)
-{
-    if((skill < 0) || (skill >= Combatant::SKILLS_COUNT))
-    {
-        return QString();
-    }
-    else
-    {
-        return QString(SKILLVALUE_WRITTENNAMES[skill]);
-    }
-}
+// Character::findKeyForSkillName / getWrittenSkillName moved to
+// Combatant::findKeyForSkillName / getWrittenSkillName (B1).
 
 void Character::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport)
 {
