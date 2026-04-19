@@ -9,6 +9,7 @@
 #include <QRect>
 #include <QPen>
 
+class BattleDialogModelCombatantGroup;
 class EncounterBattle;
 class Map;
 class LayerGrid;
@@ -46,6 +47,16 @@ public:
     void appendCombatantToList(BattleDialogModelCombatant* combatant);
     void removeCombatantFromList(BattleDialogModelCombatant* combatant);
     bool isCombatantInList(Combatant* combatant) const;
+
+    // Group management
+    QList<BattleDialogModelCombatantGroup*> getGroups() const;
+    BattleDialogModelCombatantGroup* getGroup(const QUuid& groupId) const;
+    QList<BattleDialogModelCombatant*> getGroupMembers(const QUuid& groupId) const;
+    BattleDialogModelCombatantGroup* createGroup(const QString& name, const QList<BattleDialogModelCombatant*>& members);
+    void addGroup(BattleDialogModelCombatantGroup* group);
+    void removeGroup(const QUuid& groupId);
+    void ungroupCombatants(const QUuid& groupId);
+    void removeCombatantFromGroup(BattleDialogModelCombatant* combatant);
 
     QList<BattleDialogModelEffect*> getEffectList() const;
     int getEffectCount() const;
@@ -117,6 +128,10 @@ signals:
     void combatantAdded(BattleDialogModelCombatant* combatant);
     void combatantRemoved(BattleDialogModelCombatant* combatant);
 
+    void groupAdded(const QUuid& groupId);
+    void groupRemoved(const QUuid& groupId);
+    void groupChanged(const QUuid& groupId);
+
 protected slots:
     void mapDestroyed(const QUuid& id);
     void characterDestroyed(const QUuid& destroyedId);
@@ -139,6 +154,7 @@ private:
     // Note: combatants are owned by the layers, this list is for initiative sorting only
     QList<BattleDialogModelCombatant*> _combatants;
     QList<BattleDialogModelEffect*> _effects;
+    QList<BattleDialogModelCombatantGroup*> _groups;
 
     // Visualization values
     LayerScene _layerScene;

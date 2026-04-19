@@ -3,7 +3,6 @@
 
 #include <QFrame>
 #include <QGridLayout>
-#include "combatant.h"
 
 namespace Ui {
 class BattleCombatantFrame;
@@ -33,7 +32,7 @@ protected slots:
     void clearCombatant();
     void updateLayout();
     void clearGrid();
-    void addCondition(Combatant::Condition condition);
+    void addCondition(const QString& conditionId);
 
 protected:
     virtual void resizeEvent(QResizeEvent *event) override;

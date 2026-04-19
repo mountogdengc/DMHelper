@@ -136,6 +136,7 @@ SOURCES += main.cpp\
     mapcolorizefilter.cpp \
     mapfactory.cpp \
     mapframescene.cpp \
+    mapmanagerdialog.cpp \
     monsterclassv2.cpp \
     monsterclassv2converter.cpp \
     monsterfactory.cpp \
@@ -445,6 +446,7 @@ HEADERS  += mainwindow.h \
     mapcolorizefilter.h \
     mapfactory.h \
     mapframescene.h \
+    mapmanagerdialog.h \
     mapmarker.h \
     monsterclassv2.h \
     monsterclassv2converter.h \
@@ -680,6 +682,7 @@ FORMS    += mainwindow.ui \
     legaldialog.ui \
     mapblankdialog.ui \
     mapcolorizedialog.ui \
+    mapmanagerdialog.ui \
     newcampaigndialog.ui \
     newentrydialog.ui \
     objectimportdialog.ui \

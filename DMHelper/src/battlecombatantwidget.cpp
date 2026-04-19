@@ -13,6 +13,13 @@ BattleCombatantWidget::BattleCombatantWidget(BattleDialogModelCombatant* combata
     _result(0)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
+
+    // Fix parchment background for QTextEdit viewport in Qt6
+    QPalette parchPal = ui->edtResult->palette();
+    parchPal.setBrush(QPalette::Base, QBrush(QPixmap(QString(":/img/data/parchment.jpg"))));
+    ui->edtResult->setPalette(parchPal);
+
     QValidator* valHitPoints = new QIntValidator(-10, 9999, this);
     ui->edtHP->setValidator(valHitPoints);
     setCombatantValues();
@@ -68,12 +75,13 @@ void BattleCombatantWidget::applyDamage(int damage)
     emit hitPointsChanged(_combatant, damage);
 }
 
-void BattleCombatantWidget::applyConditions(int conditions)
+void BattleCombatantWidget::applyConditions(const QStringList& conditions)
 {
-    if((!_combatant) || (conditions == 0))
+    if((!_combatant) || (conditions.isEmpty()))
         return;
 
-    _combatant->applyConditions(conditions);
+    for(const QString& condId : conditions)
+        _combatant->addConditionId(condId);
     emit combatantChanged(_combatant);
 }
 

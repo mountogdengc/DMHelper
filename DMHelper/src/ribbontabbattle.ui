@@ -241,7 +241,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add an NPC to the battle</string>
+        <string>Add an object to the battle</string>
        </property>
        <property name="text">
         <string/>
@@ -609,7 +609,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add a line effect</string>
+        <string>Duplicate the selected effect</string>
        </property>
        <property name="text">
         <string/>

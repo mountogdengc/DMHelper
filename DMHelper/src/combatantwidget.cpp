@@ -23,6 +23,29 @@ CombatantWidget::CombatantWidget(QWidget *parent) :
             [this]() { setStyleSheet(getStyleString()); });
 }
 
+void CombatantWidget::installEventFilterRecursive(QObject* filterObj)
+{
+    if(!filterObj)
+        return;
+
+    installEventFilter(filterObj);
+    const QObjectList& kids = children();
+    for(QObject* child : kids)
+    {
+        if(QWidget* w = qobject_cast<QWidget*>(child))
+        {
+            w->installEventFilter(filterObj);
+            // Also cover grandchildren (e.g. widgets inside sub-layouts)
+            const QObjectList& grandkids = w->children();
+            for(QObject* gk : grandkids)
+            {
+                if(QWidget* gkw = qobject_cast<QWidget*>(gk))
+                    gkw->installEventFilter(filterObj);
+            }
+        }
+    }
+}
+
 int CombatantWidget::getInitiative() const
 {
     return _edtInit ? _edtInit->text().toInt() : 0;
@@ -123,7 +146,6 @@ void CombatantWidget::leaveEvent(QEvent* event)
 {
     Q_UNUSED(event);
 
-    setFrameStyle(QFrame::Panel | QFrame::Raised);
     _mouseDown = Qt::NoButton;
     _hover = false;
     setStyleSheet(getStyleString());
@@ -133,8 +155,6 @@ void CombatantWidget::mousePressEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
 
-    if(event->button() == Qt::LeftButton)
-        setFrameStyle(QFrame::Panel | QFrame::Sunken);
     _mouseDown = event->button();
 }
 
@@ -142,10 +162,6 @@ void CombatantWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     if(_mouseDown == event->button())
     {
-        if(event->button() == Qt::LeftButton)
-        {
-            setFrameStyle(QFrame::Panel | QFrame::Raised);
-        }
         _mouseDown = Qt::NoButton;
     }
 }
@@ -188,18 +204,18 @@ void CombatantWidget::updatePairData(QHBoxLayout* pair, const QString& pairValue
 
 QString CombatantWidget::getStyleString()
 {
-    setLineWidth(5);
+    const QString common = QStringLiteral("padding-left: 4px; border-bottom: 1px solid rgba(0, 0, 0, 40); ");
 
     ThemeManager& tm = ThemeManager::instance();
     if(_selected)
-        return QString("CombatantWidget{ background-image: url(); background-color: %1; }")
-                .arg(tm.colorName(ThemeManager::Role::CombatantSelected));
+        return QString("CombatantWidget{ background-image: url(); background-color: %1; border-left: 4px solid rgb(80, 80, 80); %2}")
+                .arg(tm.colorName(ThemeManager::Role::CombatantSelected), common);
     else if(_active)
-        return QString("CombatantWidget{ background-color: %1; }")
-                .arg(tm.colorName(ThemeManager::Role::CombatantActive));
+        return QString("CombatantWidget{ background-color: %1; border-left: 4px solid rgb(200, 40, 0); %2}")
+                .arg(tm.colorName(ThemeManager::Role::CombatantActive), common);
     else if(_hover)
-        return QString("CombatantWidget{ background-color: %1; }")
-                .arg(tm.colorName(ThemeManager::Role::CombatantHover));
+        return QString("CombatantWidget{ background-color: %1; border-left: 4px solid rgb(100, 100, 100); %2}")
+                .arg(tm.colorName(ThemeManager::Role::CombatantHover), common);
     else
-        return QString("CombatantWidget{ background-color: none; }");
+        return QStringLiteral("CombatantWidget{ background-color: none; border-left: 4px solid transparent; ") + common + QStringLiteral("}");
 }

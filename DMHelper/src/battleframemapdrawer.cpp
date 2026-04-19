@@ -2,8 +2,9 @@
 #include "undofowpath.h"
 #include "undofowfill.h"
 #include "undofowshape.h"
-#include "map.h"
+#include "undofowpolygon.h"
 #include "layerfow.h"
+#include "layerscene.h"
 #include <QPixmap>
 #include <QPainter>
 #include <QMessageBox>
@@ -13,40 +14,19 @@ BattleFrameMapDrawer::BattleFrameMapDrawer(QObject *parent) :
     _mouseDown(false),
     _mouseDownPos(),
     _undoPath(nullptr),
-    //_map(nullptr),
     _scene(nullptr),
-    //_glFow(nullptr),
     _cursor(),
     _gridScale(10),
     _zoomScale(1.f),
     _size(10),
     _erase(true),
     _smooth(true),
-    _brushMode(DMHelper::BrushType_Circle)
+    _brushMode(DMHelper::BrushType_Circle),
+    _selectActive(false)
 
 {
     createCursor();
 }
-
-/*
-void BattleFrameMapDrawer::setMap(Map* map, QPixmap* fow, QImage* glFow)
-{
-    _map = map;
-    _fow = fow;
-    _glFow = glFow;
-
-    if((_map) && (_fow) && (_glFow))
-    {
-        emit fowEdited(*_fow);
-        emit fowChanged(*_glFow);
-    }
-}
-
-Map* BattleFrameMapDrawer::getMap() const
-{
-    return _map;
-}
-*/
 
 void BattleFrameMapDrawer::setScene(LayerScene* scene)
 {
@@ -63,68 +43,102 @@ const QCursor& BattleFrameMapDrawer::getCursor() const
     return _cursor;
 }
 
-void BattleFrameMapDrawer::handleMouseDown(const QPointF& pos)
+void BattleFrameMapDrawer::handleMouseDown(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers)
 {
-    //if((!_map) || (!_fow) || (!_glFow))
-    //    return;
+    Q_UNUSED(modifiers);
 
     if(!_scene)
         return;
 
+    if(_brushMode == DMHelper::BrushType_Polygon)
+    {
+        if(buttons & Qt::RightButton)
+        {
+            applyPolygon();
+        }
+        else if(buttons & Qt::LeftButton)
+        {
+            _polygonPoints.append(pos.toPoint());
+            emit polygonChanged(QPolygonF(_polygonPoints));
+        }
+        return;
+    }
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(buttons & Qt::LeftButton)
+        {
+            _mouseDownPos = pos;
+            _selectActive = true;
+        }
+        return;
+    }
+
     _mouseDownPos = pos;
     _mouseDown = true;
 
-    // TODO: Layers
     // Math says divide by 10: radius of 5 to adjust scale to "one square"
     LayerFow* layer = dynamic_cast<LayerFow*>(_scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Fow));
     if(layer)
     {
         _undoPath = new UndoFowPath(layer, MapDrawPath(_gridScale * _size / 10, _brushMode, _erase, _smooth, pos.toPoint() - layer->getPosition()));
         layer->getUndoStack()->push(_undoPath);
-        //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-        //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-        //emit fowEdited(*_fow);
         emit dirty();
     }
-
-    //_undoPath = new UndoFowPath(_map, MapDrawPath(_gridScale * _size / 10, _brushMode, _erase, _smooth, pos.toPoint()));
-    //_map->getUndoStack()->push(_undoPath);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-    //emit fowEdited(*_fow);
 }
 
-void BattleFrameMapDrawer::handleMouseMoved(const QPointF& pos)
+void BattleFrameMapDrawer::handleMouseMoved(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers)
 {
-    //if((!_map) || (!_undoPath) || (!_fow) || (!_glFow))
+    Q_UNUSED(buttons);
+    Q_UNUSED(modifiers);
+
+    if(_brushMode == DMHelper::BrushType_Polygon)
+        return;
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(_selectActive)
+            emit selectRectChanged(QRectF(_mouseDownPos, pos).normalized());
+        return;
+    }
 
     if((!_undoPath) || (!_undoPath->getLayer()))
         return;
 
     _undoPath->addPoint(pos.toPoint() - _undoPath->getLayer()->getPosition());
-    // TODO: Layers
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _fow, true);
-    //_map->paintFoWPoint(pos.toPoint(), _undoPath->mapDrawPath(), _glFow, false);
-    //emit fowEdited(*_fow);
     emit dirty();
 }
 
-void BattleFrameMapDrawer::handleMouseUp(const QPointF& pos)
+void BattleFrameMapDrawer::handleMouseUp(const QPointF& pos, const Qt::MouseButtons buttons, const Qt::KeyboardModifiers modifiers)
 {
     Q_UNUSED(pos);
-    //if(_glFow)
-    //    emit fowChanged(*_glFow);
+    Q_UNUSED(buttons);
+    Q_UNUSED(modifiers);
+
+    if(_brushMode == DMHelper::BrushType_Polygon)
+        return;
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        if(_selectActive)
+        {
+            QRect selectRect = QRectF(_mouseDownPos, pos).normalized().toRect();
+            drawRect(selectRect);
+            _selectActive = false;
+            emit selectRectCancelled();
+        }
+        return;
+    }
+
     endPath();
     emit dirty();
 }
 
 void BattleFrameMapDrawer::drawRect(const QRect& rect)
 {
-    //if((!_map) || (!_fow) || (!_glFow))
     if(!_scene)
         return;
 
-    // TODO: Layers
     LayerFow* layer = dynamic_cast<LayerFow*>(_scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Fow));
     if(layer)
     {
@@ -132,16 +146,6 @@ void BattleFrameMapDrawer::drawRect(const QRect& rect)
         layer->getUndoStack()->push(undoShape);
         emit dirty();
     }
-    /*
-    // Changed to ignore smoothing on an area
-    UndoFowShape* undoShape = new UndoFowShape(_map, MapEditShape(rect, _erase, false));
-    _map->getUndoStack()->push(undoShape);
-    //_map->paintFoWRect(rect, undoShape->mapEditShape(), _fow, true);
-    //_map->paintFoWRect(rect, undoShape->mapEditShape(), _glFow, false);
-    emit fowEdited(*_fow);
-    emit fowChanged(*_glFow);
-    endPath();
-    */
     emit dirty();
 }
 
@@ -176,14 +180,12 @@ void BattleFrameMapDrawer::fillFoW()
 
 void BattleFrameMapDrawer::resetFoW()
 {
-    //if((!_map) || (!_fow) || (!_glFow))
     if(!_scene)
         return;
 
     if(QMessageBox::question(nullptr, QString("Confirm Fill FoW"), QString("Are you sure you would like to fill the entire Fog of War?")) == QMessageBox::No)
         return;
 
-    // TODO: Layers
     LayerFow* layer = dynamic_cast<LayerFow*>(_scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Fow));
     if(layer)
     {
@@ -191,27 +193,16 @@ void BattleFrameMapDrawer::resetFoW()
         layer->getUndoStack()->push(undoFill);
         emit dirty();
     }
-    /*
-    UndoFowFill* undoFill = new UndoFowFill(_map, MapEditFill(QColor(0, 0, 0, 255)));
-    _map->getUndoStack()->push(undoFill);
-    //_map->fillFoW(QColor(0, 0, 0, 128), _fow);
-    //_map->fillFoW(QColor(0, 0, 0, 255), _glFow);
-    endPath();
-    emit fowEdited(*_fow);
-    emit fowChanged(*_glFow);
-    */
 }
 
 void BattleFrameMapDrawer::clearFoW()
 {
-    //if((!_map) || (!_fow) || (!_glFow))
     if(!_scene)
         return;
 
     if(QMessageBox::question(nullptr, QString("Confirm Clear FoW"), QString("Are you sure you would like to clear the entire Fog of War?")) == QMessageBox::No)
         return;
 
-    // TODO: Layers
     LayerFow* layer = dynamic_cast<LayerFow*>(_scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Fow));
     if(layer)
     {
@@ -219,15 +210,6 @@ void BattleFrameMapDrawer::clearFoW()
         layer->getUndoStack()->push(undoFill);
         emit dirty();
     }
-    /*
-    UndoFowFill* undoFill = new UndoFowFill(_map, MapEditFill(QColor(0, 0, 0, 0)));
-    _map->getUndoStack()->push(undoFill);
-    //_map->fillFoW(QColor(0, 0, 0, 0), _fow);
-    //_map->fillFoW(QColor(0, 0, 0, 0), _glFow);
-    endPath();
-    emit fowEdited(*_fow);
-    emit fowChanged(*_glFow);
-    */
 }
 
 void BattleFrameMapDrawer::setErase(bool erase)
@@ -251,6 +233,11 @@ void BattleFrameMapDrawer::setBrushMode(int brushMode)
     if(_brushMode == brushMode)
         return;
 
+    if(_brushMode == DMHelper::BrushType_Polygon && !_polygonPoints.isEmpty())
+        cancelPolygon();
+    if(_brushMode == DMHelper::BrushType_Select && _selectActive)
+        cancelSelect();
+
     _brushMode = brushMode;
     endPath();
     createCursor();
@@ -262,10 +249,52 @@ void BattleFrameMapDrawer::endPath()
     _mouseDown = false;
 }
 
+void BattleFrameMapDrawer::applyPolygon()
+{
+    if(_polygonPoints.count() >= 3 && _scene)
+    {
+        LayerFow* layer = dynamic_cast<LayerFow*>(_scene->getNearest(_scene->getSelectedLayer(), DMHelper::LayerType_Fow));
+        if(layer)
+        {
+            QPolygon adjustedPolygon = _polygonPoints;
+            adjustedPolygon.translate(-layer->getPosition());
+            UndoFowPolygon* undoPolygon = new UndoFowPolygon(layer, MapEditPolygon(adjustedPolygon, _erase, false));
+            layer->getUndoStack()->push(undoPolygon);
+            emit dirty();
+        }
+    }
+    _polygonPoints.clear();
+    emit polygonCancelled();
+}
+
+void BattleFrameMapDrawer::cancelPolygon()
+{
+    _polygonPoints.clear();
+    emit polygonCancelled();
+}
+
+void BattleFrameMapDrawer::cancelSelect()
+{
+    _selectActive = false;
+    emit selectRectCancelled();
+}
+
 void BattleFrameMapDrawer::createCursor()
 {
-    //int cursorSize = _scale * _mapSource->getPartyScale() * _brushSize / 5;
-    //int cursorSize = _viewWidth * _size / 5;
+    if(_brushMode == DMHelper::BrushType_Polygon)
+    {
+        _cursor = QCursor(QPixmap(":/img/data/crosshair.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        emit cursorChanged(_cursor);
+        return;
+    }
+
+    if(_brushMode == DMHelper::BrushType_Select)
+    {
+        _cursor = QCursor(QPixmap(":/img/data/icon_selectcursor.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        emit cursorChanged(_cursor);
+        return;
+    }
+
     int cursorSize = _gridScale * _zoomScale * _size / 5;
     QPixmap cursorPixmap(QSize(cursorSize, cursorSize));
     cursorPixmap.fill(Qt::transparent);

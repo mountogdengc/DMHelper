@@ -21,9 +21,6 @@ EquipmentServer::EquipmentServer(const QString& equipmentFile, QObject *parent) 
 
 EquipmentServer* EquipmentServer::Instance()
 {
-//    if(!_instance)
-//        Initialize();
-
     return _instance;
 }
 
@@ -94,16 +91,13 @@ void EquipmentServer::readEquipment(const QString& equipmentFile)
 
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
-    QString errMsg;
-    int errRow;
-    int errColumn;
-    bool contentResult = doc.setContent(in.readAll(), &errMsg, &errRow, &errColumn);
+    QDomDocument::ParseResult contentResult = doc.setContent(in.readAll());
 
     file.close();
 
-    if(contentResult == false)
+    if(!contentResult)
     {
-        qDebug() << "[EquipmentServer] ERROR: Unable to parse the equipment data file: " << errMsg << errRow << errColumn;
+        qDebug() << "[EquipmentServer] ERROR: Unable to parse the equipment data file at line " << contentResult.errorLine << ", column " << contentResult.errorColumn << ": " << contentResult.errorMessage;
         return;
     }
 

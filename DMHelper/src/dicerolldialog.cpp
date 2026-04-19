@@ -15,6 +15,7 @@ DiceRollDialog::DiceRollDialog(QWidget *parent) :
     _mouseDownPos()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
     init();
 }
 
@@ -26,6 +27,7 @@ DiceRollDialog::DiceRollDialog(const Dice& dice, QWidget *parent) :
     _mouseDownPos()
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
     init();
 
     ui->editRollCount->setText(QString("1"));

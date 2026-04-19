@@ -121,8 +121,6 @@ void PublishGLBattleBackground::createImageObjects(const QImage& image)
     if(!QOpenGLContext::currentContext())
         return;
 
-    // qDebug() << "[BattleGLBackground] Creating background image objects";
-
     // Set up the rendering context, load shaders and other resources, etc.:
     QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
     QOpenGLExtraFunctions *e = QOpenGLContext::currentContext()->extraFunctions();

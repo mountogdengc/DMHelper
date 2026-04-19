@@ -23,9 +23,9 @@ CombatantWidgetCharacter::CombatantWidgetCharacter(bool showDone, QWidget *paren
 
     CombatantWidgetCharacter::setShowDone(showDone);
 
-    QValidator* valInit = new QIntValidator(-99, 99, this);
+    QValidator* valInit = new QIntValidator(-999999, 999999, this);
     ui->edtInit->setValidator(valInit);
-    QValidator* valHitPoints = new QIntValidator(-10, 9999, this);
+    QValidator* valHitPoints = new QIntValidator(-999999, 999999, this);
     ui->edtHP->setValidator(valHitPoints);
 }
 
@@ -59,7 +59,6 @@ void CombatantWidgetCharacter::setInternals(CombatantWidgetInternalsCharacter* i
         connect(ui->chkKnown, SIGNAL(clicked(bool)), characterCombatant, SLOT(setKnown(bool)));
         connect(ui->chkVisible, SIGNAL(clicked(bool)), characterCombatant, SLOT(setShown(bool)));
         connect(ui->chkDone, SIGNAL(clicked(bool)), characterCombatant, SLOT(setDone(bool)));
-        //connect(characterCombatant, SIGNAL(combatantDoneChanged()), this, SLOT(updateData()));
         connect(characterCombatant, &BattleDialogModelCharacter::combatantDoneChanged, this, &CombatantWidgetCharacter::updateData);
 
         if(characterCombatant->getCombatant())
@@ -201,7 +200,7 @@ void CombatantWidgetCharacter::loadImage()
         //ui->lblIcon->setPixmap(_internals->getCombatant()->getIconPixmap(DMHelper::PixmapSize_Thumb));
         QPixmap iconPixmap = _internals->getCombatant()->getIconPixmap(DMHelper::PixmapSize_Thumb);
         //if(_internals->getCombatant()->getHitPoints() <= 0)
-        if(_internals->getCombatant()->getConditions() & Combatant::Condition_Unconscious)
+        if(_internals->getCombatant()->hasConditionId(QStringLiteral("unconscious")))
         {
             QImage originalImage = iconPixmap.toImage();
             QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);

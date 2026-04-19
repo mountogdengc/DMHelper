@@ -31,6 +31,7 @@ LayerVideo::LayerVideo(const QString& name, const QString& filename, int order, 
     _scene(nullptr),
     _filename(filename),
     _playAudio(true),
+    _looping(true),
     _layerScreenshot(),
     _dmScene(nullptr)
 {
@@ -49,6 +50,9 @@ void LayerVideo::inputXML(const QDomElement &element, bool isImport)
 
     if(element.hasAttribute("playAudio"))
         _playAudio = static_cast<bool>(element.attribute("playAudio").toInt());
+
+    if(element.hasAttribute("looping"))
+        _looping = static_cast<bool>(element.attribute("looping").toInt());
 
     Layer::inputXML(element, isImport);
 }
@@ -151,6 +155,11 @@ bool LayerVideo::getPlayAudio() const
 QImage LayerVideo::getScreenshot() const
 {
     return _layerScreenshot;
+}
+
+bool LayerVideo::isLooping() const
+{
+    return _looping;
 }
 
 void LayerVideo::dmInitialize(QGraphicsScene* scene)
@@ -354,6 +363,33 @@ void LayerVideo::setPlayAudio(bool playAudio)
     emit dirty();
 }
 
+void LayerVideo::setLooping(bool looping)
+{
+    if(_looping == looping)
+        return;
+
+    _looping = looping;
+    if(_videoPlayer)
+        _videoPlayer->setLooping(looping);
+    emit dirty();
+}
+
+void LayerVideo::setVideoFile(const QString& filename)
+{
+    if((filename.isEmpty()) || (_filename == filename))
+        return;
+
+    cleanupDM();
+    cleanupPlayer();
+    clearScreenshot();
+    _layerScreenshot = QImage();
+
+    _filename = filename;
+
+    requestScreenshot();
+    emit dirty();
+}
+
 void LayerVideo::handleScreenshotReady(const QImage& image)
 {
     if((image.isNull()) || (_layerScreenshot == image))
@@ -420,6 +456,9 @@ void LayerVideo::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir
     if(!_playAudio)
         element.setAttribute("playAudio", 0);
 
+    if(!_looping)
+        element.setAttribute("looping", 0);
+
     Layer::internalOutputXML(doc, element, targetDirectory, isExport);
 }
 
@@ -442,6 +481,7 @@ void LayerVideo::updateImage(const QSize& size)
         _graphicsItem = _dmScene->addPixmap(QPixmap::fromImage(scaledImage));
         if(_graphicsItem)
         {
+            _graphicsItem->setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
             _graphicsItem->setPos(_position);
             _graphicsItem->setFlag(QGraphicsItem::ItemIsMovable, false);
             _graphicsItem->setFlag(QGraphicsItem::ItemIsSelectable, false);
@@ -479,11 +519,12 @@ void LayerVideo::createPlayerObjectGL(PublishGLRenderer* renderer)
                                              renderer->getTargetWidget()->format(),
                                              true,
                                              false);
-    connect(_videoGLPlayer, &VideoPlayerGLPlayer::frameAvailable, renderer, &PublishGLRenderer::updateWidget);
+    connect(_videoGLPlayer, &VideoPlayerGLPlayer::frameAvailable, renderer, &PublishGLRenderer::updateWidget, Qt::QueuedConnection);
     connect(_videoGLPlayer, &VideoPlayerGLPlayer::vbObjectsCreated, renderer, &PublishGLRenderer::updateProjectionMatrix);
     _videoGLPlayer->restartPlayer();
 #else
     _videoPlayer = new VideoPlayer(_filename, QSize(), true, _playAudio);
+    _videoPlayer->setLooping(_looping);
     connect(_videoPlayer, &VideoPlayer::frameAvailable, renderer, &PublishGLRenderer::updateWidget, Qt::QueuedConnection);
     _videoPlayer->restartPlayer();
 #endif

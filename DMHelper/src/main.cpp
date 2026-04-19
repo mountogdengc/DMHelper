@@ -1,12 +1,13 @@
 #include "mainwindow.h"
 #include "dmhlogger.h"
 #include "optionsaccessor.h"
+#include "smoketestrunner.h"
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <QStyleHints>
 #include <QDebug>
 
 int main(int argc, char *argv[]) {
-    QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
     QApplication a(argc, argv);
 
     // Explicitly set the application surface format for OpenGL surfaces
@@ -20,6 +21,10 @@ int main(int argc, char *argv[]) {
 
     // this important so we can call makeCurrent from our rendering thread
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
+
+    QStyleHints* styleHints = QGuiApplication::styleHints();
+    if(styleHints)
+        styleHints->setColorScheme(Qt::ColorScheme::Light);
 
     int result = 0;
     try {
@@ -35,6 +40,14 @@ int main(int argc, char *argv[]) {
             qInfo() << "[Main] WARNING: CLEARING ALL REGISTRY SETTINGS";
             OptionsAccessor settings;
             settings.remove("");
+        }
+
+        if(arguments.contains("--smoke-test"))
+        {
+            qInfo() << "[Main] Running smoke test...";
+            bool skipOpenGL = arguments.contains("--skip-opengl");
+            SmokeTestRunner smokeTest(skipOpenGL);
+            return smokeTest.run();
         }
 
         MainWindow* w = new MainWindow;

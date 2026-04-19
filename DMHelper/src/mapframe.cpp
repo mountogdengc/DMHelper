@@ -6,8 +6,10 @@
 #include "mapmarkergraphicsitem.h"
 #include "undofowfill.h"
 #include "undofowshape.h"
+#include "undofowpolygon.h"
 #include "undomarker.h"
 #include "layerscene.h"
+#include "layerimage.h"
 #include "layervideo.h"
 #include "layergrid.h"
 #include "mapmarkerdialog.h"
@@ -20,6 +22,7 @@
 #include "publishglmaprenderer.h"
 #include "gridsizer.h"
 #include <QGraphicsPixmapItem>
+#include <QGraphicsPolygonItem>
 #include <QMouseEvent>
 #include <QScrollBar>
 #include <QTimer>
@@ -28,6 +31,7 @@
 #include <QStyleOptionGraphicsItem>
 #include <QMessageBox>
 #include <QDebug>
+#include <QtMath>
 
 MapFrame::MapFrame(QWidget *parent) :
     CampaignObjectFrame(parent),
@@ -48,6 +52,9 @@ MapFrame::MapFrame(QWidget *parent) :
     _mouseDown(false),
     _mouseDownPos(),
     _undoPath(nullptr),
+    _polygonPoints(),
+    _polygonPreview(nullptr),
+    _polygonPendingLine(nullptr),
     _distanceLine(nullptr),
     _mapItem(nullptr),
     _distancePath(nullptr),
@@ -345,7 +352,21 @@ void MapFrame::resizeGrid()
     // Grid sizer overlay is player-visible through publish; keep fixed high-contrast white regardless of DM theme.
     _gridSizer->setBackgroundColor(QColor(255,255,255,204));
     _scene->addItem(_gridSizer);
-    _gridSizer->setPos(currentScale, currentScale);
+
+    // Position the grid sizer at the first grid-aligned point inside the visible area
+    QRectF visibleRect = ui->graphicsView->mapToScene(ui->graphicsView->viewport()->rect()).boundingRect();
+    qreal xPixelOffset = 0.0;
+    qreal yPixelOffset = 0.0;
+    if(gridLayer)
+    {
+        xPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetX() / 100.0;
+        yPixelOffset = currentScale * gridLayer->getConfig().getGridOffsetY() / 100.0;
+    }
+    // Find the first grid line at or past the visible left/top, then add one grid square
+    qreal xPos = xPixelOffset + qCeil((visibleRect.left() - xPixelOffset) / currentScale) * currentScale + currentScale;
+    qreal yPos = yPixelOffset + qCeil((visibleRect.top() - yPixelOffset) / currentScale) * currentScale + currentScale;
+    _gridSizer->setPos(xPos, yPos);
+
     connect(_gridSizer, &GridSizer::accepted, this, &MapFrame::gridSizerAccepted);
     connect(_gridSizer, &GridSizer::rejected, this, &MapFrame::gridSizerRejected);
 }
@@ -432,6 +453,10 @@ void MapFrame::setBrushMode(int brushMode)
 {
     if(_brushMode != brushMode)
     {
+        // Cancel any in-progress polygon when switching modes
+        if(_brushMode == DMHelper::BrushType_Polygon && !_polygonPoints.isEmpty())
+            cleanupSelectionItems();
+
         _brushMode = brushMode;
         setMapCursor();
         emit brushModeSet(_brushMode);
@@ -452,14 +477,44 @@ void MapFrame::editMapFile()
     if(!_mapSource)
         return;
 
-    QString filename = QFileDialog::getOpenFileName(this, QString("Select Map Image..."));
-    if(!filename.isEmpty())
+    // Find the best media layer to update: selected layer takes priority if it's image or video
+    LayerScene& layerScene = _mapSource->getLayerScene();
+    Layer* selectedLayer = layerScene.getSelectedLayer();
+
+    LayerImage* imageLayer = nullptr;
+    LayerVideo* videoLayer = nullptr;
+
+    if(selectedLayer)
     {
-        uninitializeMap();
-        _mapSource->uninitialize();
-        _mapSource->setFileName(filename);
-        initializeMap();
+        if(selectedLayer->getFinalType() == DMHelper::LayerType_Image)
+            imageLayer = dynamic_cast<LayerImage*>(selectedLayer->getFinalLayer());
+        else if(selectedLayer->getFinalType() == DMHelper::LayerType_Video)
+            videoLayer = dynamic_cast<LayerVideo*>(selectedLayer->getFinalLayer());
     }
+
+    if(!imageLayer && !videoLayer)
+    {
+        imageLayer = dynamic_cast<LayerImage*>(layerScene.getPriority(DMHelper::LayerType_Image));
+        if(!imageLayer)
+            videoLayer = dynamic_cast<LayerVideo*>(layerScene.getPriority(DMHelper::LayerType_Video));
+    }
+
+    if(!imageLayer && !videoLayer)
+        return;
+
+    QString filename = QFileDialog::getOpenFileName(this, QString("Select Map File..."));
+    if(filename.isEmpty())
+        return;
+
+    uninitializeMap();
+    _mapSource->uninitialize();
+
+    if(imageLayer)
+        imageLayer->setFileName(filename);
+    else
+        videoLayer->setVideoFile(filename);
+
+    initializeMap();
 }
 
 void MapFrame::zoomIn()
@@ -510,6 +565,11 @@ void MapFrame::centerWindow(const QPointF& position)
 void MapFrame::cancelSelect()
 {
     gridSizerRejected();
+    editModeToggled(DMHelper::EditMode_Move);
+}
+
+void MapFrame::ribbonTabChanged()
+{
     editModeToggled(DMHelper::EditMode_Move);
 }
 
@@ -637,6 +697,11 @@ void MapFrame::setPointerFile(const QString& filename)
         setMapCursor();
         emit pointerFileNameChanged(_pointerFile);
     }
+}
+
+void MapFrame::setDrawOn(bool enabled)
+{
+
 }
 
 void MapFrame::setTargetLabelSize(const QSize& targetSize)
@@ -783,6 +848,7 @@ void MapFrame::initializeMap()
     connect(_scene, &MapFrameScene::deleteMarker, this, &MapFrame::deleteMapMarker);
     connect(_scene, &MapFrameScene::centerView, this, &MapFrame::centerWindow);
     connect(_scene, &MapFrameScene::clearFoW, this, &MapFrame::clearFoW);
+    connect(_scene, &MapFrameScene::editFile, this, &MapFrame::editMapFile);
 
     connect(_scene, &MapFrameScene::itemChanged, this, &MapFrame::handleItemChanged);
     connect(_scene, &MapFrameScene::changed, this, &MapFrame::handleSceneChanged);
@@ -949,6 +1015,22 @@ void MapFrame::cleanupSelectionItems()
         delete _rubberBand;
         _rubberBand = nullptr;
     }
+
+    if(_polygonPreview)
+    {
+        _scene->removeItem(_polygonPreview);
+        delete _polygonPreview;
+        _polygonPreview = nullptr;
+    }
+
+    if(_polygonPendingLine)
+    {
+        _scene->removeItem(_polygonPendingLine);
+        delete _polygonPendingLine;
+        _polygonPendingLine = nullptr;
+    }
+
+    _polygonPoints.clear();
 }
 
 void MapFrame::hideEvent(QHideEvent * event)
@@ -1329,6 +1411,104 @@ bool MapFrame::execEventFilterEditModeFoW(QObject *obj, QEvent *event)
             }
         }
     }
+    else if(_brushMode == DMHelper::BrushType_Polygon)
+    {
+        if(event->type() == QEvent::MouseButtonDblClick)
+        {
+            // Double-click closes the polygon and applies it
+            if(_polygonPoints.count() >= 3)
+            {
+                LayerFow* layer = dynamic_cast<LayerFow*>(_mapSource->getLayerScene().getNearest(_mapSource->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Fow));
+                if(layer)
+                {
+                    QPolygon adjustedPolygon = _polygonPoints;
+                    adjustedPolygon.translate(-layer->getPosition());
+                    UndoFowPolygon* undoPolygon = new UndoFowPolygon(layer, MapEditPolygon(adjustedPolygon, _erase, false));
+                    layer->getUndoStack()->push(undoPolygon);
+                    emit dirty();
+                }
+            }
+            cleanupSelectionItems();
+            return true;
+        }
+        else if(event->type() == QEvent::MouseButtonPress)
+        {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+            if(mouseEvent->button() == Qt::RightButton)
+            {
+                // Right-click closes the polygon and applies it
+                if(_polygonPoints.count() >= 3)
+                {
+                    LayerFow* layer = dynamic_cast<LayerFow*>(_mapSource->getLayerScene().getNearest(_mapSource->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Fow));
+                    if(layer)
+                    {
+                        QPolygon adjustedPolygon = _polygonPoints;
+                        adjustedPolygon.translate(-layer->getPosition());
+                        UndoFowPolygon* undoPolygon = new UndoFowPolygon(layer, MapEditPolygon(adjustedPolygon, _erase, false));
+                        layer->getUndoStack()->push(undoPolygon);
+                        emit dirty();
+                    }
+                }
+                cleanupSelectionItems();
+                return true;
+            }
+            else if(mouseEvent->button() == Qt::LeftButton)
+            {
+                // Left-click adds a vertex
+                QPoint scenePoint = ui->graphicsView->mapToScene(mouseEvent->pos()).toPoint();
+                _polygonPoints.append(scenePoint);
+
+                // Create or update the polygon preview
+                if(!_polygonPreview)
+                {
+                    _polygonPreview = new QGraphicsPolygonItem();
+                    _polygonPreview->setPen(QPen(Qt::white, 2, Qt::DashLine));
+                    _polygonPreview->setBrush(QBrush(QColor(255, 255, 255, 40)));
+                    _polygonPreview->setZValue(100000);
+                    _scene->addItem(_polygonPreview);
+                }
+                _polygonPreview->setPolygon(QPolygonF(_polygonPoints));
+
+                // Update or create the pending line from last vertex to cursor
+                if(!_polygonPendingLine)
+                {
+                    _polygonPendingLine = new QGraphicsLineItem();
+                    _polygonPendingLine->setPen(QPen(Qt::white, 1, Qt::DotLine));
+                    _polygonPendingLine->setZValue(100000);
+                    _scene->addItem(_polygonPendingLine);
+                }
+                _polygonPendingLine->setLine(QLineF(scenePoint, scenePoint));
+                return true;
+            }
+        }
+        else if(event->type() == QEvent::MouseMove)
+        {
+            if(_polygonPendingLine && !_polygonPoints.isEmpty())
+            {
+                QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+                QPointF scenePos = ui->graphicsView->mapToScene(mouseEvent->pos());
+                _polygonPendingLine->setLine(QLineF(_polygonPoints.last(), scenePos));
+            }
+            return true;
+        }
+        else if(event->type() == QEvent::KeyPress)
+        {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            if(keyEvent->key() == Qt::Key_Escape)
+            {
+                if(!_polygonPoints.isEmpty())
+                {
+                    // Cancel in-progress polygon
+                    cleanupSelectionItems();
+                }
+                else
+                {
+                    editModeToggled(DMHelper::EditMode_Move);
+                }
+                return true;
+            }
+        }
+    }
     else
     {
         if(event->type() == QEvent::MouseButtonPress)
@@ -1441,7 +1621,7 @@ bool MapFrame::execEventFilterEditModeDistance(QObject *obj, QEvent *event)
         _distanceText = _scene->addSimpleText(QString("0"));
         _distanceText->setBrush(QBrush(_mapSource->getDistanceLineColor()));
         QFont textFont = _distanceText->font();
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPointSize(16);
         _distanceText->setFont(textFont);
         _distanceText->setPos(scenePos);
         _distanceText->setZValue(DMHelper::BattleDialog_Z_FrontHighlight);
@@ -1508,7 +1688,7 @@ bool MapFrame::execEventFilterEditModeFreeDistance(QObject *obj, QEvent *event)
         _distanceText = _scene->addSimpleText(QString("0"));
         _distanceText->setBrush(QBrush(_mapSource->getDistanceLineColor()));
         QFont textFont = _distanceText->font();
-        textFont.setPointSize(DMHelper::PixmapSizes[DMHelper::PixmapSize_Battle][0] / 20);
+        textFont.setPointSize(16);
         _distanceText->setFont(textFont);
         _distanceText->setPos(ui->graphicsView->mapToScene(mouseEvent->pos() + QPoint(5, 5)));
         _distanceText->setZValue(DMHelper::BattleDialog_Z_FrontHighlight);
@@ -1743,6 +1923,8 @@ void MapFrame::setMapCursor()
             default:
                 if((_brushMode == DMHelper::BrushType_Circle) || (_brushMode == DMHelper::BrushType_Square))
                     drawEditCursor();
+                else if(_brushMode == DMHelper::BrushType_Polygon)
+                    ui->graphicsView->viewport()->setCursor(QCursor(QPixmap(":/img/data/crosshair.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
                 else
                     ui->graphicsView->viewport()->setCursor(QCursor(QPixmap(":/img/data/crosshair.png").scaled(DMHelper::CURSOR_SIZE, DMHelper::CURSOR_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)));
                 break;
@@ -1850,7 +2032,16 @@ void MapFrame::gridSizerAccepted()
     if(!_gridSizer)
         return;
 
-    setPartyScale(_gridSizer->getSize());
+    int intSize = _gridSizer->getSize();
+    int xOffset = static_cast<int>(_gridSizer->x()) % intSize;
+    int yOffset = static_cast<int>(_gridSizer->y()) % intSize;
+
+    setPartyScale(intSize);
+
+    LayerGrid* gridLayer = dynamic_cast<LayerGrid*>(_mapSource->getLayerScene().getNearest(_mapSource->getLayerScene().getSelectedLayer(), DMHelper::LayerType_Grid));
+    if(gridLayer)
+        gridLayer->setGridScaleAndOffset(intSize, (100 * xOffset) / intSize, (100 * yOffset) / intSize);
+
     gridSizerRejected();
 }
 

@@ -194,6 +194,8 @@ bool VideoPlayerGLScreenshot::startPlayer()
         return false;
     }
 
+    libvlc_media_add_option(_vlcMedia, ":avcodec-threads=0");
+
 #if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcPlayer = libvlc_media_player_new_from_media(DMH_VLC::vlcInstance(), _vlcMedia);
 #else

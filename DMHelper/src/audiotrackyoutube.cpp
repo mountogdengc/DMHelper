@@ -280,12 +280,10 @@ bool AudioTrackYoutube::handleReplyDirect(const QByteArray& data)
         return false;
 
     QDomDocument doc;
-    QString errorMsg;
-    int errorLine;
-    int errorColumn;
-    if(!doc.setContent(data, &errorMsg, &errorLine, &errorColumn))
+    QDomDocument::ParseResult contentResult = doc.setContent(data);
+    if(!contentResult)
     {
-        qDebug() << "[AudioTrackYoutube] ERROR identified reading data: unable to parse network reply XML at line " << errorLine << ", column " << errorColumn << ": " << errorMsg;
+        qDebug() << "[AudioTrackYoutube] ERROR identified reading data: unable to parse network reply XML at line " << contentResult.errorLine << ", column " << contentResult.errorColumn << ": " << contentResult.errorMessage;
         qDebug() << "[AudioTrackYoutube] Data: " << data;
         return false;
     }
@@ -335,6 +333,9 @@ void AudioTrackYoutube::playDirectUrl()
 #else
     libvlc_media_t *vlcMedia = libvlc_media_new_location(DMH_VLC::vlcInstance(), _urlString.toUtf8().constData());
 #endif
+
+    libvlc_media_add_option(vlcMedia, ":network-caching=500");
+    libvlc_media_add_option(vlcMedia, ":no-video");
 
 #if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcPlayer = libvlc_media_player_new_from_media(DMH_VLC::vlcInstance(), vlcMedia);

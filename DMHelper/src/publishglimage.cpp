@@ -44,8 +44,6 @@ PublishGLImage::~PublishGLImage()
 
 void PublishGLImage::cleanup()
 {
-    // qDebug() << "[PublishGLImage] Cleaning up image object. VAO: " << _VAO << ", VBO: " << _VBO << ", EBO: " << _EBO << ", texture: " << _textureID;
-
     if(QOpenGLContext::currentContext())
     {
         QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
@@ -265,8 +263,6 @@ void PublishGLImage::createImageObjects(const QImage& image)
     QOpenGLExtraFunctions *e = QOpenGLContext::currentContext()->extraFunctions();
     if((!f) || (!e))
         return;
-
-    // qDebug() << "[PublishGLImage] Creating images objects for image";
 
     float vertices[] = {
         // positions                                                   // colors           // texture coords
