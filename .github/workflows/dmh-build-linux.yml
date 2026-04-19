@@ -1,6 +1,10 @@
 name: DMHelper CI Linux Workflow
 
 on:
+  push:
+    branches: [ master, feature/linux-port ]
+  pull_request:
+    branches: [ master ]
   workflow_dispatch:
 
 env:
