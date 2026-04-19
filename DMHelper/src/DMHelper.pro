@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui xml multimedia multimediawidgets opengl network openglwidgets uitools
+QT       += core gui xml multimedia multimediawidgets opengl network openglwidgets uitools 3dcore 3drender 3dinput 3dextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -232,6 +232,7 @@ SOURCES += main.cpp\
     undofowfill.cpp \
     undofowpath.cpp \
     dicerolldialog.cpp \
+    diceanimationwidget.cpp \
     map.cpp \
     character.cpp \
     campaign.cpp \
@@ -541,6 +542,7 @@ HEADERS  += mainwindow.h \
     undofowfill.h \
     undofowpath.h \
     dicerolldialog.h \
+    diceanimationwidget.h \
     map.h \
     character.h \
     campaign.h \

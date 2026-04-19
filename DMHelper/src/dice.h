@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QMetaType>
+#include <QVector>
 
 class Dice
 {
@@ -28,6 +29,7 @@ public:
     QString toString() const;
 
     int roll();
+    int rollValues(QVector<int>& perDieValues) const;
     int average();
 
     static int d4();

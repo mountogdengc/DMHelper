@@ -1,12 +1,17 @@
 #include "dicerollframe.h"
 #include "ui_dicerollframe.h"
 #include "dice.h"
+#include "diceanimationwidget.h"
 #include <QtGlobal>
 #include <QIntValidator>
+#include <QHBoxLayout>
 
 DiceRollFrame::DiceRollFrame(QWidget *parent) :
     QFrame(parent),
-    ui(new Ui::DiceRollFrame)
+    ui(new Ui::DiceRollFrame),
+    _diceAnim(nullptr),
+    _pendingResultStrings(),
+    _pendingTotalString()
 {
     ui->setupUi(this);
     init();
@@ -14,7 +19,10 @@ DiceRollFrame::DiceRollFrame(QWidget *parent) :
 
 DiceRollFrame::DiceRollFrame(const Dice& dice, QWidget *parent) :
     QFrame(parent),
-    ui(new Ui::DiceRollFrame)
+    ui(new Ui::DiceRollFrame),
+    _diceAnim(nullptr),
+    _pendingResultStrings(),
+    _pendingTotalString()
 {
     ui->setupUi(this);
     init();
@@ -36,12 +44,17 @@ void DiceRollFrame::rollDice()
 {
     ui->editResult->clear();
 
-    int rcEnd = ui->editRollCount->text().toInt();
-    int dcEnd = ui->editDiceCount->text().toInt();
-    int diceType = ui->editDiceType->text().toInt();
-    int target = ui->editTarget->text().toInt();
-    int bonus = ui->editBonus->text().toInt();
+    const int rcEnd = ui->editRollCount->text().toInt();
+    const int dcEnd = ui->editDiceCount->text().toInt();
+    const int diceType = ui->editDiceType->text().toInt();
+    const int target = ui->editTarget->text().toInt();
+    const int bonus = ui->editBonus->text().toInt();
     int total = 0;
+
+    _pendingResultStrings.clear();
+    _pendingTotalString.clear();
+
+    QVector<int> firstRollDieValues;
 
     for(int rc = 0; rc < rcEnd; ++rc)
     {
@@ -51,13 +64,15 @@ void DiceRollFrame::rollDice()
         // Go through and roll the dice, building up the string along the way
         for(int dc = 0; dc < dcEnd; ++dc)
         {
-            //randNum = qrand();
-            int roll = Dice::dX(diceType); // 1 + (randNum * diceType)/RAND_MAX;
+            int roll = Dice::dX(diceType);
             if(dc > 0)
                 resultStr.append(QString(" + "));
 
             resultStr.append(QString::number(roll));
             result += roll;
+
+            if(rc == 0)
+                firstRollDieValues.append(roll);
         }
 
         // Add the bonus number, if it exists
@@ -81,11 +96,30 @@ void DiceRollFrame::rollDice()
 
         total += result;
 
-        // Add this result to the text
-        ui->editResult->append(resultStr);
+        _pendingResultStrings.append(resultStr);
     }
 
-    ui->editResult->append(QString("<b><font color=""#000000"">Total: ") + QString::number(total) + QString("</font></b>\n"));
+    _pendingTotalString = QString("<b><font color=""#000000"">Total: ") + QString::number(total) + QString("</font></b>\n");
+
+    const bool canAnimate = DiceAnimationWidget::animationEnabled()
+                            && _diceAnim
+                            && !firstRollDieValues.isEmpty()
+                            && diceType > 0;
+
+    if(canAnimate)
+    {
+        ui->widgetDiceAnim->show();
+        _diceAnim->rollDice(diceType, firstRollDieValues);
+    }
+    else
+    {
+        flushPendingResults();
+    }
+}
+
+void DiceRollFrame::onAnimationFinished()
+{
+    flushPendingResults();
 }
 
 void DiceRollFrame::init()
@@ -102,4 +136,30 @@ void DiceRollFrame::init()
     ui->editTarget->setValidator(valTarget);
 
     connect(ui->btnRoll, SIGNAL(clicked()), this, SLOT(rollDice()));
+
+    if(DiceAnimationWidget::animationEnabled())
+    {
+        _diceAnim = new DiceAnimationWidget(ui->widgetDiceAnim);
+        QHBoxLayout *animLayout = new QHBoxLayout(ui->widgetDiceAnim);
+        animLayout->setContentsMargins(0, 0, 0, 0);
+        animLayout->addWidget(_diceAnim);
+        connect(_diceAnim, &DiceAnimationWidget::animationFinished,
+                this, &DiceRollFrame::onAnimationFinished);
+    }
+    else
+    {
+        ui->widgetDiceAnim->hide();
+    }
+}
+
+void DiceRollFrame::flushPendingResults()
+{
+    for(const QString &s : _pendingResultStrings)
+        ui->editResult->append(s);
+
+    if(!_pendingTotalString.isEmpty())
+        ui->editResult->append(_pendingTotalString);
+
+    _pendingResultStrings.clear();
+    _pendingTotalString.clear();
 }

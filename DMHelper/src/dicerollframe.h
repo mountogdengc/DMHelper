@@ -2,11 +2,14 @@
 #define DICEROLLFRAME_H
 
 #include <QFrame>
+#include <QStringList>
 #include "dice.h"
 
 namespace Ui {
 class DiceRollFrame;
 }
+
+class DiceAnimationWidget;
 
 class DiceRollFrame : public QFrame
 {
@@ -20,10 +23,17 @@ public:
 public slots:
     void rollDice();
 
+private slots:
+    void onAnimationFinished();
+
 private:
     void init();
+    void flushPendingResults();
 
     Ui::DiceRollFrame *ui;
+    DiceAnimationWidget *_diceAnim;
+    QStringList _pendingResultStrings;
+    QString _pendingTotalString;
 };
 
 #endif // DICEROLLFRAME_H

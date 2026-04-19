@@ -111,6 +111,24 @@ int Dice::roll()
     return result;
 }
 
+int Dice::rollValues(QVector<int>& perDieValues) const
+{
+    perDieValues.clear();
+    perDieValues.reserve(_dieCount);
+
+    int result = 0;
+    const int sides = _dieType > 0 ? _dieType : 1;
+    for(int dc = 0; dc < _dieCount; ++dc)
+    {
+        const int roll = 1 + QRandomGenerator::global()->bounded(sides);
+        perDieValues.append(roll);
+        result += roll;
+    }
+
+    result += _dieBonus;
+    return result;
+}
+
 int Dice::average()
 {
     // Go through and take the average of each die
