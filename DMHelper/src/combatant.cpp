@@ -308,6 +308,36 @@ QColor Combatant::getBackgroundColor() const
     return _backgroundColor;
 }
 
+int Combatant::getStrength() const
+{
+    return 10;
+}
+
+int Combatant::getDexterity() const
+{
+    return 10;
+}
+
+int Combatant::getConstitution() const
+{
+    return 10;
+}
+
+int Combatant::getIntelligence() const
+{
+    return 10;
+}
+
+int Combatant::getWisdom() const
+{
+    return 10;
+}
+
+int Combatant::getCharisma() const
+{
+    return 10;
+}
+
 int Combatant::getAbilityValue(Ability ability) const
 {
     switch(ability)

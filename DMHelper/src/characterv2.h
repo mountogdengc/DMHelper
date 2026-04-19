@@ -49,6 +49,13 @@ public:
     virtual int getWisdom() const override;
     virtual int getCharisma() const override;
 
+    // Direct template-hash lookup so non-5e ability keys (e.g. "agility",
+    // "finesse") resolve correctly without routing through the 5e enum
+    // bridge in Combatant. For the six 5e keys the result is identical to
+    // the per-getter overrides above (both call getIntValue(key)).
+    virtual int getAbilityValue(const QString& key) const override;
+    using Combatant::getAbilityValue;  // keep the Ability-enum overload visible
+
     virtual void copyMonsterValues(MonsterClassv2& monster);
 
     // Multi-icon support

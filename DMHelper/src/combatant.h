@@ -90,15 +90,22 @@ public:
     virtual QPixmap getIconPixmap(DMHelper::PixmapSize iconSize);
     virtual QColor getBackgroundColor() const;
 
-    virtual int getStrength() const = 0;
-    virtual int getDexterity() const = 0;
-    virtual int getConstitution() const = 0;
-    virtual int getIntelligence() const = 0;
-    virtual int getWisdom() const = 0;
-    virtual int getCharisma() const = 0;
+    // Six 5e ability getters. No longer pure-virtual: subclasses that use
+    // non-5e ability vocabularies can leave these at their default value
+    // (10 = +0 modifier) and override getAbilityValue(QString) instead.
+    // Existing 5e subclasses continue to override these directly.
+    virtual int getStrength() const;
+    virtual int getDexterity() const;
+    virtual int getConstitution() const;
+    virtual int getIntelligence() const;
+    virtual int getWisdom() const;
+    virtual int getCharisma() const;
 
     virtual int getAbilityValue(Ability ability) const;
-    int getAbilityValue(const QString& key) const;
+    // Virtual so subclasses backed by a TemplateObject hash (Characterv2,
+    // future non-5e classes) can answer arbitrary ability keys directly
+    // without routing through abilityFromKey + the 5e enum bridge.
+    virtual int getAbilityValue(const QString& key) const;
     static int getAbilityMod(int ability);
     static int getAbilityMod(int ability, const CombatantVocabulary* vocab);
     static QString getAbilityModStr(int ability);

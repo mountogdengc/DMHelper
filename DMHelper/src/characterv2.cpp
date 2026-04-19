@@ -347,6 +347,15 @@ int Characterv2::getCharisma() const
     return getIntValue(QString("charisma"));
 }
 
+int Characterv2::getAbilityValue(const QString& key) const
+{
+    if(key.isEmpty())
+        return -1;
+    if(!hasValue(key))
+        return -1;
+    return getIntValue(key);
+}
+
 void Characterv2::copyMonsterValues(MonsterClassv2& monster)
 {
     beginBatchChanges();
