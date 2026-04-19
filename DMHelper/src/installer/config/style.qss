@@ -2,3 +2,23 @@ QWidget
 {
     background-image: url(:/parchment.jpg);
 }
+
+QPushButton:focus,
+QToolButton:focus,
+QLineEdit:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus,
+QComboBox:focus,
+QSpinBox:focus,
+QDoubleSpinBox:focus,
+QCheckBox:focus,
+QRadioButton:focus,
+QListView:focus,
+QTreeView:focus,
+QTableView:focus,
+QTabBar::tab:focus,
+QAbstractItemView:focus
+{
+    outline: 2px solid #005fb8;
+    border: 2px solid #005fb8;
+}
