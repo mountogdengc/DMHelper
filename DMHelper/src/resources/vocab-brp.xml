@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Basic Roleplaying (Chaosium) combatant vocabulary. First non-5e reference
+    system shipped with DMHelper. Covers the seven core characteristics,
+    a baseline percentile skill list, the 5e size table (BRP creatures
+    actually derive scale from the SIZ stat — kept as categories here so the
+    bestiary UI keeps working until a fully SIZ-driven size pipeline lands),
+    and the ability-check formula.
+
+    Notes:
+      - The single-variable formula evaluator on Combatant can't express
+        BRP's multi-variable derived stats (hit points = (CON+SIZ)/2,
+        magic points = POW, sanity = POW*5). Those belong in a later pass
+        that extends the evaluator, so only the ability-check formula is
+        declared here today.
+      - abilityMod="v" returns the raw characteristic. BRP resolves checks
+        against a d100 roll <= characteristic * 5, but UI code that wants
+        the percentile target can compute the x5 at the point of display
+        rather than smuggling it through the generic ability-mod slot.
+      - The skill list is a starter set of classic BRP/Call of Cthulhu
+        skills; GMs extend it via the in-app vocabulary editor (D1).
+-->
+<dmh:vocabulary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <dmh:abilities>
+        <dmh:ability key="strength"     display="Strength"     short="STR"/>
+        <dmh:ability key="constitution" display="Constitution" short="CON"/>
+        <dmh:ability key="size"         display="Size"         short="SIZ"/>
+        <dmh:ability key="intelligence" display="Intelligence" short="INT"/>
+        <dmh:ability key="power"        display="Power"        short="POW"/>
+        <dmh:ability key="dexterity"    display="Dexterity"    short="DEX"/>
+        <dmh:ability key="charisma"     display="Charisma"     short="CHA"/>
+    </dmh:abilities>
+
+    <dmh:skills>
+        <dmh:skill key="spot"           display="Spot"/>
+        <dmh:skill key="listen"         display="Listen"/>
+        <dmh:skill key="sense"          display="Sense"/>
+        <dmh:skill key="dodge"          display="Dodge"/>
+        <dmh:skill key="hide"           display="Hide"/>
+        <dmh:skill key="sneak"          display="Sneak"/>
+        <dmh:skill key="climb"          display="Climb"/>
+        <dmh:skill key="swim"           display="Swim"/>
+        <dmh:skill key="jump"           display="Jump"/>
+        <dmh:skill key="throw"          display="Throw"/>
+        <dmh:skill key="grapple"        display="Grapple"/>
+        <dmh:skill key="brawl"          display="Brawl"/>
+        <dmh:skill key="meleeWeapon"    display="Melee Weapon"/>
+        <dmh:skill key="missileWeapon"  display="Missile Weapon"/>
+        <dmh:skill key="firstAid"       display="First Aid"/>
+        <dmh:skill key="medicine"       display="Medicine"/>
+        <dmh:skill key="libraryUse"     display="Library Use"/>
+        <dmh:skill key="naturalWorld"   display="Natural World"/>
+        <dmh:skill key="occult"         display="Occult"/>
+        <dmh:skill key="science"        display="Science"/>
+        <dmh:skill key="history"        display="History"/>
+        <dmh:skill key="persuade"       display="Persuade"/>
+        <dmh:skill key="fastTalk"       display="Fast Talk"/>
+        <dmh:skill key="bargain"        display="Bargain"/>
+        <dmh:skill key="insight"        display="Insight"/>
+        <dmh:skill key="navigate"       display="Navigate"/>
+        <dmh:skill key="track"          display="Track"/>
+        <dmh:skill key="language"       display="Language"/>
+    </dmh:skills>
+
+    <dmh:sizes>
+        <dmh:size key="tiny"       display="Tiny"       category="1" scale="0.5"/>
+        <dmh:size key="small"      display="Small"      category="2" scale="0.75"/>
+        <dmh:size key="medium"     display="Medium"     category="3" scale="1.0"/>
+        <dmh:size key="large"      display="Large"      category="4" scale="2.0"/>
+        <dmh:size key="huge"       display="Huge"       category="5" scale="3.0"/>
+        <dmh:size key="gargantuan" display="Gargantuan" category="6" scale="4.0"/>
+        <dmh:size key="colossal"   display="Colossal"   category="7" scale="8.0"/>
+    </dmh:sizes>
+
+    <dmh:formulas>
+        <dmh:formula name="abilityMod" expression="v"/>
+    </dmh:formulas>
+
+</dmh:vocabulary>

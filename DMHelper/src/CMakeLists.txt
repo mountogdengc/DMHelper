@@ -303,6 +303,7 @@ set(DMHELPER_SOURCES
     ruleinitiative.cpp
     ruleinitiative2e.cpp
     ruleinitiative5e.cpp
+    ruleinitiativebrp.cpp
     ruleinitiativegroup.cpp
     ruleinitiativegroupmonsters.cpp
     ruleset.cpp
@@ -632,6 +633,7 @@ set(DMHELPER_HEADERS
     ruleinitiative.h
     ruleinitiative2e.h
     ruleinitiative5e.h
+    ruleinitiativebrp.h
     ruleinitiativegroup.h
     ruleinitiativegroupmonsters.h
     ruleset.h

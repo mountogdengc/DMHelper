@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Basic Roleplaying / Call of Cthulhu status conditions. Icons reuse the
+    shared resource pack from resources.qrc.
+-->
+<conditions>
+  <condition id="unconscious"        title="Unconscious"         icon="coma"            description="The character is unconscious and cannot act. They wake when healed above 0 hit points, or at the GM's discretion."/>
+  <condition id="majorWound"         title="Major Wound"         icon="internal-injury" description="The character suffered damage equal to or greater than half their hit points in a single blow. Make a CON x 5 roll or fall unconscious; injury effects persist until fully healed."/>
+  <condition id="dying"              title="Dying"               icon="deathcab"        description="The character is at 0 hit points and bleeding out. They lose 1 hit point per round until stabilised (successful First Aid) or fall to -HP, at which point they die."/>
+  <condition id="insane"             title="Temporary Insanity"  icon="worried-eyes"    description="The character failed a Sanity roll and is temporarily insane. Roll on the Temporary Insanity table; effects last 1d10 rounds or until the GM decides."/>
+  <condition id="indefiniteInsanity" title="Indefinite Insanity" icon="bleeding-eye"    description="The character lost 20% or more of their current Sanity in a single incident and is indefinitely insane. Roll on the Indefinite Insanity table; recovery requires extended care."/>
+</conditions>
