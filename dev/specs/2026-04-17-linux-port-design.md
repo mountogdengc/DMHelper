@@ -6,139 +6,149 @@ Port DMHelper to Linux with full feature parity to the Windows version. Distribu
 
 ## Current State
 
-- Qt 6.6 / C++ / qmake — ~95% of code is platform-independent Qt
-- Four projects: DMHelper (main), DMHelperClient, DMHelperShared (networking), DMHelperTest
+- Qt 6 / C++17 / CMake — ~95% of code is platform-independent Qt
 - Platform-specific code limited to VLC integration, file paths, and minor OS conditionals
-- GitHub Actions Linux workflow exists but is incomplete (builds, doesn't package)
+- GitHub Actions Linux workflow exists but needs rework for cmake
 - Windows and macOS are fully supported with bundled VLC
+- Build system is CMakeLists.txt (primary), .pro file exists but is not the focus
 
-## Section 1: Platform-Specific Code Audit & Fixes
+## Section 1: Platform-Specific Code Fixes
 
-### VLC Integration
-- Window handle types differ per platform: `HWND` (Windows), `NSView*` (Mac), `XID` (Linux/X11)
-- VLC player setup code needs a Linux path using X11 window IDs (`XID` from `QWidget::winId()`)
-- Wayland users will run under XWayland compatibility (native Wayland VLC support is out of scope)
-- All VLC-related `#ifdef` blocks need `Q_OS_LINUX` equivalents
+### Qt 6.4 Compatibility (Ubuntu ships Qt 6.4, not 6.6)
+
+- `QMediaPlayer::isPlaying()` was added in Qt 6.5. Replace with
+  `playbackState() == QMediaPlayer::PlayingState` in `soundboardframe.cpp`,
+  `combatantwidgetcharacter.cpp`, `combatantwidgetmonster.cpp`.
+- Qt 6.4's MOC requires full type definitions for types used in signal
+  parameters. Forward declarations are insufficient — the MOC-generated code
+  references the type's size and structure. Affected headers (~15 files) must
+  `#include` the full header instead of forward-declaring. This only applies
+  to types that appear in `signals:` blocks.
+
+### VLC 3.0 Compatibility (Ubuntu ships VLC 3.x, not 4.x)
+
+- `libvlc_media_player_stop_async()` is VLC 4.0 API. Replace with
+  `libvlc_media_player_stop()` (synchronous, VLC 3.0) in `videoplayer.cpp`,
+  `videoplayerglplayer.cpp`, `videoplayerglscreenshot.cpp`,
+  `audiotrackyoutube.cpp`.
+- VLC 4.0 changed the GL rendering callback signatures. Guard the new API
+  behind `#if LIBVLC_VERSION_INT >= LIBVLC_VERSION(4,0,0,0)` in
+  `videoplayerglplayer.cpp`, `videoplayerglscreenshot.cpp`,
+  `videoplayerglvideo.cpp/.h`.
+- Existing `#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)` VLC API
+  conditionals already fall through to the old API via `#else`, which is
+  correct for Linux + VLC 3.x. No changes needed there.
 
 ### File Paths
-- Linux data directory: `~/.local/share/DMHelper/` (via `QStandardPaths::AppDataLocation`)
-- Linux config directory: `~/.config/DMHelper/` (via `QStandardPaths::ConfigLocation`)
-- Any hardcoded Windows-style paths must be replaced with `QStandardPaths` calls
+
+- `QUrl("path/to/file.mp3")` doesn't resolve correctly on Linux for local
+  files. Must use `QUrl::fromLocalFile()` in `audiotrackfile.cpp`.
+- Linux data directory: `~/.local/share/DMHelper/` (via `QStandardPaths`)
+- Linux config directory: `~/.config/DMHelper/` (via `QStandardPaths`)
 
 ### Windows Headers
-- `BaseTsd.h` and `ssize_t` — already conditionally included, verify the guards exclude Linux
-- Any other Windows-only headers behind `#ifdef Q_OS_WIN`
 
-### OpenGL
-- Qt's OpenGL abstraction should work as-is on Linux
-- Verify at runtime — may need explicit mesa driver handling
+- `BaseTsd.h` and `ssize_t` in `dmh_vlc.h` — already behind `#ifdef Q_OS_WIN`.
+  No change needed.
 
 ### Application Icon
-- Need a 256x256+ PNG icon for Linux desktop integration
-- Derive from existing Windows `.ico` or Mac `.icns`
 
-## Section 2: Build System Changes (`.pro` files)
+- Existing `data/dmhelper.png` is used for Linux desktop integration.
+
+## Section 2: Build System Changes (CMakeLists.txt)
 
 All changes are additive — no modifications to existing Windows or Mac blocks.
 
-### VLC Linking
-- Add `unix:!macx:` block to link against `libvlc` and `libvlccore`
-- Set include paths and library paths for the bundled or system VLC
+### Linux Platform Block
 
-### Output Directories
-- Linux-specific output path (e.g., `DMHelperLinux/`)
+Add an `elseif (UNIX AND NOT APPLE)` block to CMakeLists.txt:
 
-### Compiler Flags
-- Existing `-O2` for non-MSVC should work
-- May need GCC-specific warning suppressions
+- Compiler flags: `-g` for debug, `-O2` for release
+- VLC: `target_include_directories` for `/usr/include` and `/usr/include/vlc`,
+  `target_link_libraries` with `vlc`
+- RPATH: `INSTALL_RPATH "$ORIGIN/lib"` for AppImage self-containment
 
-### RPATH
-- Set `QMAKE_RPATHDIR` to `$ORIGIN/lib` so the binary finds bundled libraries at runtime
-- Critical for AppImage self-containment
+### Local Build Script
+
+`build-linux.sh` installs apt dependencies, runs cmake, and deploys
+resources/bestiary/doc alongside the binary.
 
 ## Section 3: GitHub Actions CI Pipeline
 
 ### Build Environment
-- Ubuntu latest LTS
-- Dependencies to install:
-  - `qt6-base-dev`, `qt6-multimedia-dev`, `qt6-opengl-dev`
-  - `qt6-networkauth-dev`, `qt6-imageformats-dev`
-  - `libvlc-dev`, `libvlccore-dev`
-  - `libgl1-mesa-dev`
-  - Other Qt 6 modules as needed
+
+- Ubuntu 22.04
+- Qt 6.6.0 via `jurplel/install-qt-action@v3`
+- System packages: `libvlc-dev`, `libvlccore-dev`, `vlc-plugin-base`,
+  `libgl1-mesa-dev`, X11/XCB libs, FUSE (for AppImage)
 
 ### Build Steps
-1. `qmake6` for each project
-2. `make -j$(nproc)` for each project
+
+1. `cmake -S DMHelper/src -B build -DCMAKE_BUILD_TYPE=Release`
+2. `cmake --build build --config Release -j$(nproc)`
 
 ### AppImage Packaging
-- Use `linuxdeploy` with the Qt plugin
-- Bundle DMHelper binary, Qt libraries/plugins, VLC libraries/plugins
-- Include `.desktop` file and icon
-- Produce a single `.AppImage` file
 
-### Artifacts
-- Upload AppImage as GitHub Actions artifact
-- Optionally attach to GitHub Releases alongside Windows/Mac builds
+- Use `linuxdeploy` with the Qt plugin to bundle Qt libraries/plugins
+- Copy VLC libraries and plugins from system
+- Custom `AppRun.sh` sets `VLC_PLUGIN_PATH` before launching binary
+- Produce a single `.AppImage` artifact
+
+### Triggers
+
+- Push to `master` or `feature/linux-port`
+- Pull requests to `master`
+- Manual dispatch
 
 ## Section 4: AppImage Structure & Desktop Integration
 
 ### AppImage Contents
+
 ```
 DMHelper.AppImage
-├── AppRun (entry point)
+├── AppRun (custom — sets VLC_PLUGIN_PATH)
 ├── DMHelper.desktop
 ├── DMHelper.png
 ├── usr/
 │   ├── bin/
-│   │   └── DMHelper
+│   │   ├── DMHelper
+│   │   ├── resources/
+│   │   ├── bestiary/
+│   │   └── doc/
 │   ├── lib/
 │   │   ├── libQt6*.so
 │   │   ├── libvlc.so*
 │   │   ├── libvlccore.so*
-│   │   └── vlc/
-│   │       └── plugins/
-│   └── plugins/
-│       └── (Qt plugins)
+│   │   └── vlc/plugins/
+│   └── plugins/ (Qt plugins)
 ```
 
 ### Desktop Entry File
+
 ```ini
 [Desktop Entry]
 Type=Application
 Name=DMHelper
-Comment=Dungeons & Dragons Campaign Manager
+GenericName=D&D Campaign Manager
+Comment=Dungeons & Dragons campaign management tool
 Exec=DMHelper
 Icon=DMHelper
 Categories=Game;RolePlaying;
+Terminal=false
+StartupNotify=true
 ```
 
 ### Runtime Configuration
+
 - `VLC_PLUGIN_PATH` set in AppRun to point to bundled VLC plugins
+- `LD_LIBRARY_PATH` extended to include bundled libraries
 - User data: `~/.local/share/DMHelper/`
 - Config: `~/.config/DMHelper/`
 
-## Section 5: Testing & Verification
+## Out of Scope (this PR)
 
-### Build Verification
-- All four projects compile on Linux without errors
-- Windows and Mac CI builds remain green (regression check)
-
-### Runtime Testing (on VM)
-- Application starts and displays ribbon UI
-- Campaign creation and loading
-- Battle map rendering (OpenGL)
-- Character/monster sheet display
-- VLC video playback
-- Audio playback (file, URL)
-- Network features (if applicable)
-
-### AppImage Testing
-- Run on clean system with no Qt or VLC installed
-- Verify fully self-contained — no missing library errors
-
-## Out of Scope
-- CMake migration (future consideration, not needed for this port)
-- Wayland-native support (X11/XWayland is sufficient for now)
+- YouTube audio via yt-dlp (will be a separate PR)
+- Wayland-native support (X11/XWayland is sufficient)
 - Linux-specific features beyond parity
 - Flatpak or `.deb` packaging (AppImage only)
+- AI-generated or externally-sourced artwork/assets
