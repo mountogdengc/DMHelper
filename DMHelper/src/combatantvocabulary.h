@@ -48,6 +48,14 @@ public:
     bool isLoaded() const { return _loaded; }
     QString sourceFile() const { return _sourceFile; }
 
+    // Active instance singleton. Ruleset sets this during setValues/inputXML
+    // so static helpers elsewhere (e.g. MonsterClassv2::convertSizeToCategory)
+    // can consult the current ruleset's vocabulary without plumbing a Ruleset
+    // pointer through. Matches the pattern established by Conditions::
+    // activeConditions(). When null, callers fall back to built-in 5e.
+    static const CombatantVocabulary* activeVocabulary();
+    static void setActiveVocabulary(const CombatantVocabulary* vocabulary);
+
     const QList<AbilityDef>& abilities() const { return _abilities; }
     const QList<SkillDef>& skills() const { return _skills; }
     const QList<SizeDef>& sizes() const { return _sizes; }

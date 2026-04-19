@@ -1,4 +1,5 @@
 #include "monsterclassv2.h"
+#include "combatantvocabulary.h"
 #include "monsterfactory.h"
 #include "bestiary.h"
 #include <QDomElement>
@@ -126,6 +127,16 @@ void MonsterClassv2::cloneMonster(MonsterClassv2& other)
 
 int MonsterClassv2::convertSizeToCategory(const QString& monsterSize)
 {
+    // Prefer the active ruleset's vocabulary; fall back to the 5e table
+    // when no vocabulary is active (e.g. early startup, before a campaign
+    // is loaded).
+    if(const CombatantVocabulary* vocab = CombatantVocabulary::activeVocabulary())
+    {
+        if(const CombatantVocabulary::SizeDef* size = vocab->sizeByKey(monsterSize))
+            return size->category;
+        return DMHelper::CombatantSize_Unknown;
+    }
+
     if(QString::compare(monsterSize, QString("Tiny"), Qt::CaseInsensitive) == 0)
         return DMHelper::CombatantSize_Tiny;
     else if(QString::compare(monsterSize, QString("Small"), Qt::CaseInsensitive) == 0)
@@ -146,6 +157,13 @@ int MonsterClassv2::convertSizeToCategory(const QString& monsterSize)
 
 QString MonsterClassv2::convertCategoryToSize(int category)
 {
+    if(const CombatantVocabulary* vocab = CombatantVocabulary::activeVocabulary())
+    {
+        if(const CombatantVocabulary::SizeDef* size = vocab->sizeByCategory(category))
+            return size->displayName;
+        return QString("Medium");
+    }
+
     switch(category)
     {
     case DMHelper::CombatantSize_Tiny:
@@ -169,6 +187,13 @@ QString MonsterClassv2::convertCategoryToSize(int category)
 
 qreal MonsterClassv2::convertSizeCategoryToScaleFactor(int category)
 {
+    if(const CombatantVocabulary* vocab = CombatantVocabulary::activeVocabulary())
+    {
+        if(const CombatantVocabulary::SizeDef* size = vocab->sizeByCategory(category))
+            return size->scaleFactor;
+        return 1.0;
+    }
+
     switch(category)
     {
     case DMHelper::CombatantSize_Tiny:

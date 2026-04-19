@@ -22,13 +22,13 @@
     <dmh:skills/>
 
     <dmh:sizes>
-        <dmh:size key="tiny"       display="Tiny"       category="0" scale="0.5"/>
-        <dmh:size key="small"      display="Small"      category="1" scale="0.75"/>
-        <dmh:size key="medium"     display="Medium"     category="2" scale="1.0"/>
-        <dmh:size key="large"      display="Large"      category="3" scale="2.0"/>
-        <dmh:size key="huge"       display="Huge"       category="4" scale="3.0"/>
-        <dmh:size key="gargantuan" display="Gargantuan" category="5" scale="4.0"/>
-        <dmh:size key="colossal"   display="Colossal"   category="6" scale="8.0"/>
+        <dmh:size key="tiny"       display="Tiny"       category="1" scale="0.5"/>
+        <dmh:size key="small"      display="Small"      category="2" scale="0.75"/>
+        <dmh:size key="medium"     display="Medium"     category="3" scale="1.0"/>
+        <dmh:size key="large"      display="Large"      category="4" scale="2.0"/>
+        <dmh:size key="huge"       display="Huge"       category="5" scale="3.0"/>
+        <dmh:size key="gargantuan" display="Gargantuan" category="6" scale="4.0"/>
+        <dmh:size key="colossal"   display="Colossal"   category="7" scale="8.0"/>
     </dmh:sizes>
 
     <dmh:formulas/>

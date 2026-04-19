@@ -1,5 +1,6 @@
 #include "campaign.h"
 #include "characterv2.h"
+#include "combatantvocabulary.h"
 #include "conditions.h"
 #include "encounterfactory.h"
 #include "map.h"
@@ -111,6 +112,11 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
 
     // Set the active conditions from the ruleset
     Conditions::setActiveConditions(_ruleset.getConditions());
+
+    // Set the active combatant vocabulary (abilities/skills/sizes/formulas)
+    // from the ruleset, so static helpers can consult it without plumbing
+    // a Ruleset pointer through.
+    CombatantVocabulary::setActiveVocabulary(_ruleset.getCombatantVocabulary());
 
     // Configure the campaign object factories based on the ruleset
     CampaignObjectFactory::configureFactories(_ruleset, majorVersion, minorVersion);

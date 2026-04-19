@@ -23,6 +23,20 @@ CombatantVocabulary::CombatantVocabulary() :
 {
 }
 
+namespace {
+const CombatantVocabulary* s_activeVocabulary = nullptr;
+}
+
+const CombatantVocabulary* CombatantVocabulary::activeVocabulary()
+{
+    return s_activeVocabulary;
+}
+
+void CombatantVocabulary::setActiveVocabulary(const CombatantVocabulary* vocabulary)
+{
+    s_activeVocabulary = vocabulary;
+}
+
 void CombatantVocabulary::clear()
 {
     _abilities.clear();
@@ -215,13 +229,13 @@ void CombatantVocabulary::loadDefaults5e()
     };
 
     _sizes = {
-        {"tiny",       "Tiny",       0, 0.5},
-        {"small",      "Small",      1, 0.75},
-        {"medium",     "Medium",     2, 1.0},
-        {"large",      "Large",      3, 2.0},
-        {"huge",       "Huge",       4, 3.0},
-        {"gargantuan", "Gargantuan", 5, 4.0},
-        {"colossal",   "Colossal",   6, 8.0},
+        {"tiny",       "Tiny",       1, 0.5},
+        {"small",      "Small",      2, 0.75},
+        {"medium",     "Medium",     3, 1.0},
+        {"large",      "Large",      4, 2.0},
+        {"huge",       "Huge",       5, 3.0},
+        {"gargantuan", "Gargantuan", 6, 4.0},
+        {"colossal",   "Colossal",   7, 8.0},
     };
 
     _formulas.insert("abilityMod", "(v-10)/2");
