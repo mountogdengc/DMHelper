@@ -41,6 +41,9 @@ public:
     bool getEnableQuickReference() const;
     bool getEnableAudio() const;
 
+    // Coordinated with the dice toggle workstream; key name "dice/animate3d" must match before merge
+    bool dice3DEnabled() const;
+
     // Font settings
     QString getFontFamily() const;
     int getFontSize() const;

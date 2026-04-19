@@ -181,6 +181,12 @@ bool OptionsContainer::getEnableAudio() const
     return _enableAudio;
 }
 
+bool OptionsContainer::dice3DEnabled() const
+{
+    OptionsAccessor settings;
+    return settings.value("dice/animate3d", QVariant(true)).toBool();
+}
+
 QString OptionsContainer::getFontFamily() const
 {
     return _fontFamily;
