@@ -144,7 +144,11 @@ void AudioTrackYoutube::stop()
         return;
 
     _stopStatus = 0;
+#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
+    libvlc_media_player_stop_async(_vlcPlayer);
+#else
     libvlc_media_player_stop(_vlcPlayer);
+#endif
     internalStopCheck(AUDIOTRACKYOUTUBE_STOPCALLCOMPLETE);
 }
 

@@ -717,7 +717,11 @@ bool VideoPlayer::stopPlayer()
         qDebug() << "[VideoPlayer] Stop Player called" << ", " << this << ", " << COUNT_CALLBACKS;
 #endif
         _stopStatus = VIDEOPLAYER_STOP_CALL_STARTED;
+#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
+        libvlc_media_player_stop_async(_vlcPlayer);
+#else
         libvlc_media_player_stop(_vlcPlayer);
+#endif
         VideoPlayer::internalStopCheck(VIDEOPLAYER_STOP_CALL_COMPLETE);
     }
 
