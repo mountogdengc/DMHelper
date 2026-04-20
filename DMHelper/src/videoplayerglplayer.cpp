@@ -505,21 +505,13 @@ bool VideoPlayerGLPlayer::startPlayer()
     qDebug() << "[VideoPlayerGLPlayer] Starting video player with " << _videoFile.toUtf8().constData();
 
     // Create a new Media
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcMedia = libvlc_media_new_path(_videoFile.toUtf8().constData());
-#else
-    _vlcMedia = libvlc_media_new_path(DMH_VLC::vlcInstance(), _videoFile.toUtf8().constData());
-#endif
     if (!_vlcMedia)
         return false;
 
     libvlc_media_add_option(_vlcMedia, ":avcodec-threads=0");
 
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcPlayer = libvlc_media_player_new_from_media(DMH_VLC::vlcInstance(), _vlcMedia);
-#else
-    _vlcPlayer = libvlc_media_player_new_from_media(_vlcMedia);
-#endif
     if(!_vlcPlayer)
         return false;
 
@@ -538,7 +530,6 @@ bool VideoPlayerGLPlayer::startPlayer()
 //        libvlc_event_attach(eventManager, libvlc_MediaPlayerStopping, playerEventCallback, static_cast<void*>(this));
     }
 
-#if LIBVLC_VERSION_MAJOR >= 4
     bool callbackResult = libvlc_video_set_output_callbacks(_vlcPlayer,
                                                             libvlc_video_engine_opengl,
                                                             VideoPlayerGLVideo::setup,
@@ -556,9 +547,6 @@ bool VideoPlayerGLPlayer::startPlayer()
     qDebug() << "[VideoPlayerGLPlayer] Player callback result: " << callbackResult;
 #else
     Q_UNUSED(callbackResult);
-#endif
-#else
-    qDebug() << "[VideoPlayerGLPlayer] VLC GL output callbacks not available (VLC < 4.0)";
 #endif
 
     // And start playback
@@ -579,11 +567,7 @@ bool VideoPlayerGLPlayer::stopPlayer(bool restart)
     _selfRestart = restart;
 
     if(_vlcPlayer)
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
         libvlc_media_player_stop_async(_vlcPlayer);
-#else
-        libvlc_media_player_stop(_vlcPlayer);
-#endif
 
     return true;
 }

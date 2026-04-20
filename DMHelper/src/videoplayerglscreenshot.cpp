@@ -184,11 +184,7 @@ bool VideoPlayerGLScreenshot::startPlayer()
 #ifdef Q_OS_WIN
     localizedVideoFile.replace("/", "\\\\");
 #endif
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcMedia = libvlc_media_new_path(localizedVideoFile.toUtf8().constData());
-#else
-    _vlcMedia = libvlc_media_new_path(DMH_VLC::vlcInstance(), localizedVideoFile.toUtf8().constData());
-#endif
     if(!_vlcMedia)
     {
         qDebug() << "[VideoPlayerGLScreenshot] ERROR: Can't start screenshot grabber, unable to open video file!";
@@ -197,11 +193,7 @@ bool VideoPlayerGLScreenshot::startPlayer()
 
     libvlc_media_add_option(_vlcMedia, ":avcodec-threads=0");
 
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcPlayer = libvlc_media_player_new_from_media(DMH_VLC::vlcInstance(), _vlcMedia);
-#else
-    _vlcPlayer = libvlc_media_player_new_from_media(_vlcMedia);
-#endif
     if(!_vlcPlayer)
     {
         qDebug() << "[VideoPlayerGLScreenshot] ERROR: Can't start screenshot grabber, unable to start media player";
@@ -223,7 +215,6 @@ bool VideoPlayerGLScreenshot::startPlayer()
 
     libvlc_audio_set_volume(_vlcPlayer, 0);
 
-#if LIBVLC_VERSION_MAJOR >= 4
     libvlc_video_set_output_callbacks(_vlcPlayer,
                                       libvlc_video_engine_opengl,
                                       VideoPlayerGLVideo::setup,
@@ -236,9 +227,6 @@ bool VideoPlayerGLScreenshot::startPlayer()
                                       nullptr,
                                       nullptr,
                                       _video);
-#else
-    qDebug() << "[VideoPlayerGLScreenshot] VLC GL output callbacks not available (VLC < 4.0)";
-#endif
 
     libvlc_media_player_play(_vlcPlayer);
     emit contextReady(nullptr);
@@ -255,11 +243,7 @@ bool VideoPlayerGLScreenshot::stopPlayer(bool restart)
     _framesReceived = SCREENSHOT_USE_FRAME;
 
     if(_vlcPlayer)
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
         libvlc_media_player_stop_async(_vlcPlayer);
-#else
-        libvlc_media_player_stop(_vlcPlayer);
-#endif
 
     return true;
 }

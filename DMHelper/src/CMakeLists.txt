@@ -887,8 +887,9 @@ elseif (UNIX AND NOT APPLE)
         $<$<CONFIG:Release>:-O2>
     )
 
-    # VLC
-    target_include_directories(DMHelper PRIVATE /usr/include /usr/include/vlc)
+    # VLC (bundled VLC 4, matching Win/Mac)
+    target_include_directories(DMHelper PRIVATE vlcLinux)
+    target_link_directories(DMHelper PRIVATE vlcLinux)
     target_link_libraries(DMHelper PRIVATE vlc)
 
     # RPATH so the AppImage can find bundled libraries

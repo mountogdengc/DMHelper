@@ -144,11 +144,7 @@ void AudioTrackYoutube::stop()
         return;
 
     _stopStatus = 0;
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     libvlc_media_player_stop_async(_vlcPlayer);
-#else
-    libvlc_media_player_stop(_vlcPlayer);
-#endif
     internalStopCheck(AUDIOTRACKYOUTUBE_STOPCALLCOMPLETE);
 }
 
@@ -345,20 +341,12 @@ void AudioTrackYoutube::playDirectUrl()
     if(isPlaying())
         return;
 
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     libvlc_media_t *vlcMedia = libvlc_media_new_location(_urlString.toUtf8().constData());
-#else
-    libvlc_media_t *vlcMedia = libvlc_media_new_location(DMH_VLC::vlcInstance(), _urlString.toUtf8().constData());
-#endif
 
     libvlc_media_add_option(vlcMedia, ":network-caching=500");
     libvlc_media_add_option(vlcMedia, ":no-video");
 
-#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
     _vlcPlayer = libvlc_media_player_new_from_media(DMH_VLC::vlcInstance(), vlcMedia);
-#else
-    _vlcPlayer = libvlc_media_player_new_from_media(vlcMedia);
-#endif
     if(!_vlcPlayer)
         return;
 
