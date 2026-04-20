@@ -213,7 +213,11 @@ void MapVideoThumbnailGrabber::displayCallback(void *picture)
     QMetaObject::invokeMethod(this, [this]() {
         if(_vlcPlayer)
         {
+#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
             libvlc_media_player_stop_async(_vlcPlayer);
+#else
+            libvlc_media_player_stop(_vlcPlayer);
+#endif
         }
     }, Qt::QueuedConnection);
 }

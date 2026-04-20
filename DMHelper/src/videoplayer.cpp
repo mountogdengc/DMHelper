@@ -92,7 +92,11 @@ VideoPlayer::~VideoPlayer()
         }
 
         // Stop playback and null out video callbacks so VLC thread stops calling into this object
+#if defined(Q_OS_WIN64) || defined(Q_OS_MAC)
         libvlc_media_player_stop_async(_vlcPlayer);
+#else
+        libvlc_media_player_stop(_vlcPlayer);
+#endif
         libvlc_video_set_callbacks(_vlcPlayer, nullptr, nullptr, nullptr, nullptr);
 
         // Release blocks until internal VLC threads finish
