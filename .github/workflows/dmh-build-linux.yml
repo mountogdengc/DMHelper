@@ -77,8 +77,8 @@ jobs:
         # Copy desktop file and icon
         cp DMHelper/src/data/linux/DMHelper.desktop AppDir/usr/share/applications/
         cp DMHelper/src/data/linux/DMHelper.desktop AppDir/
-        cp DMHelper/src/data/dmhelper.png AppDir/usr/share/icons/hicolor/256x256/apps/DMHelper.png
-        cp DMHelper/src/data/dmhelper.png AppDir/DMHelper.png
+        cp DMHelper/src/data/dmhelper_small.png AppDir/usr/share/icons/hicolor/256x256/apps/DMHelper.png
+        cp DMHelper/src/data/dmhelper_small.png AppDir/DMHelper.png
 
     - name: Download linuxdeploy
       run: |
