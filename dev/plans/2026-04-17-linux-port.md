@@ -175,3 +175,20 @@ Will be submitted as a separate PR for independent review.
 - [ ] Local audio file playback
 - [ ] AppImage runs on clean system without system Qt or VLC
 - [ ] Windows and Mac CI builds remain green (no regressions)
+
+  git clone https://github.com/mountogdengc/DMHelper.git
+  cd DMHelper
+  git checkout feature/linux-port
+
+  cd DMHelper
+  git checkout featurelinux-port
+  chmod +x build-linux.sh
+  ./build-linux.sh
+  
+  It will:
+  1. Install all Qt6 and build dependencies via apt-get
+  2. Build the project with CMake in build-release/
+  3. Copy resources, docs, and bestiary files into the build directory
+
+  Once done, run the app with:
+  ./build-release/DMHelper
