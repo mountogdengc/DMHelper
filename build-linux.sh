@@ -21,6 +21,14 @@ sudo apt-get install -y \
 
 REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
 
+echo "=== Fixing VLC symlinks (git stores them as text files on Windows) ==="
+cd "$REPO_ROOT/DMHelper/src/vlclinux"
+rm -f libvlc.so libvlc.so.12 libvlccore.so libvlccore.so.9
+ln -s libvlc.so.12.0.0 libvlc.so
+ln -s libvlc.so.12.0.0 libvlc.so.12
+ln -s libvlccore.so.9.0.0 libvlccore.so
+ln -s libvlccore.so.9.0.0 libvlccore.so.9
+
 echo "=== Building DMHelper ==="
 cd "$REPO_ROOT"
 rm -rf build-release

@@ -50,6 +50,15 @@ jobs:
         unsquashfs -q vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap
         rm vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap
 
+    - name: Fix VLC symlinks (git stores them as text files on Windows)
+      run: |
+        cd DMHelper/src/vlclinux
+        rm -f libvlc.so libvlc.so.12 libvlccore.so libvlccore.so.9
+        ln -s libvlc.so.12.0.0 libvlc.so
+        ln -s libvlc.so.12.0.0 libvlc.so.12
+        ln -s libvlccore.so.9.0.0 libvlccore.so
+        ln -s libvlccore.so.9.0.0 libvlccore.so.9
+
     - name: Build DMHelper
       run: |
         cmake -S DMHelper/src -B DMHelper/build-release -DCMAKE_BUILD_TYPE=Release
