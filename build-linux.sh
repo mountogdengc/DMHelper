@@ -54,5 +54,17 @@ ln -sf libvlccore.so.9.0.0 libvlccore.so.9
 ln -sf libvlccore.so.9.0.0 libvlccore.so
 cd ..
 
+# Deploy VLC 4 plugins from snap (if available)
+if [ -d "$HOME/squashfs-root/usr/lib/vlc/plugins" ]; then
+    echo "=== Deploying VLC 4 plugins from snap ==="
+    mkdir -p lib/vlc/plugins
+    cp -r "$HOME/squashfs-root/usr/lib/vlc/plugins/"* lib/vlc/plugins/
+else
+    echo "WARNING: VLC plugins not found. Download the VLC 4 snap and extract it:"
+    echo "  wget -q https://artifacts.videolan.org/vlc/nightly-snap/20260420-0440/vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap"
+    echo "  unsquashfs -q vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap"
+    echo "  Then re-run this script."
+fi
+
 echo "=== Build complete! ==="
-echo "Run with: LD_LIBRARY_PATH=$(pwd)/lib $(pwd)/DMHelper"
+echo "Run with: VLC_PLUGIN_PATH=$(pwd)/lib/vlc/plugins LD_LIBRARY_PATH=~/Qt/6.6.0/gcc_64/lib:$(pwd)/lib $(pwd)/DMHelper"
