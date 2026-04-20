@@ -14,9 +14,6 @@ sudo apt-get install -y \
   libqt6openglwidgets6 \
   libqt6uitools6 \
   libqt6networkauth6-dev \
-  libvlc-dev \
-  libvlccore-dev \
-  vlc-plugin-base \
   libgl1-mesa-dev \
   build-essential \
   cmake \
@@ -37,5 +34,17 @@ cp -r "$REPO_ROOT/DMHelper/src/doc" .
 # Bestiary files go in resources/ where getAbsoluteTemplateFile() looks
 cp "$REPO_ROOT/DMHelper/src/bestiary/"*.xml resources/
 
+# Deploy bundled VLC 4 libraries
+echo "=== Deploying VLC 4 libraries ==="
+mkdir -p lib
+cp "$REPO_ROOT/DMHelper/src/vlcLinux/libvlc.so.12.0.0" lib/
+cp "$REPO_ROOT/DMHelper/src/vlcLinux/libvlccore.so.9.0.0" lib/
+cd lib
+ln -sf libvlc.so.12.0.0 libvlc.so.12
+ln -sf libvlc.so.12.0.0 libvlc.so
+ln -sf libvlccore.so.9.0.0 libvlccore.so.9
+ln -sf libvlccore.so.9.0.0 libvlccore.so
+cd ..
+
 echo "=== Build complete! ==="
-echo "Run with: $(pwd)/DMHelper"
+echo "Run with: LD_LIBRARY_PATH=$(pwd)/lib $(pwd)/DMHelper"

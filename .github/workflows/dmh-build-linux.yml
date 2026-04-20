@@ -21,15 +21,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libvlc-dev \
-          libvlccore-dev \
-          vlc-plugin-base \
-          vlc-plugin-video-output \
           libgl1-mesa-dev \
           libxkbcommon-dev \
           libxkbcommon-x11-0 \
           libxcb-xinerama0 \
           libxcb-cursor0 \
+          squashfs-tools \
           fuse \
           libfuse2
 
@@ -46,6 +43,12 @@ jobs:
 
     - name: Check out the DMHelper source tree
       uses: actions/checkout@v4
+
+    - name: Download and extract VLC 4 snap
+      run: |
+        wget -q https://artifacts.videolan.org/vlc/nightly-snap/20260420-0440/vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap
+        unsquashfs -q vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap
+        rm vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap
 
     - name: Build DMHelper
       run: |
@@ -67,12 +70,12 @@ jobs:
         cp -r DMHelper/src/bestiary AppDir/usr/bin/bestiary
         cp -r DMHelper/src/doc AppDir/usr/bin/doc
 
-        # Copy VLC libraries
-        cp -P /usr/lib/x86_64-linux-gnu/libvlc.so* AppDir/usr/lib/
-        cp -P /usr/lib/x86_64-linux-gnu/libvlccore.so* AppDir/usr/lib/
+        # Copy VLC 4 libraries from snap
+        cp -P squashfs-root/usr/lib/libvlc.so* AppDir/usr/lib/
+        cp -P squashfs-root/usr/lib/libvlccore.so* AppDir/usr/lib/
 
-        # Copy VLC plugins
-        cp -r /usr/lib/x86_64-linux-gnu/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
+        # Copy VLC 4 plugins from snap
+        cp -r squashfs-root/usr/lib/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
 
         # Copy desktop file and icon
         cp DMHelper/src/data/linux/DMHelper.desktop AppDir/usr/share/applications/
