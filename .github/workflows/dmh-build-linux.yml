@@ -26,6 +26,7 @@ jobs:
           libxkbcommon-x11-0 \
           libxcb-xinerama0 \
           libxcb-cursor0 \
+          libidn12 \
           squashfs-tools \
           fuse \
           libfuse2
