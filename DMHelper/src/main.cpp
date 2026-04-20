@@ -23,8 +23,10 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
 
     QStyleHints* styleHints = QGuiApplication::styleHints();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
     if(styleHints)
         styleHints->setColorScheme(Qt::ColorScheme::Light);
+#endif
 
     int result = 0;
     try {
