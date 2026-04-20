@@ -37,8 +37,8 @@ cp "$REPO_ROOT/DMHelper/src/bestiary/"*.xml resources/
 # Deploy bundled VLC 4 libraries
 echo "=== Deploying VLC 4 libraries ==="
 mkdir -p lib
-cp "$REPO_ROOT/DMHelper/src/vlcLinux/libvlc.so.12.0.0" lib/
-cp "$REPO_ROOT/DMHelper/src/vlcLinux/libvlccore.so.9.0.0" lib/
+cp "$REPO_ROOT/DMHelper/src/vlclinux/libvlc.so.12.0.0" lib/
+cp "$REPO_ROOT/DMHelper/src/vlclinux/libvlccore.so.9.0.0" lib/
 cd lib
 ln -sf libvlc.so.12.0.0 libvlc.so.12
 ln -sf libvlc.so.12.0.0 libvlc.so
