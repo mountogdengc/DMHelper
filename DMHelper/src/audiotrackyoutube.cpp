@@ -335,7 +335,6 @@ void AudioTrackYoutube::timerEvent(QTimerEvent *event)
     emit trackPositionChanged(currentTime / 1000);
 }
 
-
 void AudioTrackYoutube::playDirectUrl()
 {
     if(isPlaying())
