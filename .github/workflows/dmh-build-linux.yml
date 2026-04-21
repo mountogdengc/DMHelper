@@ -103,13 +103,16 @@ jobs:
     - name: Create AppImage
       run: |
         export QMAKE=$(which qmake)
+        export LD_LIBRARY_PATH=AppDir/usr/lib:$LD_LIBRARY_PATH
         # Run linuxdeploy to bundle Qt libs and plugins (without producing final AppImage yet)
         ./linuxdeploy-x86_64.AppImage \
           --appdir AppDir \
           --plugin qt \
           --desktop-file AppDir/DMHelper.desktop \
           --icon-file AppDir/DMHelper.png \
-          --executable AppDir/usr/bin/DMHelper
+          --executable AppDir/usr/bin/DMHelper \
+          --library AppDir/usr/lib/libvlc.so.12.0.0 \
+          --library AppDir/usr/lib/libvlccore.so.9.0.0
 
         # Replace linuxdeploy's AppRun with our custom one that sets VLC_PLUGIN_PATH
         cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
