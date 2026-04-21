@@ -68,7 +68,7 @@ jobs:
     - name: Prepare AppDir structure
       run: |
         mkdir -p AppDir/usr/bin
-        mkdir -p AppDir/usr/lib/vlc/plugins
+        mkdir -p AppDir/usr/lib
         mkdir -p AppDir/usr/share/applications
         mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
 
@@ -80,12 +80,9 @@ jobs:
         cp -r DMHelper/src/bestiary AppDir/usr/bin/bestiary
         cp -r DMHelper/src/doc AppDir/usr/bin/doc
 
-        # Copy VLC 4 libraries from snap
+        # Copy VLC 4 libraries from snap (plugins added after linuxdeploy)
         cp -P squashfs-root/usr/lib/libvlc.so* AppDir/usr/lib/
         cp -P squashfs-root/usr/lib/libvlccore.so* AppDir/usr/lib/
-
-        # Copy VLC 4 plugins from snap
-        cp -r squashfs-root/usr/lib/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
 
         # Copy desktop file and icon
         cp DMHelper/src/data/linux/DMHelper.desktop AppDir/usr/share/applications/
@@ -113,6 +110,10 @@ jobs:
           --executable AppDir/usr/bin/DMHelper \
           --library AppDir/usr/lib/libvlc.so.12.0.0 \
           --library AppDir/usr/lib/libvlccore.so.9.0.0
+
+        # Copy VLC 4 plugins from snap (after linuxdeploy to avoid dependency scanning)
+        mkdir -p AppDir/usr/lib/vlc/plugins
+        cp -r squashfs-root/usr/lib/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
 
         # Replace linuxdeploy's AppRun with our custom one that sets VLC_PLUGIN_PATH
         cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
