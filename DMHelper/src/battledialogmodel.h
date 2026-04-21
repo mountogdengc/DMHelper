@@ -11,7 +11,8 @@
 
 class BattleDialogModelCombatantGroup;
 class EncounterBattle;
-class Map;
+#include "map.h"
+#include "layer.h"
 class LayerGrid;
 class GridConfig;
 
