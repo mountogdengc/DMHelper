@@ -166,29 +166,12 @@ Will be submitted as a separate PR for independent review.
 
 ## Testing Checklist
 
-- [ ] Build completes on Linux (Ubuntu 22.04/24.04) with cmake
-- [ ] Application launches and displays ribbon UI
-- [ ] Campaign creation and loading
-- [ ] Battle map rendering (OpenGL)
-- [ ] Character/monster sheet display
-- [ ] VLC video playback
-- [ ] Local audio file playback
-- [ ] AppImage runs on clean system without system Qt or VLC
+- [X] Build completes on Linux (Ubuntu 22.04/24.04) with cmake
+- [X] Application launches and displays ribbon UI
+- [X] Campaign creation and loading
+- [X] Battle map rendering (OpenGL)
+- [X] Character/monster sheet display
+- [X] VLC video playback
+- [X] Local audio file playback
+- [X] AppImage runs on clean system without system Qt or VLC
 - [ ] Windows and Mac CI builds remain green (no regressions)
-
-  git clone https://github.com/mountogdengc/DMHelper.git
-  cd DMHelper
-  git checkout feature/linux-port
-
-  cd DMHelper
-  git checkout featurelinux-port
-  chmod +x build-linux.sh
-  ./build-linux.sh
-  
-  It will:
-  1. Install all Qt6 and build dependencies via apt-get
-  2. Build the project with CMake in build-release/
-  3. Copy resources, docs, and bestiary files into the build directory
-
-  Once done, run the app with:
-  ./build-release/DMHelper

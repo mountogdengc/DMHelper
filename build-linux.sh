@@ -58,9 +58,33 @@ fi
 mkdir -p lib/vlc/plugins
 cp -r "$HOME/squashfs-root/usr/lib/vlc/plugins/"* lib/vlc/plugins/
 
+echo "=== Creating launcher script ==="
+cat > DMHelper.sh << 'LAUNCHER'
+#!/bin/bash
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export VLC_PLUGIN_PATH="${HERE}/lib/vlc/plugins"
+export LD_LIBRARY_PATH="${HOME}/Qt/6.6.0/gcc_64/lib:${HERE}/lib:${LD_LIBRARY_PATH}"
+exec "${HERE}/DMHelper" "$@"
+LAUNCHER
+chmod +x DMHelper.sh
+
+echo "=== Creating desktop entry ==="
+cat > DMHelper.desktop << DESKTOP
+[Desktop Entry]
+Type=Application
+Name=DMHelper
+GenericName=D&D Campaign Manager
+Comment=Dungeons & Dragons campaign management tool
+Exec=${REPO_ROOT}/build-release/DMHelper.sh
+Icon=${REPO_ROOT}/DMHelper/src/data/dmhelper.png
+Categories=Game;RolePlaying;
+Terminal=false
+StartupNotify=true
+DESKTOP
+
 echo ""
 echo "=== Build complete! ==="
 echo ""
 echo "Run with:"
-echo "  cd $REPO_ROOT/build-release"
-echo "  VLC_PLUGIN_PATH=./lib/vlc/plugins LD_LIBRARY_PATH=~/Qt/6.6.0/gcc_64/lib:./lib ./DMHelper"
+echo "  Double-click DMHelper.desktop, or:"
+echo "  cd $REPO_ROOT/build-release && ./DMHelper.sh"
