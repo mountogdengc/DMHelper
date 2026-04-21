@@ -1,25 +1,18 @@
 #!/bin/bash
 set -e
 
+REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
+VLC_SNAP_URL="https://artifacts.videolan.org/vlc/nightly-snap/20260420-0440/vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap"
+
 echo "=== Installing dependencies ==="
 sudo apt-get update
 sudo apt-get install -y \
-  qt6-base-dev \
-  qt6-multimedia-dev \
-  qt6-tools-dev \
-  qt6-tools-dev-tools \
-  qt6-l10n-tools \
-  qt6-image-formats-plugins \
-  libqt6opengl6-dev \
-  libqt6openglwidgets6 \
-  libqt6uitools6 \
-  libqt6networkauth6-dev \
   libgl1-mesa-dev \
+  libxkbcommon-dev \
   build-essential \
   cmake \
+  squashfs-tools \
   yt-dlp
-
-REPO_ROOT="$(cd "$(dirname "$0")" && git rev-parse --show-toplevel)"
 
 echo "=== Fixing VLC symlinks (git stores them as text files on Windows) ==="
 cd "$REPO_ROOT/DMHelper/src/vlclinux"
@@ -39,10 +32,9 @@ echo "=== Deploying resources ==="
 cd build-release
 cp -r "$REPO_ROOT/DMHelper/src/resources" .
 cp -r "$REPO_ROOT/DMHelper/src/doc" .
-# Bestiary files go in resources/ where getAbsoluteTemplateFile() looks
+mkdir -p resources
 cp "$REPO_ROOT/DMHelper/src/bestiary/"*.xml resources/
 
-# Deploy bundled VLC 4 libraries
 echo "=== Deploying VLC 4 libraries ==="
 mkdir -p lib
 cp "$REPO_ROOT/DMHelper/src/vlclinux/libvlc.so.12.0.0" lib/
@@ -54,17 +46,21 @@ ln -sf libvlccore.so.9.0.0 libvlccore.so.9
 ln -sf libvlccore.so.9.0.0 libvlccore.so
 cd ..
 
-# Deploy VLC 4 plugins from snap (if available)
-if [ -d "$HOME/squashfs-root/usr/lib/vlc/plugins" ]; then
-    echo "=== Deploying VLC 4 plugins from snap ==="
-    mkdir -p lib/vlc/plugins
-    cp -r "$HOME/squashfs-root/usr/lib/vlc/plugins/"* lib/vlc/plugins/
-else
-    echo "WARNING: VLC plugins not found. Download the VLC 4 snap and extract it:"
-    echo "  wget -q https://artifacts.videolan.org/vlc/nightly-snap/20260420-0440/vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap"
-    echo "  unsquashfs -q vlc_4.0.0-dev-36688-g3462acc0a9_amd64.snap"
-    echo "  Then re-run this script."
+echo "=== Deploying VLC 4 plugins ==="
+if [ ! -d "$HOME/squashfs-root/usr/lib/vlc/plugins" ]; then
+    echo "Downloading VLC 4 snap (one-time download)..."
+    cd "$HOME"
+    wget -q "$VLC_SNAP_URL"
+    unsquashfs -q *.snap
+    rm -f *.snap
+    cd "$REPO_ROOT/build-release"
 fi
+mkdir -p lib/vlc/plugins
+cp -r "$HOME/squashfs-root/usr/lib/vlc/plugins/"* lib/vlc/plugins/
 
+echo ""
 echo "=== Build complete! ==="
-echo "Run with: VLC_PLUGIN_PATH=$(pwd)/lib/vlc/plugins LD_LIBRARY_PATH=~/Qt/6.6.0/gcc_64/lib:$(pwd)/lib $(pwd)/DMHelper"
+echo ""
+echo "Run with:"
+echo "  cd $REPO_ROOT/build-release"
+echo "  VLC_PLUGIN_PATH=./lib/vlc/plugins LD_LIBRARY_PATH=~/Qt/6.6.0/gcc_64/lib:./lib ./DMHelper"
