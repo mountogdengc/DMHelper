@@ -111,18 +111,18 @@ jobs:
           --library AppDir/usr/lib/libvlc.so.12.0.0 \
           --library AppDir/usr/lib/libvlccore.so.9.0.0
 
-        # Copy VLC 4 plugins from snap (after linuxdeploy to avoid dependency scanning)
-        mkdir -p AppDir/usr/lib/vlc/plugins
-        cp -r squashfs-root/usr/lib/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
-
         # Replace linuxdeploy's AppRun with our custom one that sets VLC_PLUGIN_PATH
         cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
         chmod +x AppDir/AppRun
 
-        # Now produce the final AppImage
-        ./linuxdeploy-x86_64.AppImage \
-          --appdir AppDir \
-          --output appimage
+        # Copy VLC 4 plugins from snap AFTER linuxdeploy to avoid dependency scanning
+        mkdir -p AppDir/usr/lib/vlc/plugins
+        cp -r squashfs-root/usr/lib/vlc/plugins/* AppDir/usr/lib/vlc/plugins/
+
+        # Build the final AppImage using appimagetool (avoids linuxdeploy re-scanning)
+        wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        ./appimagetool-x86_64.AppImage AppDir DMHelper-x86_64.AppImage
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v4
