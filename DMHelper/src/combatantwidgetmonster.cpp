@@ -25,9 +25,9 @@ CombatantWidgetMonster::CombatantWidgetMonster(bool showDone, QWidget *parent) :
 
     CombatantWidgetMonster::setShowDone(showDone);
 
-    QValidator* valInit = new QIntValidator(-99, 99, this);
+    QValidator* valInit = new QIntValidator(-999999, 999999, this);
     ui->edtInit->setValidator(valInit);
-    QValidator* valHitPoints = new QIntValidator(-10, 9999, this);
+    QValidator* valHitPoints = new QIntValidator(-999999, 999999, this);
     ui->edtHP->setValidator(valHitPoints);
 }
 
@@ -61,7 +61,6 @@ void CombatantWidgetMonster::setInternals(CombatantWidgetInternalsMonster* inter
         connect(ui->chkKnown, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setKnown(bool)));
         connect(ui->chkVisible, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setShown(bool)));
         connect(ui->chkDone, SIGNAL(clicked(bool)), monsterCombatant, SLOT(setDone(bool)));
-        //connect(monsterCombatant, SIGNAL(combatantDoneChanged()), this, SLOT(updateData()));
         connect(monsterCombatant, &BattleDialogModelMonsterBase::combatantDoneChanged, this, &CombatantWidgetMonster::updateData);
 
         if(monsterCombatant->getCombatant())
@@ -242,7 +241,7 @@ void CombatantWidgetMonster::loadImage()
     {
         ui->lblIcon->resize(DMHelper::CHARACTER_ICON_WIDTH, DMHelper::CHARACTER_ICON_HEIGHT);
         QPixmap iconPixmap = _internals->getCombatant()->getIconPixmap(DMHelper::PixmapSize_Thumb);
-        if(_internals->getCombatant()->hasCondition(Combatant::Condition_Unconscious))
+        if(_internals->getCombatant()->hasConditionId(QStringLiteral("unconscious")))
         {
             QImage originalImage = iconPixmap.toImage();
             QImage grayscaleImage = originalImage.convertToFormat(QImage::Format_Grayscale8);

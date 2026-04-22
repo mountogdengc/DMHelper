@@ -45,6 +45,9 @@ void PublishGLFrame::cleanup()
 
     if(_renderer)
         _renderer->cleanupGL();
+
+    if(_overlayRenderer)
+        _overlayRenderer->cleanupGL();
 }
 
 void PublishGLFrame::updateWidget()
@@ -65,7 +68,7 @@ void PublishGLFrame::setRenderer(PublishGLRenderer* renderer)
         if(!renderer)
         {
             _showOverlays = false;
-            renderer = new PublishGLImageRenderer(nullptr, grab().toImage(), _renderer->getBackgroundColor());
+            renderer = new PublishGLImageRenderer(nullptr, grabFramebuffer(), _renderer->getBackgroundColor());
             _showOverlays = true;
         }
 

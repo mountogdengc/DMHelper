@@ -1,5 +1,6 @@
 #include "campaign.h"
 #include "characterv2.h"
+#include "conditions.h"
 #include "encounterfactory.h"
 #include "map.h"
 #include "party.h"
@@ -76,6 +77,7 @@ Campaign::Campaign(const QString& campaignName, QObject *parent) :
     _date(1, 1, 0),
     _time(0, 0),
     _notes(),
+    _lastMonster(),
     _fearCount(0),
     _ruleset(),
     _batchChanges(false),
@@ -107,6 +109,9 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
     if(!_ruleset.isInitialized())
         preloadRulesetXML(element, isImport);
 
+    // Set the active conditions from the ruleset
+    Conditions::setActiveConditions(_ruleset.getConditions());
+
     // Configure the campaign object factories based on the ruleset
     CampaignObjectFactory::configureFactories(_ruleset, majorVersion, minorVersion);
 
@@ -116,6 +121,8 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
     BasicDate inputDate(element.attribute("date", QString("")));
     setDate(inputDate);
     setTime(QTime::fromMSecsSinceStartOfDay(element.attribute("time", QString::number(0)).toInt()));
+
+    setLastMonster(element.attribute("lastMonster"));
 
     // TODO: Remove special case for Daggerheart and add campaign-specific data storage(?)
     _fearCount = element.attribute("fear", QString::number(0)).toInt();
@@ -133,20 +140,8 @@ void Campaign::inputXML(const QDomElement &element, bool isImport)
     // Load the overlays
     loadOverlayXML(element.firstChildElement(QString("overlays")));
 
-    // TODO: add back in some kind of object counting
-    // Sum up all the elements loaded. The +2 is for the campaign object itself and the notes object
-    //int totalElements = characters.count() + settings.count() + npcs.count() + adventures.count() + tracks.count() + encounterCount + mapCount + 2;
-
     qDebug() << "[Campaign] Loaded campaign """ << getName();
-    //qDebug() << "[Campaign] Loaded campaign """ << _name << """ containing " << totalElements << " elements";
-    //qDebug() << "           Date: " << _date.toStringDDMMYYYY() << ", Time: " << _time;
-    //qDebug() << "           Party: " << characters.count() << " characters";
-    //qDebug() << "           Settings: " << settings.count();
-    //qDebug() << "           NPCs: " << npcs.count();
-    //qDebug() << "           Adventures: " << adventures.count();
-    //qDebug() << "               Encounters: " << encounterCount;
-    //qDebug() << "               Maps: " << mapCount;
-    //qDebug() << "           Audio Tracks: " << tracks.count();
+
 
     validateCampaignIds();
 
@@ -419,6 +414,11 @@ QTime Campaign::getTime() const
     return _time;
 }
 
+QString Campaign::getLastMonster() const
+{
+    return _lastMonster;
+}
+
 int Campaign::getFearCount() const
 {
     return _fearCount;
@@ -503,6 +503,11 @@ void Campaign::addNote(const QString& note)
     emit dirty();
 }
 
+void Campaign::setLastMonster(const QString& monsterName)
+{
+    _lastMonster = monsterName;
+}
+
 void Campaign::setFearCount(int fearCount)
 {
     if((fearCount < 0) || (fearCount == _fearCount))
@@ -565,6 +570,10 @@ void Campaign::internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& 
     element.setAttribute("calendar", BasicDateServer::Instance() ? BasicDateServer::Instance()->getActiveCalendarName() : QString());
     element.setAttribute("date", getDate().toStringDDMMYYYY());
     element.setAttribute("time", getTime().msecsSinceStartOfDay());
+
+    if(!_lastMonster.isEmpty())
+        element.setAttribute("lastMonster", _lastMonster);
+
     if(_fearCount > 0)
         element.setAttribute("fear", _fearCount);
 

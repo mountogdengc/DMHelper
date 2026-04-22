@@ -16,6 +16,7 @@ MapSelectDialog::MapSelectDialog(Campaign& campaign, const QUuid& currentId, QWi
     _blankMap(nullptr)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_StyledBackground, true);
     connect(ui->lstMaps, &QTreeWidget::currentItemChanged, this, &MapSelectDialog::handleItemChanged);
     connect(ui->lstMaps, &QTreeWidget::itemDoubleClicked, this, &MapSelectDialog::accept);
     setupSelectTree(campaign, currentId);
@@ -52,7 +53,7 @@ Layer* MapSelectDialog::getBlankLayer() const
     if(!isBlankMap())
         return nullptr;
 
-    MapBlankDialog blankDlg;
+    MapBlankDialog blankDlg(const_cast<MapSelectDialog*>(this));
     int result = blankDlg.exec();
     if(result != QDialog::Accepted)
         return nullptr;

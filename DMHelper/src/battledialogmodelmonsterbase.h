@@ -4,6 +4,7 @@
 #include "battledialogmodelcombatant.h"
 #include "combatant.h"
 #include <QString>
+#include <QStringList>
 
 class MonsterClassv2;
 
@@ -35,8 +36,8 @@ public:
     virtual void setMonsterName(const QString& monsterName) = 0;
 
     virtual int getSkillModifier(Combatant::Skills skill) const override;
-    virtual int getConditions() const override;
-    virtual bool hasCondition(Combatant::Condition condition) const override;
+    virtual QStringList getConditionList() const override;
+    virtual bool hasConditionId(const QString& conditionId) const override;
 
     virtual int getLegendaryCount() const;
 
@@ -45,9 +46,9 @@ signals:
     void imageChanged(BattleDialogModelMonsterBase* monsterBase);
 
 public slots:
-    virtual void setConditions(int conditions) override;
-    virtual void applyConditions(int conditions) override;
-    virtual void removeConditions(int conditions) override;
+    virtual void setConditionList(const QStringList& conditions) override;
+    virtual void addConditionId(const QString& conditionId) override;
+    virtual void removeConditionId(const QString& conditionId) override;
     virtual void clearConditions() override;
     virtual void setLegendaryCount(int legendaryCount);
 
@@ -56,7 +57,7 @@ protected:
     virtual void internalOutputXML(QDomDocument &doc, QDomElement &element, QDir& targetDirectory, bool isExport) override;
 
     int _legendaryCount;
-    int _conditions;
+    QStringList _conditionList;
 };
 
 #endif // BATTLEDIALOGMODELMONSTERBASE_H

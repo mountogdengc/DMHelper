@@ -400,6 +400,11 @@ void EncounterTextEdit::setTextWidth(int textWidth)
         _encounter->setTextWidth(textWidth);
 }
 
+void EncounterTextEdit::toggleCheckbox()
+{
+    _formatter->toggleCheckbox();
+}
+
 void EncounterTextEdit::setAnimated(bool animated)
 {
     if(!_encounter)

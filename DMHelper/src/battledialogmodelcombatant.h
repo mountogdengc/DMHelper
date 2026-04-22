@@ -5,6 +5,7 @@
 #include "scaledpixmap.h"
 #include "combatant.h"
 #include <QPoint>
+#include <QUuid>
 
 
 class BattleDialogModelCombatant : public BattleDialogModelObject
@@ -37,6 +38,9 @@ public:
     int getSortPosition() const;
     void setSortPosition(int sortPosition);
 
+    QUuid getGroupId() const;
+    void setGroupId(const QUuid& groupId);
+
     virtual qreal getSizeFactor() const = 0;
     virtual int getSizeCategory() const = 0;    
 
@@ -50,8 +54,8 @@ public:
     virtual int getCharisma() const = 0;
     virtual int getAbilityValue(Combatant::Ability ability) const;
     virtual int getSkillModifier(Combatant::Skills skill) const = 0;
-    virtual int getConditions() const = 0;
-    virtual bool hasCondition(Combatant::Condition condition) const = 0;
+    virtual QStringList getConditionList() const = 0;
+    virtual bool hasConditionId(const QString& conditionId) const = 0;
 
     virtual int getSpeed() const = 0;
     virtual int getArmorClass() const = 0;
@@ -69,9 +73,9 @@ public slots:
     virtual void setKnown(bool isKnown);
     virtual void setSelected(bool isSelected) override;
     virtual void setDone(bool isDone);
-    virtual void setConditions(int conditions) = 0;
-    virtual void applyConditions(int conditions) = 0;
-    virtual void removeConditions(int conditions) = 0;
+    virtual void setConditionList(const QStringList& conditions) = 0;
+    virtual void addConditionId(const QString& conditionId) = 0;
+    virtual void removeConditionId(const QString& conditionId) = 0;
     virtual void clearConditions() = 0;
 
 signals:
@@ -94,6 +98,7 @@ protected:
     Combatant* _combatant;
     int _initiative;
     int _sortPosition;
+    QUuid _groupId;
     qreal _moved;
     bool _isShown;
     bool _isKnown;

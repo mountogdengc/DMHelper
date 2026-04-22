@@ -29,7 +29,6 @@ public:
     QString getTablesDirectory() const;
     QString getDefaultRulesetFileName();
     QString getUserRulesetFileName() const;
-    QString getLastMonster() const;
     QString getLastSpell() const;
     QString getLastRuleset() const;
     bool getShowAnimations() const;
@@ -70,6 +69,8 @@ public:
     QString getInstanceUuidStr();
     QDate getLastUpdateCheck() const;
     QString getHeroForgeToken() const;
+    QString getLastMapDirectory() const;
+    QStringList getMapDirectories() const;
 
     // Token search settings
     QString getTokenSearchString() const;
@@ -137,6 +138,7 @@ signals:
 
     // Data settings
     void heroForgeTokenChanged(const QString& token);
+    void mapDirectoriesChanged(const QStringList& directories);
 
     // Token search settings
     void tokenSearchStringChanged(const QString& tokenSearchString);
@@ -187,7 +189,10 @@ public slots:
     void backupFile(const QString& filename, const QString& overrideFilename = QString());
     void resetFileSettings();
 
-    void setLastMonster(const QString& lastMonster);
+    static QString getAppFile(const QString& filename);
+    static QStringList getExpectedAppResources();
+    static QStringList getExpectedAppDirectories();
+
     void setLastSpell(const QString& lastSpell);
     void setLastRuleset(const QString& lastRuleset);
     void setShowAnimations(bool showAnimations);
@@ -227,6 +232,10 @@ public slots:
     void setStatisticsAccepted(bool statisticsAccepted);
     void setLastUpdateDate(const QDate& date);
     void setHeroForgeToken(const QString& token);
+    void setLastMapDirectory(const QString& mapDirectory);
+    void setMapDirectories(const QStringList& directories);
+    void addMapDirectory(const QString& directory);
+    void removeMapDirectory(const QString& directory);
 
     // Token search settings
     void setTokenSearchString(const QString& tokenSearchString);
@@ -258,14 +267,12 @@ private:
     void copy(OptionsContainer* other);
     QMainWindow* getMainWindow();
     void cleanupLegacy(OptionsAccessor& settings);
-    QString getAppFile(const QString& filename);
 
     bool _loading;
 
     // General settings
     QString _bestiaryFileName;
     QString _spellbookFileName;
-    QString _lastMonster;
     QString _lastSpell;
     QString _lastRuleset;
     QString _quickReferenceFileName;
@@ -312,6 +319,8 @@ private:
     QUuid _instanceUuid;
     QDate _lastUpdateDate;
     QString _heroForgeToken;
+    QString _lastMapDirectory;
+    QStringList _mapDirectories;
 
     // Token search settings
     QString _tokenSearchString;

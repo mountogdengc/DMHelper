@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-class BattleDialogModelCombatant;
+#include "battledialogmodelcombatant.h"
 class QHBoxLayout;
 class QLabel;
 class QLineEdit;
@@ -27,6 +27,8 @@ public:
     virtual void setShowDone(bool showDone) = 0;
 
     virtual void disconnectInternals() = 0;
+
+    void installEventFilterRecursive(QObject* filterObj);
 
 signals:
 
