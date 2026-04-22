@@ -68,23 +68,8 @@ exec "${HERE}/DMHelper" "$@"
 LAUNCHER
 chmod +x DMHelper.sh
 
-echo "=== Creating desktop entry ==="
-cat > DMHelper.desktop << DESKTOP
-[Desktop Entry]
-Type=Application
-Name=DMHelper
-GenericName=D&D Campaign Manager
-Comment=Dungeons & Dragons campaign management tool
-Exec=${REPO_ROOT}/build-release/DMHelper.sh
-Icon=${REPO_ROOT}/DMHelper/src/data/dmhelper.png
-Categories=Game;RolePlaying;
-Terminal=false
-StartupNotify=true
-DESKTOP
-
 echo ""
 echo "=== Build complete! ==="
 echo ""
 echo "Run with:"
-echo "  Double-click DMHelper.desktop, or:"
 echo "  cd $REPO_ROOT/build-release && ./DMHelper.sh"
