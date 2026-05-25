@@ -112,6 +112,9 @@ jobs:
           --library AppDir/usr/lib/libvlccore.so.9.0.0
 
         # Replace linuxdeploy's AppRun with our custom one that sets VLC_PLUGIN_PATH
+        # rm first: linuxdeploy may create AppRun as a symlink, and cp would
+        # follow it, placing our script inside usr/bin/ instead of the root.
+        rm -f AppDir/AppRun
         cp DMHelper/src/data/linux/AppRun.sh AppDir/AppRun
         chmod +x AppDir/AppRun
 
