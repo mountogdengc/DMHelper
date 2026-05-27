@@ -77,7 +77,7 @@ jobs:
 
         # Copy resources, bestiary, and doc directories
         cp -r DMHelper/src/resources AppDir/usr/bin/resources
-        cp -r DMHelper/src/bestiary AppDir/usr/bin/bestiary
+        cp DMHelper/src/bestiary/*.xml AppDir/usr/bin/resources/
         cp -r DMHelper/src/doc AppDir/usr/bin/doc
 
         # Copy VLC 4 libraries from snap (plugins added after linuxdeploy)
