@@ -96,3 +96,5 @@ DMHelper/DMHelper 32-bit release Installer.exe
 DMHelper/DMHelper 32-bit release.zip
 build-64_bit-release
 linux-test-notes.md
+
+*.AppImage
